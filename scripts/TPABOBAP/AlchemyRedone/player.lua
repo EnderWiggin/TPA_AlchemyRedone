@@ -9,12 +9,15 @@ local T = require("openmw.types")
 local I = require('openmw.interfaces')
 local H = require('scripts.UIToolkit.helpers')
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
+local IngredientWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.ingredient_window')
 
 
 local m = {}
 
 ---@type AlchemyWindow?
-local wnd
+local wndAlchemy
+---@type IngredientWindow?
+local wndIngredient
 local ctx = nil
 
 m.onOpenAlchemy = function(data)
@@ -26,20 +29,30 @@ end
 m.openWindow = function()
     print('openWindow')
     m.closeWindow()
-    wnd = AlchemyWindow:new()
+    wndAlchemy = AlchemyWindow:new()
+    wndIngredient = IngredientWindow:new()
 
     if not ctx then
         ctx = {}
         core.sendGlobalEvent('TPA_AlchemyRedone_CollectInfo', { cellId = player.cell.id })
     end
-    wnd:init(ctx)
+
+    wndAlchemy:init(ctx)
+    wndIngredient:init(ctx)
 end
 
 m.closeWindow = function()
-    if not wnd then return end
-    wnd:destroy()
-    wnd = nil
-    ctx = nil
+    if wndAlchemy then
+        wndAlchemy:destroy()
+        wndAlchemy = nil
+        ctx = nil
+    end
+
+    if wndIngredient then
+        wndIngredient:destroy()
+        wndIngredient = nil
+        ctx = nil
+    end
 end
 
 ---@param evt openmw.input.KeyboardEvent
@@ -51,12 +64,10 @@ local function onKeyRelease(evt)
 end
 
 local function openWindow()
-    print('OPEN')
     m.openWindow()
 end
 
 local function closeWindow()
-    print('CLOSE')
     m.closeWindow()
 end
 
