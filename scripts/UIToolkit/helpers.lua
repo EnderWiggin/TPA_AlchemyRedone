@@ -158,6 +158,18 @@ Helpers.findInLayout = function(layoutOrElement, predicate)
     return nil
 end
 
+---@param layoutOrElement openmw.ui.Element|openmw.ui.Layout
+---@param path string[]|number[]
+---@return openmw.ui.Layout
+Helpers.findByPath = function(layoutOrElement, path)
+    local isElement = type(layoutOrElement) == 'userdata'
+    local layout = isElement and layoutOrElement.layout or layoutOrElement
+    for i = 1, #path do
+        layout = layout.content[path[i]]
+    end
+    return layout
+end
+
 -- Checks if two tables contain the same elements (ignoring order)
 Helpers.tableEquals = function(t1, t2)
     if (type(t1) ~= "table" and type(t1) ~= "userdata") or (type(t2) ~= "table" and type(t2) ~= "userdata") then
