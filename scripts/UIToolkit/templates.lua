@@ -620,7 +620,10 @@ local dragTypePointers = {
     [constants.DragType.Move] = 'arrow',
 }
 
-local function makeDraggable(borderTemplate, onDragTypeChanged)
+---@param borderTemplate openmw.ui.Layout
+---@param onDragTypeChanged fun(dragType: string?)?
+---@param noResize boolean?
+local function makeDraggable(borderTemplate, onDragTypeChanged, noResize)
     local template = auxUi.deepLayoutCopy(borderTemplate)
     ---@type openmw.ui.Content
     local content = template.content
@@ -628,14 +631,15 @@ local function makeDraggable(borderTemplate, onDragTypeChanged)
     local function setDragType(index)
         local borderPiece = content[index]
         if borderPiece.userData and borderPiece.userData.dragType then
-            borderPiece.props.pointer = dragTypePointers[borderPiece.userData.dragType] or 'arrow'
+            local dragType = noResize and constants.DragType.Move or borderPiece.userData.dragType
+            borderPiece.props.pointer = dragTypePointers[dragType] or 'arrow'
             borderPiece.events = {
-                focusGain = async:callback(function(e, layout)
+                focusGain = async:callback(function()
                     if onDragTypeChanged then
-                        onDragTypeChanged(layout.userData.dragType)
+                        onDragTypeChanged(dragType)
                     end
                 end),
-                focusLoss = async:callback(function(e, layout)
+                focusLoss = async:callback(function()
                     if onDragTypeChanged then
                         onDragTypeChanged(nil)
                     end
@@ -651,7 +655,7 @@ local function makeDraggable(borderTemplate, onDragTypeChanged)
     return template
 end
 
----@alias WindowOpts {pinned: boolean?, draggable:boolean?, onDrag:function?}
+---@alias WindowOpts {pinned: boolean?, draggable:boolean?, onDrag:function?, noResize: boolean?}
 
 ---@param title string
 ---@param content openmw.ui.Content
@@ -660,6 +664,7 @@ end
 Templates.window = function(title, content, ctx, opts)
     local pinned = opts and opts.pinned
     local draggable = opts and opts.draggable
+    local noResize = opts and opts.noResize
     local onDrag = opts and opts.onDrag
 
     ---@type openmw.ui.Template|openmw.ui.Layout
@@ -668,7 +673,7 @@ Templates.window = function(title, content, ctx, opts)
     if draggable then
         baseTemplate = makeDraggable(Templates.bordersDraggableThick, function(dragType)
             userData.dragType = dragType
-        end)
+        end, noResize)
     end
     local window = {
         layer = 'Windows',
