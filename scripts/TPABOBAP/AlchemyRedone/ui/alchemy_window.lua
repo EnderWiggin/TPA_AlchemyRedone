@@ -7,7 +7,7 @@ local types = require("openmw.types")
 local async = require('openmw.async')
 
 local I = require("openmw.interfaces")
-local T = require("scripts.UIToolkit.templates")
+local T = require("scripts.UIToolkit.templates.base")
 local C = require("scripts.UIToolkit.constants")
 local H = require("scripts.UIToolkit.helpers")
 
@@ -46,8 +46,10 @@ end
 
 updateSizes()
 
-function AlchemyWindow:init(data)
-    self.data = data
+---@param ctx AlchemyContext
+function AlchemyWindow:init(ctx)
+    self:setContext(ctx)
+    self.data = ctx.data
     local content = ui.content {
         {
             name = 'main',
@@ -183,7 +185,7 @@ parts.naming = function()
         type = ui.TYPE.Flex,
         props = {
             horizontal = true,
-            gap = 10, --TODO: this is not in 0.51, hope for 0.52
+            --gap = 10, --TODO: this is not in 0.51, hope for 0.52
             arrange = ui.ALIGNMENT.Center,
         },
         content = ui.content {

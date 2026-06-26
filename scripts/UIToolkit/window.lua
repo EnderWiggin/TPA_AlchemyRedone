@@ -8,17 +8,24 @@ local H = require("scripts.UIToolkit.helpers")
 
 local v2 = util.vector2
 
+
+---@class WindowContext
+---@field updateQueue table<openmw.ui.Element, boolean>
+
 ---@class Window
 ---@field protected element openmw.ui.Element?
----@field protected ctx table
-local Window = {
-    ctx = {},
-}
+---@field protected ctx WindowContext
+local Window = {}
 
 function Window:new()
     local o = setmetatable({}, self)
     self.__index = self
     return o
+end
+
+---@param ctx WindowContext
+function Window:setContext(ctx)
+    self.ctx = ctx
 end
 
 function Window:update(deep)
