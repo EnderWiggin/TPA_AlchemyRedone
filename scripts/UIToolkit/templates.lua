@@ -127,6 +127,8 @@ local headerSection = {
     }
 }
 
+---@param size number
+---@return openmw.ui.Layout
 Templates.padding = function(size)
     size = util.vector2(1, 1) * size
     return {
@@ -758,8 +760,8 @@ Templates.window = function(title, content, ctx, opts)
     window = ui.create(window)
 
     if draggable then
-        local minWidth = 200
-        local minHeight = 60
+        local minWidth = ctx.minWidth or 200
+        local minHeight = ctx.minHeight or 60
         userData.dragging = false
         userData.dragStartAbs = nil
         userData.dragStartSize = nil
