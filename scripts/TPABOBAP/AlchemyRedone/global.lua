@@ -9,19 +9,26 @@ local H = require("scripts.UIToolkit.helpers")
 local m = {}
 
 ---@param object GameObject
----@param actor GObject
+---@param actor openmw.GObject
 m.activateApparatus = function(object, actor)
     print('activateApparatus', object, actor)
     --TODO: search for apparatus in containers too? need to check container ownership in that case
-    actor:sendEvent('TPA_AlchemyRedone_Open', { apparatus = m.collectApparatus(actor.cell:getAll(T.Apparatus)) })
+    if actor.type == T.Player then
+        local apparatus = m.collectApparatus(
+            actor.cell:getAll(T.Apparatus),
+            T.Player.inventory(actor):getAll(T.Apparatus)
+        )
+        actor:sendEvent('TPA_AlchemyRedone_Open', { apparatus = apparatus })
+    end
     return false
 end
 
 ---@alias LocalApparatusIds {Mortar: string?, Alembic: string?, Calcinator: string?, Retort: string?}
 
----@param objectList ObjectList
+---@param ... ObjectList
 ---@return LocalApparatusIds
-m.collectApparatus = function(objectList)
+m.collectApparatus = function(...)
+    local lists = { ... }
     ---@type LocalApparatusIds
     local result = {}
 
@@ -30,29 +37,32 @@ m.collectApparatus = function(objectList)
     local qMortar = 0
     local qRetort = 0
 
-    for i = 1, #objectList do
-        ---@type GameObject
-        local apparatus = objectList[i]
-        local recordId = apparatus.recordId
-        local record = T.Apparatus.record(recordId)
-        if record and m.isAllowed(apparatus) then
-            local quality = record.quality
-            local type = record.type
-            if (type == T.Apparatus.TYPE.Alembic and quality > qAlembic) then
-                result.Alembic = recordId
-                qAlembic = quality
-            end
-            if (type == T.Apparatus.TYPE.Calcinator and quality > qCalcinator) then
-                result.Calcinator = recordId
-                qCalcinator = quality
-            end
-            if (type == T.Apparatus.TYPE.MortarPestle and quality > qMortar) then
-                result.Mortar = recordId
-                qMortar = quality
-            end
-            if (type == T.Apparatus.TYPE.Retort and quality > qRetort) then
-                result.Retort = recordId
-                qRetort = quality
+    for j = 1, #lists do
+        local objectList = lists[j]
+        for i = 1, #objectList do
+            ---@type GameObject
+            local apparatus = objectList[i]
+            local recordId = apparatus.recordId
+            local record = T.Apparatus.record(recordId)
+            if record and m.isAllowed(apparatus) then
+                local quality = record.quality
+                local type = record.type
+                if (type == T.Apparatus.TYPE.Alembic and quality > qAlembic) then
+                    result.Alembic = recordId
+                    qAlembic = quality
+                end
+                if (type == T.Apparatus.TYPE.Calcinator and quality > qCalcinator) then
+                    result.Calcinator = recordId
+                    qCalcinator = quality
+                end
+                if (type == T.Apparatus.TYPE.MortarPestle and quality > qMortar) then
+                    result.Mortar = recordId
+                    qMortar = quality
+                end
+                if (type == T.Apparatus.TYPE.Retort and quality > qRetort) then
+                    result.Retort = recordId
+                    qRetort = quality
+                end
             end
         end
     end
