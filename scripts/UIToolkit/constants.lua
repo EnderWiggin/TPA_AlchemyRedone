@@ -143,6 +143,13 @@ C.Strings = {
     CONTAINER_ORGANIC = 'sContentsMessage2',
     THATS_MINE = 'sNotifyMessage49',
     PROFIT_VALUE = 'sProfitValue',
+    EFFECTS = 'sEffects',
+    INGREDIENTS = 'sIngredients',
+    APPARATUS = 'sApparatus',
+    MORTAR = 'sMortar',
+    CALCINATOR = 'sCalcinator',
+    ALEMBIC = 'sAlembic',
+    RETORT = 'sRetort',
 }
 for key, gmst in pairs(C.Strings) do
     C.Strings[key] = core.getGMST(gmst)
