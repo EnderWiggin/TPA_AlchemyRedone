@@ -15,11 +15,8 @@ local Window = {
     ctx = {},
 }
 
----@function
----@param o? Window
-function Window:new(o)
-    o = o or {}
-    setmetatable(o, self)
+function Window:new()
+    local o = setmetatable({}, self)
     self.__index = self
     return o
 end
@@ -31,6 +28,43 @@ function Window:update(deep)
     else
         self.element:update()
     end
+end
+
+function Window:isVisible()
+    if not self.element then return false end
+
+    return self.element.layout.props.visible
+end
+
+function Window:setVisible(visible)
+    if not self.element then return end
+
+    self.element.layout.props.visible = visible
+    self:update()
+end
+
+function Window:isPinnable()
+    if not self.element then return false end
+
+    return self.element.layout.userData.pinnable
+end
+
+function Window:isPinned()
+    if not self.element then return false end
+
+    return self.element.layout.userData.pinned
+end
+
+function Window:isFocused()
+    if not self.element then return false end
+
+    return self.element.layout.userData.focused
+end
+
+function Window:setFocused(focused)
+    if not self.element then return end
+
+    self.element.layout.userData.focused = focused
 end
 
 function Window:getDimensions()
@@ -57,6 +91,11 @@ function Window:setDimensions(dimensions)
     self.element.layout.props.size = v2(dimensions.w * layerSize.x, dimensions.h * layerSize.y)
     self:update()
 end
+
+-- Stub methods to be overridden
+function Window:saveState() end
+
+function Window:loadState() end
 
 function Window:destroy()
     auxUi.deepDestroy(self.element)

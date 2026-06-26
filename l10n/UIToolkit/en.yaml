@@ -1,0 +1,75 @@
+# Category
+Category_Favorites: Favorites
+Category_All: All
+Category_Weapon: Weapons
+Category_Armor: Armor
+Category_Clothing: Clothing
+Category_Potion: Consumables
+Category_Ingredient: Ingredients
+Category_Scroll: Scrolls
+Category_Book: Books
+Category_Key: Keys
+Category_Tool: Tools
+Category_Misc: Misc.
+
+# Armor
+Type_Boots: Boots
+Type_Cuirass: Cuirass
+Type_Greaves: Greaves
+Type_Helmet: Helmet
+Type_LBracer: Bracer L.
+Type_LGauntlet: Gauntlet L.
+Type_LPauldron: Pauldron L.
+Type_RBracer: Bracer R.
+Type_RGauntlet: Gauntlet R.
+Type_RPauldron: Pauldron R.
+Type_Shield: Shield
+Class_Light: Lgt.
+Class_Medium: Med.
+Class_Heavy: Hvy.
+
+# Clothing
+Type_Amulet: Amulet
+Type_Belt: Belt
+Type_LGlove: Glove
+Type_Pants: Pants
+Type_RGlove: Glove
+Type_Ring: Ring
+Type_Robe: Robe
+Type_Shirt: Shirt
+Type_Shoes: Shoes
+Type_Skirt: Skirt
+
+# Weapon
+Type_Arrow: Arrow
+Type_AxeOneHand: Axe
+Type_AxeTwoHand: Axe
+Type_BluntOneHand: Blunt
+Type_BluntTwoClose: Blunt
+Type_BluntTwoWide: Blunt
+Type_Bolt: Bolt
+Type_LongBladeOneHand: L. Blade
+Type_LongBladeTwoHand: L. Blade
+Type_MarksmanBow: Bow
+Type_MarksmanCrossbow: Crossbow
+Type_MarksmanThrown: Thrown
+Type_ShortBladeOneHand: S. Blade
+Type_SpearTwoWide: Spear
+
+# Tools
+Type_Alembic: Alembic
+Type_Calcinator: Calcinator
+Type_MortarPestle: Mortar
+Type_Retort: Retort
+Type_Lockpick: Lockpick
+Type_Probe: Probe
+Type_RepairTool: Repair
+Type_Light: Light
+
+# Other
+Type_Consumable: Consumable
+Type_Ingredient: Ingredient
+Type_Scroll: Scroll
+Type_Book: Book
+Type_Key: Key
+Type_Misc: Misc.
