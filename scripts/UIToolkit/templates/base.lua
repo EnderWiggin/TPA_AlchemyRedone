@@ -520,11 +520,11 @@ Templates.button = function(text, onClick, name, bgrAlpha)
     local element = ui.create(base)
     if not onClick then return element end
     element.layout.events.focusGain = async:callback(function()
-        element.layout.content[1].props.textColor = constants.Colors.DEFAULT_LIGHT
+        element.layout.content[1].content[2].props.textColor = constants.Colors.DEFAULT_LIGHT
         element:update()
     end)
     element.layout.events.focusLoss = async:callback(function()
-        element.layout.content[1].props.textColor = constants.Colors.DEFAULT
+        element.layout.content[1].content[2].props.textColor = constants.Colors.DEFAULT
         element:update()
     end)
     element.layout.events.mousePress = async:callback(function()
