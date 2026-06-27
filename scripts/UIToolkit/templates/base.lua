@@ -46,6 +46,12 @@ Templates.createTexture = function(path, size, offset)
     end
 end
 
+Templates.effectIconTexture = function(effectId)
+    local effectRecord = core.magic.effects.records[effectId] or
+        (I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectId))
+    return effectRecord and Templates.createTexture(effectRecord.icon)
+end
+
 local headerTextures = {
     [1] = Templates.createTexture('textures/menu_head_block_top_left_corner.dds'),
     [2] = Templates.createTexture('textures/menu_head_block_top.dds'),

@@ -119,7 +119,7 @@ function AlchemyWindow:update(deep)
                 icon = H.findByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
                 if #effects >= i then
                     --TODO: account for unknown effects
-                    icon.props.resource = T.createTexture(core.magic.effects.records[effects[i].id].icon)
+                    icon.props.resource = T.effectIconTexture(effects[i].id)
                     icon.props.alpha = i == 1 and 1 or 0.5 --TODO: decide alpha based on active affects of a potion
                 else
                     icon.props.resource = nil

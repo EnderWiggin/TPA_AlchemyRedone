@@ -83,7 +83,7 @@ local function renderEffects(ingredient, width, height)
                 name = 'effect_' .. i,
                 type = ui.TYPE.Image,
                 props = {
-                    resource = T.createTexture(core.magic.effects.records[effects[i].id].icon),
+                    resource = T.effectIconTexture(effects[i].id),
                     anchor = v2(0, 0.5),
                     relativePosition = v2(0, 0.5),
                     position = v2((sz + 3) * (i - 1), 0),
