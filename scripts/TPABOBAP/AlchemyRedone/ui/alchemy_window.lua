@@ -8,6 +8,7 @@ local async = require('openmw.async')
 
 local I = require("openmw.interfaces")
 local T = require("scripts.UIToolkit.templates.base")
+local S = require("scripts.UIToolkit.templates.special")
 local C = require("scripts.UIToolkit.constants")
 local H = require("scripts.UIToolkit.helpers")
 
@@ -19,6 +20,7 @@ local v2 = util.vector2
 local ApparatusTypes = types.Apparatus.TYPE
 
 ---@class AlchemyWindow: Window
+---@field protected ctx AlchemyContext
 ---@field private data table?
 local AlchemyWindow = Window:new()
 
@@ -68,7 +70,9 @@ function AlchemyWindow:init(ctx)
                         T.intervalV(15),
                         parts.tools(),
                         T.intervalV(15),
-                        parts.selected(),
+                        parts.selected(ctx, function(n)
+                            self:onIngredientClicked(n)
+                        end),
                     }
                 },
             }
@@ -83,18 +87,18 @@ end
 function AlchemyWindow:update(deep)
     if not self.element then return end
     updateSizes()
-    local main = H.findByPath(self.element, { 'foreground', 'body', 'main' })
+    local main = H.findLayoutByPath(self.element, { 'foreground', 'body', 'main' })
 
-    local tools = H.findByPath(main, { 'left', 'tools-box', 'padding', 'tools' })
+    local tools = H.findLayoutByPath(main, { 'left', 'tools-box', 'padding', 'tools' })
     local function updateTool(name, type)
         local record = self:getToolRecord(type)
-        local layout = H.findByPath(tools, { 'name', name })
+        local layout = H.findLayoutByPath(tools, { 'name', name })
         layout.props.text = record and record.name or C.Strings.NONE
 
-        layout = H.findByPath(tools, { 'quality', name })
+        layout = H.findLayoutByPath(tools, { 'quality', name })
         layout.props.text = record and 'x' .. record.quality or ''
 
-        layout = H.findByPath(tools, { 'icon', name })
+        layout = H.findLayoutByPath(tools, { 'icon', name })
         layout.props.resource = record and T.createTexture(record.icon)
     end
 
@@ -103,12 +107,12 @@ function AlchemyWindow:update(deep)
     updateTool(C.Strings.CALCINATOR, ApparatusTypes.Calcinator)
     updateTool(C.Strings.RETORT, ApparatusTypes.Retort)
 
-    local selected = H.findByPath(main, { 'left', 'selected-box', 'padding', 'selected' })
+    local selected = H.findLayoutByPath(main, { 'left', 'selected-box', 'padding', 'selected' })
     local function updateSelected(n)
         local record, amount = self:getSelectedIngredientRecord(n)
-        local name = H.findByPath(selected, { 'name', Slots[n] })
-        local icon = H.findByPath(selected, { 'icon', Slots[n] })
-        local count = H.findByPath(selected, { 'count', Slots[n] })
+        local name = H.findLayoutByPath(selected, { 'name', Slots[n] })
+        local icon = H.findLayoutByPath(selected, { 'icon', Slots[n] })
+        local count = H.findLayoutByPath(selected, { 'count', Slots[n] })
 
         if record and amount > 0 then
             local effects = record.effects
@@ -116,7 +120,7 @@ function AlchemyWindow:update(deep)
             icon.props.resource = T.createTexture(record.icon)
             count.props.text = H.addSeparators(amount)
             for i = 1, 4 do
-                icon = H.findByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
+                icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
                 if #effects >= i then
                     --TODO: account for unknown effects
                     icon.props.resource = T.effectIconTexture(effects[i].id)
@@ -131,7 +135,7 @@ function AlchemyWindow:update(deep)
             count.props.text = ''
 
             for i = 1, 4 do
-                icon = H.findByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
+                icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
                 icon.props.resource = nil
             end
         end
@@ -164,14 +168,47 @@ end
 ---@param n number
 ---@return openmw.types.IngredientRecord?, number
 function AlchemyWindow:getSelectedIngredientRecord(n)
-    --TODO: get actual selected ingredients from data
-    if n == 1 then
-        return types.Ingredient.records['ingred_wickwheat_01'], 10
-    end
-    if n == 2 then
-        return types.Ingredient.records['ingred_marshmerrow_01'], 100
+    if self.data and self.data.selected then
+        local info = self.data.selected[n]
+        if info then
+            return types.Ingredient.records[info.id], info.count
+        end
     end
     return nil, 0
+end
+
+function AlchemyWindow:onIngredientClicked(n)
+    if self.data and self.data.selected then
+        self.data.selected[n] = nil
+        self:update()
+        self.ctx.updateIngredients(true)
+    end
+end
+
+function AlchemyWindow:onSelectIngredient(info)
+    if not self.data then self.data = {} end
+    if not self.data.selected then self.data.selected = {} end
+
+    --Try to remove already selected ingredient
+    for i = 1, 4 do
+        local item = self.data.selected[i]
+        if item and item.id == info.id then
+            self.data.selected[i] = nil
+            self:update(true)
+            return true
+        end
+    end
+
+    --Try to add newly selected ingredient
+    for i = 1, 4 do
+        if not self.data.selected[i] then
+            self.data.selected[i] = info
+            self:update(true)
+            return true
+        end
+    end
+
+    return false
 end
 
 function AlchemyWindow:destroy()
@@ -331,7 +368,7 @@ parts.tools = function()
     }
 end
 
-parts.selected = function()
+parts.selected = function(ctx, onClick)
     return {
         name = 'selected-box',
         template = T.boxSolid,
@@ -396,13 +433,13 @@ parts.selected = function()
                                 },
                                 content = ui.content {
                                     T.intervalV(GAP_END),
-                                    parts.namedHeader(Slots[1]),
+                                    parts.namedHeader(Slots[1], ctx, function() onClick(1) end),
                                     T.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[2]),
+                                    parts.namedHeader(Slots[2], ctx, function() onClick(2) end),
                                     T.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[3]),
+                                    parts.namedHeader(Slots[3], ctx, function() onClick(3) end),
                                     T.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[4]),
+                                    parts.namedHeader(Slots[4], ctx, function() onClick(4) end),
                                     T.intervalV(GAP_END),
                                 }
                             },
@@ -444,14 +481,19 @@ parts.namedTitle = function(name)
     }
 end
 
-parts.namedHeader = function(name)
-    return {
+parts.namedHeader = function(name, ctx, onClick)
+    local layout = {
         name     = name,
         template = T.textHeader,
         props    = {
             text = '',
         },
     }
+    if not ctx then return layout end
+
+    return S.interactive({
+        onClick = onClick,
+    }, layout, ctx)
 end
 
 parts.namedText = function(name)

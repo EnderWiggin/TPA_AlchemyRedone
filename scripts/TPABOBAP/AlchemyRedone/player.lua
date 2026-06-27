@@ -12,22 +12,26 @@ local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window'
 local IngredientWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.ingredient_window')
 
 
-local m = {}
+local m = {
+    ---@type AlchemyWindow?
+    wndAlchemy = nil,
+    ---@type IngredientWindow?
+    wndIngredient = nil,
+}
 
 ---@class AlchemyContext: WindowContext
 ---@field data {apparatus: LocalApparatusIds}?
+---@field selectIngredient fun(info: IngredientInfo)
+---@field updateIngredients fun(deep: boolean)
 
 ---@type AlchemyContext
 local ctx = {
     updateQueue = {},
     focusedScrollable = nil,
     data = nil,
+    selectIngredient = function(info) m.selectIngredient(info) end,
+    updateIngredients = function(deep) m.updateWnd(m.wndIngredient, deep) end,
 }
-
----@type AlchemyWindow?
-local wndAlchemy
----@type IngredientWindow?
-local wndIngredient
 
 m.onOpenAlchemy = function(data)
     ctx.data = data
@@ -36,30 +40,42 @@ end
 
 m.openWindow = function()
     m.closeWindow()
-    wndAlchemy = AlchemyWindow:new()
-    wndIngredient = IngredientWindow:new()
+    m.wndAlchemy = AlchemyWindow:new()
+    m.wndIngredient = IngredientWindow:new()
 
     if not ctx.data then
         ctx.data = {}
         core.sendGlobalEvent('TPA_AlchemyRedone_CollectInfo', { cellId = player.cell.id })
     end
 
-    wndAlchemy:init(ctx)
-    wndIngredient:init(ctx)
+    m.wndAlchemy:init(ctx)
+    m.wndIngredient:init(ctx)
 end
 
 m.closeWindow = function()
-    if wndAlchemy then
-        wndAlchemy:destroy()
-        wndAlchemy = nil
+    if m.wndAlchemy then
+        m.wndAlchemy:destroy()
+        m.wndAlchemy = nil
         ctx.data = nil
     end
 
-    if wndIngredient then
-        wndIngredient:destroy()
-        wndIngredient = nil
+    if m.wndIngredient then
+        m.wndIngredient:destroy()
+        m.wndIngredient = nil
         ctx.data = nil
     end
+end
+
+m.selectIngredient = function(info)
+    if m.wndAlchemy then
+        if m.wndAlchemy:onSelectIngredient(info) then
+            m.updateWnd(m.wndIngredient, true)
+        end
+    end
+end
+
+m.updateWnd = function(wnd, deep)
+    if wnd then wnd:update(deep) end
 end
 
 ---@param evt openmw.input.KeyboardEvent

@@ -18,6 +18,7 @@ local MWUI = I.MWUI.templates
 local v2 = util.vector2
 
 ---@class IngredientWindow: Window
+---@field protected ctx AlchemyContext
 ---@field private data table?
 ---@field private itemTable openmw.ui.Element?
 local IngredientWindow = Window:new()
@@ -108,13 +109,12 @@ function IngredientWindow:init(ctx)
     self.data = ctx.data
 
     local rowHeight = 1.5 * (T.TEXT_SIZE + 2)
-    local effectWidth = 85 --4 * (T.TEXT_SIZE + 2)
+    local effectWidth = 4 * (T.TEXT_SIZE + 3)
     self.itemTable = IngredientTable.create(self.ctx, {
         columns = {
             { id = 'icon',    width = rowHeight + 5, renderer = renderIcon },
-            { id = 'name',    renderer = renderName },
+            { id = 'name', },
             { id = 'effects', width = effectWidth,   renderer = renderEffects },
-            --{ id = 'count',   width = 64 },
         },
         data = self:getAllIngredients(),
         size = v2(600, 400),
@@ -133,10 +133,12 @@ function IngredientWindow:init(ctx)
 
             return a.id < b.id
         end,
-        onRowUse = nil,
+        onRowUse = function(row, rowWidget)
+            return self:onRowUse(row, rowWidget, false)
+        end,
 
         onKBMRowUse = function(row, rowWidget)
-            --return onRowUse(row, rowWidget, true)
+            return self:onRowUse(row, rowWidget, true)
         end,
 
         parentWindow = self,
@@ -158,6 +160,14 @@ function IngredientWindow:init(ctx)
     --local sz = self.element.layout.userData.getInnerSize()
 end
 
+function IngredientWindow:update(deep)
+    if not self.element then return end
+    if deep then
+        self.itemTable.layout.userData.redrawColumns()
+    end
+    Window.update(self, deep)
+end
+
 function IngredientWindow:getAllIngredients()
     if not self.data or not self.data.ingredients then
         return {}
@@ -171,7 +181,22 @@ function IngredientWindow:getAllIngredients()
     end
     local result = {}
     for id, count in pairs(map) do
-        table.insert(result, { id = id, count = count })
+        local record = types.Ingredient.record(id)
+        local name = record and record.name .. ' (' .. H.addSeparators(count) .. ')' or C.Strings.NONE
+        table.insert(result, {
+            id = id,
+            count = count,
+            name = name,
+            activeFn = function()
+                if self.data and self.data.selected then
+                    for i = 1, 4 do
+                        local itm = self.data.selected[i]
+                        if itm and itm.id == id then return true end
+                    end
+                end
+                return false
+            end,
+        })
     end
     return result
 end
@@ -180,6 +205,12 @@ function IngredientWindow:updateSize()
     if self.element then
         self.itemTable.layout.userData.resize(self.element.layout.userData.getInnerSize())
     end
+end
+
+function IngredientWindow:onRowUse(row, rowWidget, fromKBMKeybind)
+    print('onRowUse', row.id, fromKBMKeybind)
+    self.ctx.selectIngredient({ id = row.id, count = row.count })
+    return false
 end
 
 return IngredientWindow
