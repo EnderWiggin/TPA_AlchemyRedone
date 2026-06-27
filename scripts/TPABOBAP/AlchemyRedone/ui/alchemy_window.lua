@@ -11,6 +11,7 @@ local T = require("scripts.UIToolkit.templates.base")
 local S = require("scripts.UIToolkit.templates.special")
 local C = require("scripts.UIToolkit.constants")
 local H = require("scripts.UIToolkit.helpers")
+local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local Window = require("scripts.UIToolkit.window")
 
@@ -87,6 +88,7 @@ end
 function AlchemyWindow:update(deep)
     if not self.element then return end
     updateSizes()
+    self:updateMatchingEffects()
     local main = H.findLayoutByPath(self.element, { 'foreground', 'body', 'main' })
 
     local tools = H.findLayoutByPath(main, { 'left', 'tools-box', 'padding', 'tools' })
@@ -122,9 +124,10 @@ function AlchemyWindow:update(deep)
             for i = 1, 4 do
                 icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
                 if #effects >= i then
+                    local effect = effects[i]
                     --TODO: account for unknown effects
-                    icon.props.resource = T.effectIconTexture(effects[i].id)
-                    icon.props.alpha = i == 1 and 1 or 0.5 --TODO: decide alpha based on active affects of a potion
+                    icon.props.resource = T.effectIconTexture(effect.id)
+                    icon.props.alpha = A.containsEffect(self.data.matching, effect) and 1 or 0.5
                 else
                     icon.props.resource = nil
                 end
@@ -194,7 +197,7 @@ function AlchemyWindow:onSelectIngredient(info)
         local item = self.data.selected[i]
         if item and item.id == info.id then
             self.data.selected[i] = nil
-            self:update(true)
+            self:update()
             return true
         end
     end
@@ -209,6 +212,20 @@ function AlchemyWindow:onSelectIngredient(info)
     end
 
     return false
+end
+
+function AlchemyWindow:updateMatchingEffects()
+    local ids = {}
+    local selected = self.data.selected
+    if selected then
+        for i = 1, 4 do
+            if selected[i] and selected[i].id then
+                table.insert(ids, selected[i].id)
+            end
+        end
+    end
+
+    self.data.matching = A.getMatchingEffects(ids)
 end
 
 function AlchemyWindow:destroy()
