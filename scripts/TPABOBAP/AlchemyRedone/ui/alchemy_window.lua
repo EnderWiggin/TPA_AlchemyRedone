@@ -126,13 +126,11 @@ function AlchemyWindow:update(deep)
         local record, amount = self:getSelectedIngredientRecord(n)
         local name = H.findLayoutByPath(selected, { 'name', Slots[n] })
         local icon = H.findLayoutByPath(selected, { 'icon', Slots[n] })
-        local count = H.findLayoutByPath(selected, { 'count', Slots[n] })
 
         if record and amount > 0 then
             local effects = record.effects
-            name.props.text = record.name
+            name.props.text = record.name .. ' (' .. H.addSeparators(amount) .. ')'
             icon.props.resource = T.Base.createTexture(record.icon)
-            count.props.text = H.addSeparators(amount)
             local known = A.getKnownEffectFlagsForIngredient(record, player)
             for i = 1, 4 do
                 icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
@@ -151,7 +149,6 @@ function AlchemyWindow:update(deep)
         else
             name.props.text = C.Strings.NONE
             icon.props.resource = nil
-            count.props.text = ''
 
             for i = 1, 4 do
                 icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
@@ -222,7 +219,7 @@ function AlchemyWindow:onSelectIngredient(info)
         local item = self.data.selected[i]
         if item and item.id == info.id then
             self.data.selected[i] = nil
-            self:update()
+            self:update(true)
             return true
         end
     end
@@ -427,27 +424,6 @@ parts.selected = function(ctx, getId, onClick, tooltipFn)
                             arrange = ui.ALIGNMENT.Start,
                         },
                         content = ui.content {
-
-                            {
-                                name = 'count',
-                                type = ui.TYPE.Flex,
-                                props = {
-                                    horizontal = false,
-                                    arrange = ui.ALIGNMENT.End,
-                                },
-                                content = ui.content {
-                                    T.Base.intervalV(GAP_END),
-                                    parts.namedText(Slots[1]),
-                                    T.Base.intervalV(GAP_MID),
-                                    parts.namedText(Slots[2]),
-                                    T.Base.intervalV(GAP_MID),
-                                    parts.namedText(Slots[3]),
-                                    T.Base.intervalV(GAP_MID),
-                                    parts.namedText(Slots[4]),
-                                    T.Base.intervalV(GAP_END),
-                                }
-                            },
-                            T.Base.intervalH(10),
                             {
                                 name = 'icon',
                                 type = ui.TYPE.Flex,
@@ -475,22 +451,22 @@ parts.selected = function(ctx, getId, onClick, tooltipFn)
                                 },
                                 content = ui.content {
                                     T.Base.intervalV(GAP_END),
-                                    parts.namedHeader(Slots[1], ctx,
+                                    parts.namedActiveHeader(Slots[1], ctx,
                                         function() return getId(1) end,
                                         function() onClick(1) end,
                                         function() return tooltipFn(1) end),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[2], ctx,
+                                    parts.namedActiveHeader(Slots[2], ctx,
                                         function() return getId(2) end,
                                         function() onClick(2) end,
                                         function() return tooltipFn(2) end),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[3], ctx,
+                                    parts.namedActiveHeader(Slots[3], ctx,
                                         function() return getId(3) end,
                                         function() onClick(3) end,
                                         function() return tooltipFn(3) end),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[4], ctx,
+                                    parts.namedActiveHeader(Slots[4], ctx,
                                         function() return getId(4) end,
                                         function() onClick(4) end,
                                         function() return tooltipFn(4) end),
@@ -535,15 +511,27 @@ parts.namedTitle = function(name)
     }
 end
 
-parts.namedHeader = function(name, ctx, getId, onClick, tooltipFn)
-    local layout = {
+parts.namedHeader = function(name)
+    return {
         name     = name,
         template = T.Base.textHeader,
         props    = {
             text = '',
         },
     }
-    if not ctx then return layout end
+end
+
+parts.namedActiveHeader = function(name, ctx, getId, onClick, tooltipFn)
+    local layout = {
+        name     = name,
+        template = T.Base.textNormal,
+        props    = {
+            text = '',
+        },
+        userData = {
+            colorable = true,
+        },
+    }
 
     return S.interactive({
         onClick = onClick,
