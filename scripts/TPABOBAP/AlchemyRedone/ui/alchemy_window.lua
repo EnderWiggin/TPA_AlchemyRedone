@@ -7,7 +7,10 @@ local types = require("openmw.types")
 local async = require('openmw.async')
 
 local I = require("openmw.interfaces")
-local T = require("scripts.UIToolkit.templates.base")
+local T = {
+    Base = require("scripts.UIToolkit.templates.base"),
+    Special = require("scripts.UIToolkit.templates.special"),
+}
 local S = require("scripts.UIToolkit.templates.special")
 local C = require("scripts.UIToolkit.constants")
 local H = require("scripts.UIToolkit.helpers")
@@ -41,9 +44,9 @@ local GAP_END
 local GAP_MID
 local GAP_ICON
 local function updateSizes()
-    ICON_SZ = util.round(T.TEXT_SIZE * 1.5)
+    ICON_SZ = util.round(T.Base.TEXT_SIZE * 1.5)
     GAP_ICON = 3
-    GAP_END = util.round((ICON_SZ - T.TEXT_SIZE) / 2)
+    GAP_END = util.round((ICON_SZ - T.Base.TEXT_SIZE) / 2)
     GAP_MID = 2 * GAP_END + GAP_ICON
 end
 
@@ -61,19 +64,27 @@ function AlchemyWindow:init(ctx)
                 horizontal = true,
             },
             content = ui.content {
-                T.intervalH(5),
+                T.Base.intervalH(5),
                 {
                     name = 'left',
                     type = ui.TYPE.Flex,
                     props = {},
                     content = ui.content {
                         parts.naming(),
-                        T.intervalV(15),
+                        T.Base.intervalV(15),
                         parts.tools(),
-                        T.intervalV(15),
-                        parts.selected(ctx, function(n)
-                            self:onIngredientClicked(n)
-                        end),
+                        T.Base.intervalV(15),
+                        parts.selected(ctx,
+                            function(n)
+                                local r = self:getSelectedIngredientRecord(n)
+                                return r and r.id
+                            end,
+                            function(n)
+                                self:onIngredientClicked(n)
+                            end,
+                            function(n)
+                                return self:makeIngredientTip(n)
+                            end),
                     }
                 },
             }
@@ -81,7 +92,7 @@ function AlchemyWindow:init(ctx)
     }
     self.ctx.minWidth = 200
     self.ctx.minHeight = 100
-    self.element = T.window(core.getGMST('sSkillAlchemy'), content, self.ctx, { draggable = true })
+    self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, { draggable = true })
     self:setDimensions({ x = 0.15, y = 0.25, w = 0.4, h = 0.3 })
 end
 
@@ -101,7 +112,7 @@ function AlchemyWindow:update(deep)
         layout.props.text = record and 'x' .. record.quality or ''
 
         layout = H.findLayoutByPath(tools, { 'icon', name })
-        layout.props.resource = record and T.createTexture(record.icon)
+        layout.props.resource = record and T.Base.createTexture(record.icon)
     end
 
     updateTool(C.Strings.MORTAR, ApparatusTypes.MortarPestle)
@@ -119,14 +130,14 @@ function AlchemyWindow:update(deep)
         if record and amount > 0 then
             local effects = record.effects
             name.props.text = record.name
-            icon.props.resource = T.createTexture(record.icon)
+            icon.props.resource = T.Base.createTexture(record.icon)
             count.props.text = H.addSeparators(amount)
             for i = 1, 4 do
                 icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
                 if #effects >= i then
                     local effect = effects[i]
                     --TODO: account for unknown effects
-                    icon.props.resource = T.effectIconTexture(effect.id)
+                    icon.props.resource = T.Base.effectIconTexture(effect.id)
                     icon.props.alpha = A.containsEffect(self.data.matching, effect) and 1 or 0.5
                 else
                     icon.props.resource = nil
@@ -178,6 +189,15 @@ function AlchemyWindow:getSelectedIngredientRecord(n)
         end
     end
     return nil, 0
+end
+
+function AlchemyWindow:makeIngredientTip(n)
+    if not self.data or not self.data.selected then return nil end
+    print('makeIngredientTip', n, self.data.selected[n])
+    if self.data.selected[n] then
+        return T.Special.ingredientTooltip(self.data.selected[n].id)
+    end
+    return nil
 end
 
 function AlchemyWindow:onIngredientClicked(n)
@@ -244,12 +264,12 @@ parts.naming = function()
         },
         content = ui.content {
             {
-                template = T.textNormal,
+                template = T.Base.textNormal,
                 props = {
                     text = 'Name',
                 },
             },
-            T.intervalH(10),
+            T.Base.intervalH(10),
             {
                 name = 'searchBar',
                 template = I.MWUI.templates.box,
@@ -260,7 +280,7 @@ parts.naming = function()
                         content = ui.content {
                             {
                                 name = 'textEdit',
-                                template = T.textEditLine,
+                                template = T.Base.textEditLine,
                                 props = {
                                     size = v2(300, 16),
                                     text = '',
@@ -286,11 +306,11 @@ end
 parts.tools = function()
     return {
         name = 'tools-box',
-        template = T.boxSolid,
+        template = T.Base.boxSolid,
         content = ui.content {
             {
                 name = 'padding',
-                template = T.padding(5),
+                template = T.Base.padding(5),
                 content = ui.content {
                     {
                         name = 'tools',
@@ -308,18 +328,18 @@ parts.tools = function()
                                     arrange = ui.ALIGNMENT.End,
                                 },
                                 content = ui.content {
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                     parts.namedTitle(C.Strings.MORTAR),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedTitle(C.Strings.ALEMBIC),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedTitle(C.Strings.CALCINATOR),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedTitle(C.Strings.RETORT),
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                 }
                             },
-                            T.intervalH(10),
+                            T.Base.intervalH(10),
                             {
                                 name = 'icon',
                                 type = ui.TYPE.Flex,
@@ -329,15 +349,15 @@ parts.tools = function()
                                 },
                                 content = ui.content {
                                     parts.namedIcon(C.Strings.MORTAR, ICON_SZ),
-                                    T.intervalV(GAP_ICON),
+                                    T.Base.intervalV(GAP_ICON),
                                     parts.namedIcon(C.Strings.ALEMBIC, ICON_SZ),
-                                    T.intervalV(GAP_ICON),
+                                    T.Base.intervalV(GAP_ICON),
                                     parts.namedIcon(C.Strings.CALCINATOR, ICON_SZ),
-                                    T.intervalV(GAP_ICON),
+                                    T.Base.intervalV(GAP_ICON),
                                     parts.namedIcon(C.Strings.RETORT, ICON_SZ),
                                 }
                             },
-                            T.intervalH(10),
+                            T.Base.intervalH(10),
                             {
                                 name = 'name',
                                 type = ui.TYPE.Flex,
@@ -346,18 +366,18 @@ parts.tools = function()
                                     arrange = ui.ALIGNMENT.Center,
                                 },
                                 content = ui.content {
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                     parts.namedHeader(C.Strings.MORTAR),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedHeader(C.Strings.ALEMBIC),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedHeader(C.Strings.CALCINATOR),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedHeader(C.Strings.RETORT),
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                 }
                             },
-                            T.intervalH(10),
+                            T.Base.intervalH(10),
                             {
                                 name = 'quality',
                                 type = ui.TYPE.Flex,
@@ -366,15 +386,15 @@ parts.tools = function()
                                     arrange = ui.ALIGNMENT.Start,
                                 },
                                 content = ui.content {
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                     parts.namedText(C.Strings.MORTAR),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedText(C.Strings.ALEMBIC),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedText(C.Strings.CALCINATOR),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedText(C.Strings.RETORT),
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                 }
                             },
                         },
@@ -385,14 +405,14 @@ parts.tools = function()
     }
 end
 
-parts.selected = function(ctx, onClick)
+parts.selected = function(ctx, getId, onClick, tooltipFn)
     return {
         name = 'selected-box',
-        template = T.boxSolid,
+        template = T.Base.boxSolid,
         content = ui.content {
             {
                 name = 'padding',
-                template = T.padding(5),
+                template = T.Base.padding(5),
                 content = ui.content {
                     {
                         name = 'selected',
@@ -411,18 +431,18 @@ parts.selected = function(ctx, onClick)
                                     arrange = ui.ALIGNMENT.End,
                                 },
                                 content = ui.content {
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                     parts.namedText(Slots[1]),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedText(Slots[2]),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedText(Slots[3]),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedText(Slots[4]),
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                 }
                             },
-                            T.intervalH(10),
+                            T.Base.intervalH(10),
                             {
                                 name = 'icon',
                                 type = ui.TYPE.Flex,
@@ -432,15 +452,15 @@ parts.selected = function(ctx, onClick)
                                 },
                                 content = ui.content {
                                     parts.namedIcon(Slots[1], ICON_SZ),
-                                    T.intervalV(GAP_ICON),
+                                    T.Base.intervalV(GAP_ICON),
                                     parts.namedIcon(Slots[2], ICON_SZ),
-                                    T.intervalV(GAP_ICON),
+                                    T.Base.intervalV(GAP_ICON),
                                     parts.namedIcon(Slots[3], ICON_SZ),
-                                    T.intervalV(GAP_ICON),
+                                    T.Base.intervalV(GAP_ICON),
                                     parts.namedIcon(Slots[4], ICON_SZ),
                                 }
                             },
-                            T.intervalH(10),
+                            T.Base.intervalH(10),
                             {
                                 name = 'name',
                                 type = ui.TYPE.Flex,
@@ -449,18 +469,30 @@ parts.selected = function(ctx, onClick)
                                     arrange = ui.ALIGNMENT.Start,
                                 },
                                 content = ui.content {
-                                    T.intervalV(GAP_END),
-                                    parts.namedHeader(Slots[1], ctx, function() onClick(1) end),
-                                    T.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[2], ctx, function() onClick(2) end),
-                                    T.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[3], ctx, function() onClick(3) end),
-                                    T.intervalV(GAP_MID),
-                                    parts.namedHeader(Slots[4], ctx, function() onClick(4) end),
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
+                                    parts.namedHeader(Slots[1], ctx,
+                                        function() return getId(1) end,
+                                        function() onClick(1) end,
+                                        function() return tooltipFn(1) end),
+                                    T.Base.intervalV(GAP_MID),
+                                    parts.namedHeader(Slots[2], ctx,
+                                        function() return getId(2) end,
+                                        function() onClick(2) end,
+                                        function() return tooltipFn(2) end),
+                                    T.Base.intervalV(GAP_MID),
+                                    parts.namedHeader(Slots[3], ctx,
+                                        function() return getId(3) end,
+                                        function() onClick(3) end,
+                                        function() return tooltipFn(3) end),
+                                    T.Base.intervalV(GAP_MID),
+                                    parts.namedHeader(Slots[4], ctx,
+                                        function() return getId(4) end,
+                                        function() onClick(4) end,
+                                        function() return tooltipFn(4) end),
+                                    T.Base.intervalV(GAP_END),
                                 }
                             },
-                            T.intervalH(10),
+                            T.Base.intervalH(10),
                             {
                                 name = 'effects',
                                 type = ui.TYPE.Flex,
@@ -469,15 +501,15 @@ parts.selected = function(ctx, onClick)
                                     arrange = ui.ALIGNMENT.Start,
                                 },
                                 content = ui.content {
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                     parts.namedEffects(Slots[1]),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedEffects(Slots[2]),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedEffects(Slots[3]),
-                                    T.intervalV(GAP_MID),
+                                    T.Base.intervalV(GAP_MID),
                                     parts.namedEffects(Slots[4]),
-                                    T.intervalV(GAP_END),
+                                    T.Base.intervalV(GAP_END),
                                 }
                             },
                         },
@@ -491,17 +523,17 @@ end
 parts.namedTitle = function(name)
     return {
         name = name,
-        template = T.textNormal,
+        template = T.Base.textNormal,
         props = {
             text = name .. ':',
         },
     }
 end
 
-parts.namedHeader = function(name, ctx, onClick)
+parts.namedHeader = function(name, ctx, getId, onClick, tooltipFn)
     local layout = {
         name     = name,
-        template = T.textHeader,
+        template = T.Base.textHeader,
         props    = {
             text = '',
         },
@@ -510,13 +542,15 @@ parts.namedHeader = function(name, ctx, onClick)
 
     return S.interactive({
         onClick = onClick,
+        tooltipFn = tooltipFn,
+        name = getId and getId() or name
     }, layout, ctx)
 end
 
 parts.namedText = function(name)
     return {
         name = name,
-        template = T.textNormal,
+        template = T.Base.textNormal,
         props = {
             text = '',
         },
@@ -524,7 +558,7 @@ parts.namedText = function(name)
 end
 
 parts.namedIcon = function(name, sz)
-    sz = sz or T.TEXT_SIZE
+    sz = sz or T.Base.TEXT_SIZE
     return {
         name = name,
         type = ui.TYPE.Image,
@@ -547,11 +581,11 @@ parts.namedEffects = function(name)
         },
         content = ui.content {
             parts.effectIcon(1),
-            T.intervalH(5),
+            T.Base.intervalH(5),
             parts.effectIcon(2),
-            T.intervalH(5),
+            T.Base.intervalH(5),
             parts.effectIcon(3),
-            T.intervalH(5),
+            T.Base.intervalH(5),
             parts.effectIcon(4),
         },
     }

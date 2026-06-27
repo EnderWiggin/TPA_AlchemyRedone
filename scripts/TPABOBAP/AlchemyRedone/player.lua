@@ -4,6 +4,7 @@ local core = require('openmw.core')
 local input = require('openmw.input')
 local util = require('openmw.util')
 local player = require('openmw.self')
+local auxUi = require('openmw_aux.ui')
 
 local T = require("openmw.types")
 local I = require('openmw.interfaces')
@@ -63,6 +64,11 @@ m.closeWindow = function()
         m.wndIngredient:destroy()
         m.wndIngredient = nil
         ctx.data = nil
+    end
+
+    if ctx.activeTooltip then
+        auxUi.deepDestroy(ctx.activeTooltip)
+        ctx.activeTooltip = nil
     end
 end
 

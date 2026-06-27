@@ -85,6 +85,7 @@ IngredientTable.create = function(ctx, opts)
     local rowHeight = opts.rowHeight or 30
     local onRowUse = opts.onRowUse or opts.onRowClick
     local onKBMRowUse = opts.onKBMRowUse or opts.onKBMRowClick
+    local tooltipFn = opts.tooltipFn
     local comparator = opts.comparator or defaultComparator
 
     local state = {
@@ -292,7 +293,9 @@ IngredientTable.create = function(ctx, opts)
                         end,
                         tooltipFn = function()
                             local currentRow = getCurrentRow()
-                            --TODO: make proper tooltip
+                            if tooltipFn then
+                                return tooltipFn(row)
+                            end
                             return T.Special.lineTooltip(currentRow.id, currentRow.id)
                         end,
                         name = row.id or 'item',

@@ -1227,6 +1227,26 @@ if isPlayer then
         return effectsToShow
     end
 
+    Helpers.getTooltipIngredientEffectEntries = function(itemRecord)
+        local effectsToShow = {}
+        local visibleEffectCount = 4     --getKnownAlchemyEffectCount(item) --TODO: account for unknown effects
+        for i, effect in ipairs(itemRecord.effects) do
+            local isVisible = i <= visibleEffectCount
+            local effectText = nil
+            if isVisible then
+                effectText = Helpers.getMagicEffectString(effect)
+            end
+
+            table.insert(effectsToShow, {
+                effect = effect,
+                visible = isVisible,
+                text = effectText,
+            })
+        end
+
+        return effectsToShow
+    end
+
     Helpers.getItemSearchText = function(item)
         local searchParts = { Helpers.getItemName(item) }
 

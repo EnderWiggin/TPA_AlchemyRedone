@@ -12,6 +12,7 @@ local ambient = require('openmw.ambient')
 local v2 = util.vector2
 local BASE = require('scripts.UIToolkit.templates.base')
 local helpers = require('scripts.UIToolkit.helpers')
+local constants = require('scripts.UIToolkit.constants')
 
 local Templates = {}
 
@@ -194,6 +195,173 @@ Templates.lineTooltip = function(text, name)
             }
         }
     }, name)
+end
+
+Templates.ingredientTooltip = function(id)
+    local itemRecord = types.Ingredient.record(id)
+    if not itemRecord then return nil end
+
+    local function textNormal(name, text)
+        return { name = name, template = BASE.textNormal, props = { text = text } }
+    end
+    local function textHeader(name, text)
+        return { name = name, template = BASE.textHeader, props = { text = text } }
+    end
+
+    local nameString = itemRecord.name
+
+    local innerContent = ui.content {}
+
+    innerContent:add(textHeader('name', nameString))
+
+
+    innerContent:add(BASE.intervalV(4))
+
+
+    if itemRecord.weight > 0 then
+        innerContent:add(textNormal('weight',
+            constants.Strings.WEIGHT .. ': ' .. helpers.roundToPlaces(itemRecord.weight, 3)))
+    end
+
+    local value = itemRecord.value
+    if value > 0 and itemRecord.id ~= 'gold_001' then
+        innerContent:add(textNormal('value', constants.Strings.VALUE .. ': ' .. (value)))
+    end
+
+    -- Handle effects for enchantments, potions, and ingredients.
+    local effectsToShow = helpers.getTooltipIngredientEffectEntries(itemRecord)
+
+    -- Build effect layouts if we have any effects
+    if #effectsToShow > 0 then
+        local effectLayouts = {}
+        for i, effectData in ipairs(effectsToShow) do
+            local effect = effectData.effect
+            local isVisible = effectData.visible ~= false
+            local content = ui.content {}
+
+            if isVisible then
+                content:add(Templates.effectIcon(effect.id))
+                content:add(BASE.intervalH(4))
+                local effectText = effectData.text or '?'
+                content:add(textNormal('effect_' .. i, effectText))
+            else
+                content:add(textNormal('effect_' .. i, '?'))
+            end
+
+            local effectLayout = {
+                type = ui.TYPE.Flex,
+                props = {
+                    horizontal = true,
+                    arrange = ui.ALIGNMENT.Center,
+                },
+                content = content,
+            }
+
+            if i ~= 1 then
+                table.insert(effectLayouts, BASE.intervalV(8))
+            end
+            table.insert(effectLayouts, effectLayout)
+        end
+
+        innerContent:add(BASE.intervalV(4))
+        innerContent:add({
+            name = 'effects',
+            type = ui.TYPE.Flex,
+            props = {
+                arrange = ui.ALIGNMENT.Center,
+            },
+            content = ui.content {
+                table.unpack(effectLayouts)
+            }
+        })
+    end
+
+    --[[
+    if configPlayer.tweaks.b_CondensedWeightValue then
+        if innerContent:indexOf('weight') then
+            innerContent.weight = nil
+        end
+        if innerContent:indexOf('value') then
+            innerContent.value = nil
+        end
+
+        local flexContent = ui.content {}
+
+        if value > 0 and itemRecord.id ~= 'gold_001' then
+            flexContent:add({
+                type = ui.TYPE.Image,
+                props = {
+                    size = v2(16, 16),
+                    resource = BASE.createTexture('icons/gold.dds'),
+                }
+            })
+            flexContent:add(textNormal(nil, ' ' .. helpers.addSeparators(util.round(value))))
+        end
+
+        if itemRecord.weight > 0 then
+            if #flexContent > 0 then
+                flexContent:add(BASE.intervalH(4))
+            end
+            flexContent:add({
+                type = ui.TYPE.Image,
+                props = {
+                    size = v2(16, 16),
+                    resource = BASE.createTexture('icons/weight.dds'),
+                }
+            })
+            flexContent:add(textNormal(nil, ' ' .. helpers.roundToPlaces(itemRecord.weight, 2)))
+        end
+
+        if #flexContent > 0 then
+            local flex = {
+                name = 'weightValue',
+                type = ui.TYPE.Flex,
+                props = {
+                    horizontal = true,
+                    align = ui.ALIGNMENT.End,
+                    arrange = ui.ALIGNMENT.Center,
+                },
+                external = {
+                    stretch = 1,
+                },
+                content = flexContent
+            }
+            innerContent:add(BASE.intervalV(8))
+            innerContent:add(flex)
+        end
+    end
+    ]]
+
+    if #innerContent == 2 then
+        innerContent[2] = nil -- remove extra interval if no details
+    end
+
+    local layout = Templates.tooltip(8, ui.content {
+        {
+            name = 'tooltip',
+            type = ui.TYPE.Flex,
+            props = {
+                align = ui.ALIGNMENT.Center,
+                arrange = ui.ALIGNMENT.Center,
+            },
+            content = innerContent,
+        }
+    }, id)
+
+    return layout
+end
+
+Templates.effectIcon = function(effectId)
+    local effectRecord = core.magic.effects.records[effectId] or
+        (I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectId))
+    local layout = {
+        type = ui.TYPE.Image,
+        props = {
+            size = v2(16, 16),
+            resource = BASE.createTexture(effectRecord.icon),
+        },
+    }
+    return layout
 end
 
 

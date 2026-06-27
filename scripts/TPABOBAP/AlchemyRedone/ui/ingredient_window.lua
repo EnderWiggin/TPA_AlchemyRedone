@@ -7,7 +7,10 @@ local types = require("openmw.types")
 local async = require('openmw.async')
 
 local I = require("openmw.interfaces")
-local T = require("scripts.UIToolkit.templates.base")
+local T = {
+    Base    = require("scripts.UIToolkit.templates.base"),
+    Special = require("scripts.UIToolkit.templates.special"),
+}
 local C = require("scripts.UIToolkit.constants")
 local H = require("scripts.UIToolkit.helpers")
 
@@ -43,7 +46,7 @@ local function renderIcon(ingredient, width, height)
                 name = 'icon',
                 type = ui.TYPE.Image,
                 props = {
-                    resource = record and T.createTexture(record.icon),
+                    resource = record and T.Base.createTexture(record.icon),
                     anchor = v2(0.5, 0.5),
                     relativePosition = v2(0.5, 0.5),
                     size = v2(sz, sz),
@@ -58,7 +61,7 @@ local function renderName(ingredient, width, height)
     local name = record and record.name .. ' (' .. H.addSeparators(ingredient.count) .. ')' or C.Strings.NONE
     return {
         name = 'ingredientName',
-        template = T.textNormal,
+        template = T.Base.textNormal,
         props = {
             text = name,
             size = v2(width, height),
@@ -75,7 +78,7 @@ end
 local function renderEffects(ingredient, width, height)
     local record = types.Ingredient.record(ingredient.id)
     local effects = record and record.effects or {}
-    local sz = T.TEXT_SIZE
+    local sz = T.Base.TEXT_SIZE
     local content = ui.content {}
     for i = 1, 4 do
         if #effects >= i then
@@ -84,7 +87,7 @@ local function renderEffects(ingredient, width, height)
                 name = 'effect_' .. i,
                 type = ui.TYPE.Image,
                 props = {
-                    resource = T.effectIconTexture(effects[i].id),
+                    resource = T.Base.effectIconTexture(effects[i].id),
                     anchor = v2(0, 0.5),
                     relativePosition = v2(0, 0.5),
                     position = v2((sz + 3) * (i - 1), 0),
@@ -108,8 +111,8 @@ function IngredientWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
 
-    local rowHeight = 1.5 * (T.TEXT_SIZE + 2)
-    local effectWidth = 4 * (T.TEXT_SIZE + 3)
+    local rowHeight = 1.5 * (T.Base.TEXT_SIZE + 2)
+    local effectWidth = 4 * (T.Base.TEXT_SIZE + 3)
     self.itemTable = IngredientTable.create(self.ctx, {
         columns = {
             { id = 'icon',    width = rowHeight + 5, renderer = renderIcon },
@@ -140,7 +143,7 @@ function IngredientWindow:init(ctx)
         onKBMRowUse = function(row, rowWidget)
             return self:onRowUse(row, rowWidget, true)
         end,
-
+        tooltipFn = function(row) return T.Special.ingredientTooltip(row.id) end,
         parentWindow = self,
     })
 
@@ -149,7 +152,7 @@ function IngredientWindow:init(ctx)
     }
     self.ctx.minWidth = 250
     self.ctx.minHeight = 300
-    self.element = T.window(C.Strings.INGREDIENTS, content, self.ctx, {
+    self.element = T.Base.window(C.Strings.INGREDIENTS, content, self.ctx, {
         draggable = true,
         onDrag = function()
             self:updateSize()
