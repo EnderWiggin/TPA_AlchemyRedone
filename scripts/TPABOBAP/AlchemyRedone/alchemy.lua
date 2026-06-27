@@ -3,6 +3,7 @@
 local core = require("openmw.core")
 local util = require("openmw.util")
 local types = require("openmw.types")
+local I = require("openmw.interfaces")
 
 
 local Alchemy = {}
@@ -47,6 +48,159 @@ Alchemy.getMatchingEffects = function(ingredientIds)
                     end
                 end
             end
+        end
+    end
+
+    return effects
+end
+
+---@param actor openmw.LObject|openmw.GObject|nil
+Alchemy.getAlchemyFactor = function(actor)
+    if not actor or not actor.type or not actor.type.stats
+        or not actor.type.stats.skills or not actor.type.stats.skills.alchemy
+        or not actor.type.stats.attributes or not actor.type.stats.attributes.intelligence or not actor.type.stats.attributes.luck
+    then
+        return 0
+    end
+
+    --this formula is directly from OpenMW sources
+    local alchemy = actor.type.stats.skills.alchemy(actor).modified
+    local intelligence = actor.type.stats.attributes.intelligence(actor).modified
+    local luck = actor.type.stats.attributes.luck(actor).modified
+
+    return alchemy + 0.1 * intelligence + 0.1 * luck
+end
+
+---@param value number
+---@param alembic openmw.types.ApparatusRecord?
+---@param calcinator openmw.types.ApparatusRecord?
+---@param retort openmw.types.ApparatusRecord?
+---@return number
+Alchemy.applyTools = function(value, alembic, calcinator, retort, hasMagnitude, hasDuration, isNegative)
+    local tool = isNegative and alembic or retort
+    local setup = 0
+
+    --these formulas are directly from OpenMW sources
+    if tool and calcinator then
+        setup = 1
+    elseif tool then
+        setup = 2
+    elseif calcinator then
+        setup = 3
+    else
+        return value --no apparatus - no changes
+    end
+    local toolQuality = tool and tool.quality or 0
+    local calcinatorQuality = calcinator and calcinator.quality or 0
+
+    local quality = 1
+    if setup == 1 then --both tools
+        if isNegative then
+            quality = 2 * toolQuality + 3 * calcinatorQuality
+        elseif hasMagnitude and hasDuration then
+            quality = 2 * toolQuality + calcinatorQuality
+        else
+            quality = 2 / 3.0 * (toolQuality + calcinatorQuality) + 0.5
+        end
+    elseif setup == 2 then --only main tool
+        if isNegative then
+            quality = 1 + toolQuality
+        elseif hasMagnitude and hasDuration then
+            quality = toolQuality
+        else
+            quality = toolQuality + 0.5
+        end
+    elseif setup == 3 then --only calcinator
+        if hasMagnitude and hasDuration then
+            quality = calcinatorQuality
+        else
+            quality = calcinatorQuality + 0.5
+        end
+    end
+
+    if setup == 3 or not isNegative then
+        value = value + quality
+    else
+        value = value / quality;
+    end
+
+    return value
+end
+
+---Returns potion stats based on ingredients, apparatus and actor skills
+---@param ingredientIds string[] ordered list of ingredient ids
+---@param apparatus LocalApparatusIds info about apparatus being used
+---@param actor openmw.LObject|openmw.GObject|nil
+---@return openmw.core.MagicEffectWithParams[]
+Alchemy.getPotionStats = function(ingredientIds, apparatus, actor)
+    local effects = {}
+    if #ingredientIds < 2 then return effects end
+    local mortar = apparatus.Mortar and types.Apparatus.record(apparatus.Mortar)
+    if not mortar then return effects end
+
+    local matching = Alchemy.getMatchingEffects(ingredientIds)
+    if #matching <= 0 then return effects end
+
+    local factor = Alchemy.getAlchemyFactor(actor)
+    factor = factor * mortar.quality
+    factor = factor * core.getGMST('fPotionStrengthMult')
+
+    -- seems to be to cost of the potion?
+    local value = factor * core.getGMST('iAlchemyMod')
+
+    local fPotionT1MagMul = core.getGMST('fPotionT1MagMult')
+    if fPotionT1MagMul <= 0 then error('invalid gmst: fPotionT1MagMul') end
+
+    local fPotionT1DurMult = core.getGMST('fPotionT1DurMult')
+    if fPotionT1DurMult <= 0 then error('invalid gmst: fPotionT1DurMult') end
+
+    local alembic = apparatus.Alembic and types.Apparatus.record(apparatus.Alembic)
+    local calcinator = apparatus.Calcinator and types.Apparatus.record(apparatus.Calcinator)
+    local retort = apparatus.Retort and types.Apparatus.record(apparatus.Retort)
+
+    local idx = 0
+    for i = 1, #matching do
+        local effect = matching[i]
+        ---@type openmw.core.MagicEffect?
+        local effectRecord = core.magic.effects.records[effect.id] or
+            (I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effect.id))
+
+        if not effectRecord or effectRecord.baseCost <= 0 then
+            error("invalid base cost for magic effect '" .. effect.id .. "'")
+        end
+
+        local magnitude = 1
+        if effectRecord.hasMagnitude then
+            magnitude = factor / fPotionT1MagMul / effectRecord.baseCost
+            magnitude = Alchemy.applyTools(magnitude, alembic, calcinator, retort,
+                effectRecord.hasMagnitude, effectRecord.hasDuration, effectRecord.harmful)
+            magnitude = util.round(magnitude)
+        end
+
+        local duration = 1
+        if effectRecord.hasDuration then
+            duration = factor / fPotionT1DurMult / effectRecord.baseCost
+            duration = Alchemy.applyTools(duration, alembic, calcinator, retort,
+                effectRecord.hasMagnitude, effectRecord.hasDuration, effectRecord.harmful)
+            duration = util.round(duration)
+        end
+
+        if magnitude > 0 and duration > 0 then
+            ---@type openmw.core.MagicEffectWithParams
+            local newEffect = {
+                effect = effectRecord,
+                id = effect.id,
+                affectedSkill = effect.affectedSkill,
+                affectedAttribute = effect.affectedAttribute,
+                range = 0,
+                area = 0,
+                magnitudeMin = magnitude,
+                magnitudeMax = magnitude,
+                duration = duration,
+                index = idx,
+            }
+            idx = idx + 1
+            table.insert(effects, newEffect)
         end
     end
 
