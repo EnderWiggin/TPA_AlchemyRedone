@@ -68,12 +68,11 @@ end
 ---@param a IngredientInfo
 ---@param b IngredientInfo
 ---@return boolean
-local function comparator(a, b)
-    --TODO: implement proper sorting
+local function defaultComparator(a, b)
     return a.id < b.id
 end
 
----@alias IngredientTableOpts {columns: Column[]?, data: IngredientInfo[]?, size: openmw.util.Vector2?, rowHeight: number?, parentWindow: table?}
+---@alias IngredientTableOpts {columns: Column[]?, data: IngredientInfo[]?, size: openmw.util.Vector2?, rowHeight: number?, parentWindow: table?, comparator?: fun(a:any, b:any):boolean}
 
 ---@param ctx table
 ---@param opts IngredientTableOpts
@@ -86,6 +85,7 @@ IngredientTable.create = function(ctx, opts)
     local rowHeight = opts.rowHeight or 30
     local onRowUse = opts.onRowUse or opts.onRowClick
     local onKBMRowUse = opts.onKBMRowUse or opts.onKBMRowClick
+    local comparator = opts.comparator or defaultComparator
 
     local state = {
         ---@type IngredientInfo[]

@@ -122,7 +122,20 @@ function IngredientWindow:init(ctx)
         },
         size = v2(600, 400),
         rowHeight = rowHeight,
+        comparator = function(a, b)
+            local rA = types.Ingredient.record(a.id)
+            local rB = types.Ingredient.record(b.id)
 
+            if rA ~= nil and rB ~= nil then
+                if rA.name ~= rB.name then return rA.name < rB.name end
+            elseif rA == nil then
+                return false
+            elseif rB == nil then
+                return true
+            end
+
+            return a.id < b.id
+        end,
         onRowUse = nil,
 
         onKBMRowUse = function(row, rowWidget)
