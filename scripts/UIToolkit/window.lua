@@ -11,6 +11,7 @@ local v2 = util.vector2
 
 ---@class WindowContext
 ---@field updateQueue table<openmw.ui.Element, boolean>
+---@field focusedScrollable openmw.ui.Element?
 
 ---@class Window
 ---@field protected element openmw.ui.Element?

@@ -2,7 +2,7 @@
 
 local core = require('openmw.core')
 local input = require('openmw.input')
-local ui = require('openmw.ui')
+local util = require('openmw.util')
 local player = require('openmw.self')
 
 local T = require("openmw.types")
@@ -20,6 +20,7 @@ local m = {}
 ---@type AlchemyContext
 local ctx = {
     updateQueue = {},
+    focusedScrollable = nil,
     data = nil,
 }
 
@@ -29,13 +30,11 @@ local wndAlchemy
 local wndIngredient
 
 m.onOpenAlchemy = function(data)
-    print('onOpenAlchemy', H.deepPrint(data))
     ctx.data = data
     I.UI.setMode(I.UI.MODE.Alchemy, { windows = { I.UI.WINDOW.Alchemy } })
 end
 
 m.openWindow = function()
-    print('openWindow')
     m.closeWindow()
     wndAlchemy = AlchemyWindow:new()
     wndIngredient = IngredientWindow:new()
@@ -79,6 +78,18 @@ local function closeWindow()
     m.closeWindow()
 end
 
+local function onMouseWheel(v, h)
+    if ctx.focusedScrollable and ctx.focusedScrollable.layout then
+        local layout = ctx.focusedScrollable.layout
+        local pos = layout.content[1].props.position
+        layout.content[1].props.position = util.vector2(
+            pos.x,
+            util.clamp(pos.y + v * layout.userData.scrollStep, -layout.userData.scrollLimit, 0)
+        )
+        layout.userData.onScroll()
+    end
+end
+
 local function onFrame()
     for element in pairs(ctx.updateQueue) do
         element:update()
@@ -98,6 +109,7 @@ I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
 return {
     engineHandlers = {
         onKeyRelease = onKeyRelease,
+        onMouseWheel = onMouseWheel,
         onFrame = onFrame,
     },
     eventHandlers = {
