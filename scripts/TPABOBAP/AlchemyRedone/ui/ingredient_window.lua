@@ -116,10 +116,7 @@ function IngredientWindow:init(ctx)
             { id = 'effects', width = effectWidth,   renderer = renderEffects },
             --{ id = 'count',   width = 64 },
         },
-        data = { --TODO: get from actual data
-            { id = 'ingred_wickwheat_01',   count = 10 },
-            { id = 'ingred_marshmerrow_01', count = 100 },
-        },
+        data = self:getAllIngredients(),
         size = v2(600, 400),
         rowHeight = rowHeight,
         comparator = function(a, b)
@@ -159,6 +156,24 @@ function IngredientWindow:init(ctx)
     self:setDimensions({ x = 0.66, y = 0.15, w = 0.15, h = 0.5 })
     self:updateSize()
     --local sz = self.element.layout.userData.getInnerSize()
+end
+
+function IngredientWindow:getAllIngredients()
+    if not self.data or not self.data.ingredients then
+        return {}
+    end
+    local map = {}
+    for _, list in pairs(self.data.ingredients) do
+        for i = 1, #list do
+            local ingredient = list[i]
+            map[ingredient.id] = (map[ingredient.id] or 0) + ingredient.count
+        end
+    end
+    local result = {}
+    for id, count in pairs(map) do
+        table.insert(result, { id = id, count = count })
+    end
+    return result
 end
 
 function IngredientWindow:updateSize()

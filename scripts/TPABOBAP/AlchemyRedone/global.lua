@@ -11,14 +11,19 @@ local m = {}
 ---@param object GameObject
 ---@param actor openmw.GObject
 m.activateApparatus = function(object, actor)
-    print('activateApparatus', object, actor)
     --TODO: search for apparatus in containers too? need to check container ownership in that case
     if actor.type == T.Player then
+        local inventory = T.Player.inventory(actor)
         local apparatus = m.collectApparatus(
             actor.cell:getAll(T.Apparatus),
-            T.Player.inventory(actor):getAll(T.Apparatus)
+            inventory:getAll(T.Apparatus)
         )
-        actor:sendEvent('TPA_AlchemyRedone_Open', { apparatus = apparatus })
+        local ingredients = m.collectIngredients(actor.cell:getAll(T.Container))
+        local actorIngredients = m.formatIngredients(inventory:getAll(T.Ingredient))
+        if actorIngredients and #actorIngredients > 0 then
+            ingredients[actor.id] = actorIngredients
+        end
+        actor:sendEvent('TPA_AlchemyRedone_Open', { apparatus = apparatus, ingredients = ingredients })
     end
     return false
 end
@@ -40,7 +45,7 @@ m.collectApparatus = function(...)
     for j = 1, #lists do
         local objectList = lists[j]
         for i = 1, #objectList do
-            ---@type GameObject
+            ---@type openmw.GObject
             local apparatus = objectList[i]
             local recordId = apparatus.recordId
             local record = T.Apparatus.record(recordId)
@@ -70,22 +75,51 @@ m.collectApparatus = function(...)
     return result
 end
 
+---@param containers openmw.ObjectList<openmw.GObject>
+---@return LocalApparatusIds
+m.collectIngredients = function(containers)
+    local result = {}
+    for i = 1, #containers do
+        ---@type openmw.GObject
+        local container = containers[i]
+        if m.isAllowed(container) then
+            local tmp = T.Container.inventory(container):getAll(T.Ingredient)
+            local ingredients = m.formatIngredients(tmp)
+            if ingredients and #ingredients > 0 then
+                result[container.id] = ingredients
+            end
+        end
+    end
+    return result
+end
+
+---@param list openmw.ObjectList<openmw.Object>
+m.formatIngredients = function(list)
+    if not list or #list <= 0 then return nil end
+    local infos = {}
+    for k = 1, #list do
+        ---@type openmw.Object
+        local ingredient = list[k]
+        table.insert(infos, { id = ingredient.recordId, count = ingredient.count })
+    end
+    return infos
+end
+
 m.collectAlchemyInfo = function(data)
     local cell = world.getCellById(data.cellId)
     local apparatus = m.collectApparatus(cell:getAll(T.Apparatus))
-    print('collectAlchemyInfo', cell, H.deepPrint(apparatus))
     --TODO: send event with this info?
 end
 
 ---Returns whether apparatus is owned by someone
----@param object GameObject
+---@param object openmw.GObject
 ---@return boolean
 m.isOwned = function(object)
     return object.owner ~= nil and (object.owner.recordId ~= nil or object.owner.factionId ~= nil)
 end
 
 ---Returns whether apparatus can be used by player
----@param object GameObject
+---@param object openmw.GObject
 ---@return boolean
 m.isAllowed = function(object)
     return not m.isOwned(object)
