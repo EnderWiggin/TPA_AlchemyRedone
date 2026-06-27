@@ -771,8 +771,6 @@ Templates.window = function(title, content, ctx, opts)
     window = ui.create(window)
 
     if draggable then
-        local minWidth = ctx.minWidth or 200
-        local minHeight = ctx.minHeight or 60
         userData.dragging = false
         userData.dragStartAbs = nil
         userData.dragStartSize = nil
@@ -791,6 +789,8 @@ Templates.window = function(title, content, ctx, opts)
                 end
             end),
             mouseMove = async:callback(function(e, layout)
+                local minWidth = window.layout.userData.minWidth or 200
+                local minHeight = window.layout.userData.minHeight or 60
                 userData.hadMouseMoveThisFrame = true
                 ctx.lastCursorPos = e.position
                 if ctx.cursorAttachedIcon then

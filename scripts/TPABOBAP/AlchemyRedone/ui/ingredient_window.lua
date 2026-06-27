@@ -152,14 +152,14 @@ function IngredientWindow:init(ctx)
     local content = ui.content {
         self.itemTable
     }
-    self.ctx.minWidth = 250
-    self.ctx.minHeight = 300
     self.element = T.Base.window(C.Strings.INGREDIENTS, content, self.ctx, {
         draggable = true,
         onDrag = function()
             self:updateSize()
         end
     })
+    self.element.layout.userData.minWidth = 300
+    self.element.layout.userData.minHeight = 100
     self:setDimensions({ x = 0.66, y = 0.15, w = 0.15, h = 0.5 })
     self:updateSize()
     --local sz = self.element.layout.userData.getInnerSize()

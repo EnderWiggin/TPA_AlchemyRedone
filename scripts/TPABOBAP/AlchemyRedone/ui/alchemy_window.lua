@@ -91,10 +91,10 @@ function AlchemyWindow:init(ctx)
             }
         },
     }
-    self.ctx.minWidth = 200
-    self.ctx.minHeight = 100
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, { draggable = true })
-    self:setDimensions({ x = 0.15, y = 0.25, w = 0.4, h = 0.3 })
+    self.element.layout.userData.minWidth = 375
+    self.element.layout.userData.minHeight = 325
+    self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
 end
 
 function AlchemyWindow:update(deep)
