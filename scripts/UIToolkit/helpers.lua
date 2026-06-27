@@ -159,14 +159,26 @@ Helpers.findInLayout = function(layoutOrElement, predicate)
     return nil
 end
 
+---@param layoutOrElement openmw.ui.Element|openmw.ui.Layout
+---@return openmw.ui.Layout
+Helpers.toLayout = function(layoutOrElement)
+    local isElement = type(layoutOrElement) == 'userdata'
+
+    if isElement then
+        ---@cast layoutOrElement openmw.ui.Element
+        return layoutOrElement.layout
+    else
+        ---@cast layoutOrElement openmw.ui.Layout
+        return layoutOrElement
+    end
+end
+
 ---@param content openmw.ui.Content
----@param name string
+---@param name string|integer
 ---@return openmw.ui.Layout?
 local function getContentChildByName(content, name)
     for i = 1, #content do
-        ---@type openmw.ui.Layout|openmw.ui.Element
-        local wdg = content[i]
-        wdg = wdg.layout or wdg
+        local wdg = Helpers.toLayout(content[i])
         if wdg.name == name then
             return wdg
         end
@@ -175,25 +187,30 @@ local function getContentChildByName(content, name)
 end
 
 ---@param layoutOrElement openmw.ui.Element|openmw.ui.Layout|nil
----@param path string[]|number[]
----@return openmw.ui.Layout?
+---@param path string[]|integer[]
+---@return openmw.ui.Layout
 Helpers.findLayoutByPath = function(layoutOrElement, path)
-    if not layoutOrElement then return nil end
-    local isElement = type(layoutOrElement) == 'userdata'
-    local layout = isElement and layoutOrElement.layout or layoutOrElement
+    if not layoutOrElement then error('empty layoutOrElement') end
+    local layout = Helpers.toLayout(layoutOrElement)
     ---@cast layout openmw.ui.Layout
-    local ok
     for i = 1, #path do
-        if not layout then return nil end
-        local content = layout.layout and layout.layout.content or layout.content
-        if not content then return nil end
+        if not layout then error('empty layout for path: "' .. table.concat(path, '/') .. '", part: ' .. i) end
+        local content = layout.content
+        if not content then
+            error('empty content for path: "' .. table.concat(path, '/') ..
+                '", part: ' .. tostring(layout))
+        end
         local name = path[i]
-        ok, layout = pcall(function() return content[name] end)
-        if not ok then
-            layout = getContentChildByName(content, name)
+        local ok, tmp = pcall(function() return content[name] end)
+        if ok then
+            layout = Helpers.toLayout(tmp)
+        else
+            tmp = getContentChildByName(content, name)
+            if not tmp then error('empty alt content for path: "' .. table.concat(path, '/') .. '", part: ' .. i) end
+            layout = Helpers.toLayout(tmp)
         end
     end
-    return layout
+    return layout or error('empty layout for path: "' .. table.concat(path, '/') .. '"')
 end
 
 -- Checks if two tables contain the same elements (ignoring order)
