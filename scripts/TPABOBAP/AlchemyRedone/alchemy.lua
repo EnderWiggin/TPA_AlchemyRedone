@@ -53,6 +53,37 @@ Alchemy.getMatchingEffects = function(ingredientIds)
     return effects
 end
 
+---@param actor openmw.LObject|openmw.GObject|nil
+---@return integer
+local function getKnownAlchemyEffectCount(actor, isPotion)
+    if not actor or not actor.type or not actor.type.stats or not actor.type.stats.skills or not actor.type.stats.skills.alchemy then
+        return 99 --consider knowing all effects when there's no actor
+    end
 
+    local alchemy = actor.type.stats.skills.alchemy(actor).base
+    local threshold = core.getGMST('fWortChanceValue')
+    local visibleEffectCount = math.floor(alchemy / threshold)
+    if isPotion then
+        visibleEffectCount = visibleEffectCount * 2
+    end
+    return visibleEffectCount
+end
+
+---@param ingredient string|openmw.types.IngredientRecord|nil
+---@param actor openmw.LObject|openmw.GObject|nil
+---@return table<integer, boolean>
+Alchemy.getKnownEffectFlagsForIngredient = function(ingredient, actor)
+    if type(ingredient) == "string" then
+        ingredient = types.Ingredient.record(ingredient)
+    end
+    if not ingredient then return {} end
+    local known = getKnownAlchemyEffectCount(actor, false)
+    local result = {}
+    for i = 1, #ingredient.effects do
+        --TODO: implement custom logic for knowing effects
+        result[i] = i <= known
+    end
+    return result
+end
 
 return Alchemy

@@ -5,6 +5,7 @@ local ui = require("openmw.ui")
 local util = require("openmw.util")
 local types = require("openmw.types")
 local async = require('openmw.async')
+local player = require('openmw.self')
 
 local I = require("openmw.interfaces")
 local T = {
@@ -13,6 +14,7 @@ local T = {
 }
 local C = require("scripts.UIToolkit.constants")
 local H = require("scripts.UIToolkit.helpers")
+local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local Window = require("scripts.UIToolkit.window")
 local IngredientTable = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredient_table")
@@ -80,14 +82,14 @@ local function renderEffects(ingredient, width, height)
     local effects = record and record.effects or {}
     local sz = T.Base.TEXT_SIZE
     local content = ui.content {}
+    local known = A.getKnownEffectFlagsForIngredient(record, player)
     for i = 1, 4 do
         if #effects >= i then
-            --TODO: account for unknown effects
             content:add({
                 name = 'effect_' .. i,
                 type = ui.TYPE.Image,
                 props = {
-                    resource = T.Base.effectIconTexture(effects[i].id),
+                    resource = known[i] and T.Base.effectIconTexture(effects[i].id) or T.Special.TEX.UNKNOWN_EFFECT,
                     anchor = v2(0, 0.5),
                     relativePosition = v2(0, 0.5),
                     position = v2((sz + 3) * (i - 1), 0),
@@ -143,7 +145,7 @@ function IngredientWindow:init(ctx)
         onKBMRowUse = function(row, rowWidget)
             return self:onRowUse(row, rowWidget, true)
         end,
-        tooltipFn = function(row) return T.Special.ingredientTooltip(row.id) end,
+        tooltipFn = function(row) return T.Special.ingredientTooltip(row.id, player) end,
         parentWindow = self,
     })
 

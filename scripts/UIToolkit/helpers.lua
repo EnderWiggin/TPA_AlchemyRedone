@@ -8,6 +8,7 @@ local types = require('openmw.types')
 local isPlayer, self = pcall(require, 'openmw.self')
 local _, debug = pcall(require, 'openmw.debug')
 local _, ui = pcall(require, 'openmw.ui')
+local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local C = require('scripts.UIToolkit.constants')
 local l10n = core.l10n('UIToolkit')
@@ -1227,11 +1228,13 @@ if isPlayer then
         return effectsToShow
     end
 
-    Helpers.getTooltipIngredientEffectEntries = function(itemRecord)
+    ---@param itemRecord openmw.types.IngredientRecord
+    ---@param actor openmw.GObject|openmw.LObject|nil
+    Helpers.getTooltipIngredientEffectEntries = function(itemRecord, actor)
         local effectsToShow = {}
-        local visibleEffectCount = 4     --getKnownAlchemyEffectCount(item) --TODO: account for unknown effects
+        local known = A.getKnownEffectFlagsForIngredient(itemRecord, actor)
         for i, effect in ipairs(itemRecord.effects) do
-            local isVisible = i <= visibleEffectCount
+            local isVisible = known[i]
             local effectText = nil
             if isVisible then
                 effectText = Helpers.getMagicEffectString(effect)

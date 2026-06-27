@@ -5,6 +5,7 @@ local ui = require("openmw.ui")
 local util = require("openmw.util")
 local types = require("openmw.types")
 local async = require('openmw.async')
+local player = require('openmw.self')
 
 local I = require("openmw.interfaces")
 local T = {
@@ -132,12 +133,16 @@ function AlchemyWindow:update(deep)
             name.props.text = record.name
             icon.props.resource = T.Base.createTexture(record.icon)
             count.props.text = H.addSeparators(amount)
+            local known = A.getKnownEffectFlagsForIngredient(record, player)
             for i = 1, 4 do
                 icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
                 if #effects >= i then
                     local effect = effects[i]
-                    --TODO: account for unknown effects
-                    icon.props.resource = T.Base.effectIconTexture(effect.id)
+                    if known[i] then
+                        icon.props.resource = T.Base.effectIconTexture(effect.id)
+                    else
+                        icon.props.resource = T.Special.TEX.UNKNOWN_EFFECT
+                    end
                     icon.props.alpha = A.containsEffect(self.data.matching, effect) and 1 or 0.5
                 else
                     icon.props.resource = nil
@@ -195,7 +200,7 @@ function AlchemyWindow:makeIngredientTip(n)
     if not self.data or not self.data.selected then return nil end
     print('makeIngredientTip', n, self.data.selected[n])
     if self.data.selected[n] then
-        return T.Special.ingredientTooltip(self.data.selected[n].id)
+        return T.Special.ingredientTooltip(self.data.selected[n].id, player)
     end
     return nil
 end

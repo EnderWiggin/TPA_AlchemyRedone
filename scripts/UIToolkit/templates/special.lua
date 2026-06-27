@@ -18,6 +18,9 @@ local Templates = {}
 
 local lastMousePos = nil
 
+Templates.TEX = {
+    UNKNOWN_EFFECT = BASE.createTexture('icons/TPABOBAP/AlchemyRedone/unknown-effect.png')
+}
 
 ---@param props any
 ---@param element openmw.ui.Element|openmw.ui.Layout
@@ -197,7 +200,9 @@ Templates.lineTooltip = function(text, name)
     }, name)
 end
 
-Templates.ingredientTooltip = function(id)
+---@param id string
+---@param actor openmw.GObject|openmw.LObject|nil
+Templates.ingredientTooltip = function(id, actor)
     local itemRecord = types.Ingredient.record(id)
     if not itemRecord then return nil end
 
@@ -229,7 +234,7 @@ Templates.ingredientTooltip = function(id)
     end
 
     -- Handle effects for enchantments, potions, and ingredients.
-    local effectsToShow = helpers.getTooltipIngredientEffectEntries(itemRecord)
+    local effectsToShow = helpers.getTooltipIngredientEffectEntries(itemRecord, actor)
 
     -- Build effect layouts if we have any effects
     if #effectsToShow > 0 then
