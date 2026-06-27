@@ -111,6 +111,18 @@ m.collectAlchemyInfo = function(data)
     --TODO: send event with this info?
 end
 
+m.addObject = function(actor, recordId, count)
+    local newObject = world.createObject(recordId, count)
+    newObject:moveInto(actor.type.inventory(actor))
+end
+
+m.createAndAddNewPotion = function(data)
+    local draft = T.Potion.createRecordDraft(data.draft)
+    local potion = world.createRecord(draft)
+    m.addObject(data.actor, potion.id, 1)
+end
+
+
 ---Returns whether apparatus is owned by someone
 ---@param object openmw.GObject
 ---@return boolean
@@ -129,6 +141,7 @@ I.Activation.addHandlerForType(T.Apparatus, m.activateApparatus)
 
 return {
     eventHandlers = {
-        TPA_AlchemyRedone_CollectInfo = m.collectAlchemyInfo
+        TPA_AlchemyRedone_CollectInfo = m.collectAlchemyInfo,
+        TPA_AlchemyRedone_CreateAndAddNewPotion = m.createAndAddNewPotion,
     },
 }

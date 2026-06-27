@@ -68,6 +68,9 @@ function AlchemyWindow:init(ctx)
             },
             content = ui.content {
                 parts.naming(),
+                T.Base.button('Create', function() --TODO: properly position this buton
+                    self:createPotion()
+                end, 'btnCreate'),
                 T.Base.intervalV(15),
                 {
                     name = 'panel',
@@ -281,7 +284,7 @@ function AlchemyWindow:onSelectIngredient(info)
     return false
 end
 
-function AlchemyWindow:updateMatchingEffects()
+function AlchemyWindow:getSelectedIngredientList()
     local ids = {}
     local selected = self.data.selected
     if selected then
@@ -291,8 +294,43 @@ function AlchemyWindow:updateMatchingEffects()
             end
         end
     end
+    return ids
+end
 
-    self.data.matching = A.getMatchingEffects(ids)
+function AlchemyWindow:updateMatchingEffects()
+    local ingredients = self:getSelectedIngredientList()
+    self.data.matching = A.getMatchingEffects(ingredients)
+end
+
+function AlchemyWindow:createPotion()
+    local ingredients = self:getSelectedIngredientList()
+    local effects = A.getPotionStats(ingredients, self.data.apparatus or {}, player)
+
+    --TODO: try find potion with same stats and use it, instead of creating new one when possible
+    print('createPotion', effects, #effects)
+    if #effects <= 0 then return end
+    for i = 1, #effects do
+        --this field can't be sent with event and it is not required to create new record
+        effects[i].effect = nil
+    end
+
+    local mModel = "meshes/m/misc_potion_exclusive_01.nif";
+    local mIcon = "icons/m/tx_potion_exclusive_01.dds";
+
+    ---@type openmw.types.PotionRecord
+    local potion = {
+        id = '',               --this id is not needed to create new record
+        name = '- NEW POTION', --TODO: get name from text input
+        model = mModel,
+        mwscript = nil,
+        icon = mIcon,
+        weight = 1,  --TODO: get proper weight
+        value = 100, --TODO: get proper value
+        effects = effects,
+        isAutocalc = false,
+    }
+
+    core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', { draft = potion, actor = player })
 end
 
 function AlchemyWindow:destroy()
