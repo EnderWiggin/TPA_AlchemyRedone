@@ -213,7 +213,6 @@ function IngredientWindow:updateSize()
 end
 
 function IngredientWindow:onRowUse(row, rowWidget, fromKBMKeybind)
-    print('onRowUse', row.id, fromKBMKeybind)
     self.ctx.selectIngredient({ id = row.id, count = row.count })
     return false
 end

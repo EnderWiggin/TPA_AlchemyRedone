@@ -6,6 +6,7 @@ local util = require("openmw.util")
 local types = require("openmw.types")
 local async = require('openmw.async')
 local player = require('openmw.self')
+local auxUi = require('openmw_aux.ui')
 
 local I = require("openmw.interfaces")
 local T = {
@@ -40,6 +41,7 @@ local parts = {}
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
 
+local BLOCK_WIDTH = 350
 local ICON_SZ
 local GAP_END
 local GAP_MID
@@ -62,48 +64,83 @@ function AlchemyWindow:init(ctx)
             name = 'main',
             type = ui.TYPE.Flex,
             props = {
-                horizontal = true,
+                horizontal = false,
             },
             content = ui.content {
-                T.Base.intervalH(5),
+                parts.naming(),
+                T.Base.intervalV(15),
                 {
-                    name = 'left',
+                    name = 'panel',
                     type = ui.TYPE.Flex,
-                    props = {},
+                    props = {
+                        horizontal = true,
+                    },
                     content = ui.content {
-                        parts.naming(),
-                        T.Base.intervalV(15),
-                        parts.tools(),
-                        T.Base.intervalV(15),
-                        parts.selected(ctx,
-                            function(n)
-                                local r = self:getSelectedIngredientRecord(n)
-                                return r and r.id
-                            end,
-                            function(n)
-                                self:onIngredientClicked(n)
-                            end,
-                            function(n)
-                                return self:makeIngredientTip(n)
-                            end),
+                        T.Base.intervalH(5),
+                        {
+                            name = 'left',
+                            type = ui.TYPE.Flex,
+                            props = {},
+                            content = ui.content {
+                                parts.tools(),
+                                T.Base.intervalV(15),
+                                parts.selected(ctx,
+                                    function(n)
+                                        local r = self:getSelectedIngredientRecord(n)
+                                        return r and r.id
+                                    end,
+                                    function(n)
+                                        self:onIngredientClicked(n)
+                                    end,
+                                    function(n)
+                                        return self:makeIngredientTip(n)
+                                    end),
+                            }
+                        },
+                        T.Base.intervalH(15),
+                        {
+                            name = 'right',
+                            type = ui.TYPE.Flex,
+                            props = {
+                                autoSize = false,
+                                size = v2(200, 300)
+                            },
+                            content = ui.content {
+                                parts.resultingEffects()
+                            }
+                        },
                     }
                 },
-            }
-        },
+            },
+        }
     }
-    self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, { draggable = true })
-    self.element.layout.userData.minWidth = 375
-    self.element.layout.userData.minHeight = 325
+    self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
+        draggable = true,
+        onDrag = function()
+            self:updateSize()
+        end
+    })
+    self.element.layout.userData.minWidth = 760
+    self.element.layout.userData.minHeight = 355
     self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
+    self:updateSize()
+end
+
+function AlchemyWindow:updateSize()
+    if not self.element then return end
+    local inner = self.element.layout.userData.getInnerSize()
+
+    local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'main', 'panel', 'right' })
+    right.props.size = v2(inner.x / 2, inner.y)
 end
 
 function AlchemyWindow:update(deep)
     if not self.element then return end
     updateSizes()
     self:updateMatchingEffects()
-    local main = H.findLayoutByPath(self.element, { 'foreground', 'body', 'main' })
+    local panel = H.findLayoutByPath(self.element, { 'foreground', 'body', 'main', 'panel' })
 
-    local tools = H.findLayoutByPath(main, { 'left', 'tools-box', 'padding', 'tools' })
+    local tools = H.findLayoutByPath(panel, { 'left', 'tools-block', 'tools-box', 'padding', 'tools' })
     local function updateTool(name, type)
         local record = self:getToolRecord(type)
         local layout = H.findLayoutByPath(tools, { 'name', name })
@@ -121,7 +158,7 @@ function AlchemyWindow:update(deep)
     updateTool(C.Strings.CALCINATOR, ApparatusTypes.Calcinator)
     updateTool(C.Strings.RETORT, ApparatusTypes.Retort)
 
-    local selected = H.findLayoutByPath(main, { 'left', 'selected-box', 'padding', 'selected' })
+    local selected = H.findLayoutByPath(panel, { 'left', 'selected-block', 'selected-box', 'padding', 'selected' })
     local function updateSelected(n)
         local record, amount = self:getSelectedIngredientRecord(n)
         local name = H.findLayoutByPath(selected, { 'name', Slots[n] })
@@ -160,6 +197,15 @@ function AlchemyWindow:update(deep)
         updateSelected(i)
     end
 
+    local effects = H.findLayoutByPath(panel, { 'right', 'result-block', 'result-box', 'padding', 'effect-list' })
+    for i = 1, #effects.content do
+        auxUi.deepDestroy(effects.content[i])
+    end
+    local effectCount = 4 --min 4 for beauty
+    effects.props.size = v2(BLOCK_WIDTH, ICON_SZ * effectCount + GAP_ICON * (effectCount - 1))
+    effects.content = ui.content {
+    }
+
     Window.update(self, deep)
 end
 
@@ -195,7 +241,6 @@ end
 
 function AlchemyWindow:makeIngredientTip(n)
     if not self.data or not self.data.selected then return nil end
-    print('makeIngredientTip', n, self.data.selected[n])
     if self.data.selected[n] then
         return T.Special.ingredientTooltip(self.data.selected[n].id, player)
     end
@@ -306,7 +351,7 @@ parts.naming = function()
 end
 
 parts.tools = function()
-    return {
+    local box = {
         name = 'tools-box',
         template = T.Base.boxSolid,
         content = ui.content {
@@ -320,6 +365,9 @@ parts.tools = function()
                         props = {
                             horizontal = true,
                             arrange = ui.ALIGNMENT.Start,
+                            align = ui.ALIGNMENT.Center,
+                            autoSize = false,
+                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
                         },
                         content = ui.content {
                             {
@@ -405,10 +453,24 @@ parts.tools = function()
             }
         }
     }
+    return {
+        name = 'tools-block',
+        type = ui.TYPE.Flex,
+        props = {},
+        content = ui.content {
+            {
+                template = T.Base.textHeader,
+                props = {
+                    text = C.Strings.APPARATUS,
+                },
+            },
+            box,
+        }
+    }
 end
 
 parts.selected = function(ctx, getId, onClick, tooltipFn)
-    return {
+    local box = {
         name = 'selected-box',
         template = T.Base.boxSolid,
         content = ui.content {
@@ -422,6 +484,9 @@ parts.selected = function(ctx, getId, onClick, tooltipFn)
                         props = {
                             horizontal = true,
                             arrange = ui.ALIGNMENT.Start,
+                            align = ui.ALIGNMENT.Center,
+                            autoSize = false,
+                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
                         },
                         content = ui.content {
                             {
@@ -497,6 +562,20 @@ parts.selected = function(ctx, getId, onClick, tooltipFn)
                     }
                 },
             }
+        }
+    }
+    return {
+        name = 'selected-block',
+        type = ui.TYPE.Flex,
+        props = {},
+        content = ui.content {
+            {
+                template = T.Base.textHeader,
+                props = {
+                    text = C.Strings.INGREDIENTS,
+                },
+            },
+            box,
         }
     }
 end
@@ -581,6 +660,49 @@ parts.namedEffects = function(name)
             T.Base.intervalH(5),
             parts.effectIcon(4),
         },
+    }
+end
+
+parts.resultingEffects = function()
+    local box = {
+        name = 'result-box',
+        template = T.Base.boxSolid,
+        props = {},
+        content = ui.content {
+            {
+                name = 'padding',
+                template = T.Base.padding(5),
+                content = ui.content {
+                    {
+                        name = 'effect-list',
+                        type = ui.TYPE.Flex,
+                        props = {
+                            autoSize = false,
+                            arrange = ui.ALIGNMENT.Center,
+                            align = ui.ALIGNMENT.Start,
+                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
+                        },
+                        content = ui.content {},
+                    }
+                }
+            },
+
+        }
+    }
+    return {
+        name = 'result-block',
+        type = ui.TYPE.Flex,
+        props = {},
+        content = ui.content {
+            {
+                name = 'title',
+                template = T.Base.textHeader,
+                props = {
+                    text = C.Strings.EFFECTS,
+                },
+            },
+            box,
+        }
     }
 end
 
