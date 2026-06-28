@@ -304,10 +304,18 @@ end
 
 function AlchemyWindow:createPotion()
     local ingredients = self:getSelectedIngredientList()
-    local stats = A.getPotionStats(ingredients, self.data.apparatus or {}, player)
+    local stats, error = A.getPotionStats(ingredients, self.data.apparatus or {}, player)
     local effects = stats.effects
 
-    print('createPotion', effects, #effects)
+    if error == A.PotionErrors.FAIL or error == A.PotionErrors.OK and #effects == 0 then
+        ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
+        --TODO: potion failed - deduct ingredients
+        return
+    elseif error ~= A.PotionErrors.OK then
+        ui.showMessage(core.getGMST(error))
+        return
+    end
+
     if #effects <= 0 then return end
     for i = 1, #effects do
         --this field can't be sent with event and it is not required to create new record
@@ -741,7 +749,7 @@ parts.resultingEffects = function()
                 name = 'title',
                 template = T.Base.textHeader,
                 props = {
-                    text = C.Strings.EFFECTS,
+                    text = C.Strings.CREATED_EFFECTS,
                 },
             },
             box,

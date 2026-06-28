@@ -6,13 +6,22 @@ local types = require("openmw.types")
 local I = require("openmw.interfaces")
 
 
----@class PotionStats
+---@class AlchemyPotionStats
 ---@field name? string
 ---@field effects openmw.core.MagicEffectWithParams[]
 ---@field value number
 ---@field weight number
 
 local Alchemy = {}
+
+---@enum AlchemyPotionErrors
+Alchemy.PotionErrors = {
+    OK = 'sPotionSuccess',
+    FAIL = 'sNotifyMessage8',
+    NO_MORTAR = 'sNotifyMessage45',
+    NO_NAME = 'sNotifyMessage37',
+    TOO_FEW_INGREDIENTS = 'sNotifyMessage6a',
+}
 
 ---@param list? openmw.core.MagicEffectWithParams[]
 ---@param effect openmw.core.MagicEffectWithParams
@@ -137,22 +146,22 @@ end
 ---@param ingredientIds string[] ordered list of ingredient ids
 ---@param apparatus LocalApparatusIds info about apparatus being used
 ---@param actor openmw.LObject|openmw.GObject|nil
----@return PotionStats
+---@return AlchemyPotionStats, AlchemyPotionErrors
 Alchemy.getPotionStats = function(ingredientIds, apparatus, actor)
     ---@type openmw.core.MagicEffectWithParams[]
     local effects = {}
-    ---@type PotionStats
+    ---@type AlchemyPotionStats
     local stats = {
         effects = effects,
         value = 0,
         weight = 0,
     }
-    if #ingredientIds < 2 then return stats end
+    if #ingredientIds < 2 then return stats, Alchemy.PotionErrors.TOO_FEW_INGREDIENTS end
     local mortar = apparatus.Mortar and types.Apparatus.record(apparatus.Mortar)
-    if not mortar then return stats end
+    if not mortar then return stats, Alchemy.PotionErrors.NO_MORTAR end
 
     local matching = Alchemy.getMatchingEffects(ingredientIds)
-    if #matching <= 0 then return stats end
+    if #matching <= 0 then return stats, Alchemy.PotionErrors.OK end
 
     local factor = Alchemy.getAlchemyFactor(actor)
     factor = factor * mortar.quality
@@ -217,7 +226,7 @@ Alchemy.getPotionStats = function(ingredientIds, apparatus, actor)
         end
     end
 
-    return stats
+    return stats, Alchemy.PotionErrors.OK
 end
 
 ---@param a openmw.core.MagicEffectWithParams[]

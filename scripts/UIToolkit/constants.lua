@@ -144,6 +144,7 @@ C.Strings = {
     THATS_MINE = 'sNotifyMessage49',
     PROFIT_VALUE = 'sProfitValue',
     EFFECTS = 'sEffects',
+    CREATED_EFFECTS = 'sCreatedEffects',
     INGREDIENTS = 'sIngredients',
     APPARATUS = 'sApparatus',
     MORTAR = 'sMortar',
