@@ -317,8 +317,9 @@ function AlchemyWindow:updateMatchingEffects()
 end
 
 function AlchemyWindow:createPotion()
+    local name = self.naming.getText()
     local ingredients = self:getSelectedIngredientList()
-    local draft, error = A.getPotionStats(self.naming.getText(), ingredients, self.data.apparatus or {}, player)
+    local draft, error = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player)
     local effects = draft.effects
 
     if error == A.PotionErrors.FAIL then
@@ -354,17 +355,16 @@ end
 ---@param defaultText fun():string
 parts.naming = function(defaultText)
     local path = { 'nameBar', 'padding', 'textEdit' }
+    local name = defaultText()
     local element
     local wdg = {
         setText = function(text)
             local txt = H.findLayoutByPath(element, path)
             txt.props.text = text
+            name = text
             element:update()
         end,
-        getText = function()
-            local txt = H.findLayoutByPath(element, path)
-            return txt.props.text
-        end,
+        getText = function() return name end,
     }
 
     local btn = T.Base.imageButton(REVERT_PATH, v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE), function()
@@ -400,9 +400,12 @@ parts.naming = function(defaultText)
                                 template = T.Base.textEditLine,
                                 props = {
                                     size = v2(300, T.Base.TEXT_SIZE),
-                                    text = defaultText(),
+                                    text = name,
                                     textColor = C.Colors.DEFAULT_LIGHT,
                                 },
+                                events = {
+                                    textChanged = async:callback(function(text) name = text end),
+                                }
                             }
                         }
                     }
