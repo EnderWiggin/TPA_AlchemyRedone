@@ -271,7 +271,7 @@ function AlchemyWindow:update(deep)
             name = 'effects',
             type = ui.TYPE.Flex,
             props = {
-                arrange = ui.ALIGNMENT.Center,
+                arrange = ui.ALIGNMENT.Start,
             },
             content = ui.content {
                 table.unpack(effectLayouts)
@@ -853,7 +853,7 @@ parts.resultingEffects = function()
                         type = ui.TYPE.Flex,
                         props = {
                             autoSize = false,
-                            arrange = ui.ALIGNMENT.Center,
+                            arrange = ui.ALIGNMENT.Start,
                             align = ui.ALIGNMENT.Start,
                             size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
                         },
