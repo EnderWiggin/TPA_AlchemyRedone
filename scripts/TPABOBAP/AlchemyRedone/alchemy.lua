@@ -253,6 +253,14 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
     return stats, #effects <= 0 and Alchemy.PotionErrors.FAIL or Alchemy.PotionErrors.OK
 end
 
+---@param actor openmw.LObject|openmw.GObject|nil
+---@return boolean success
+Alchemy.checkPotionBrewSuccess = function(actor)
+    local factor = Alchemy.getAlchemyFactor(actor)
+    local roll = math.random(0, 99)
+    return factor >= roll
+end
+
 ---@param a openmw.core.MagicEffectWithParams[]
 ---@param b openmw.core.MagicEffectWithParams[]
 local function potionEffectsEqual(a, b)

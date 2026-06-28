@@ -42,7 +42,7 @@ end
 local parts = {}
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
-local MIN_SIZE = v2(710, 355) --TODO: update with font sizes?
+local MIN_SIZE = v2(730, 380) --TODO: update with font sizes?
 
 local BLOCK_WIDTH = 350
 local EFFECTS_WIDTH = 300
@@ -74,8 +74,8 @@ function AlchemyWindow:init(ctx)
         canClick = function() return not self.btnCreate.layout.userData.disabled end
     }, self.ctx)
 
-    self.btnCreate.layout.props.relativePosition = v2(1, 1)
-    self.btnCreate.layout.props.anchor = v2(1, 1)
+    local counting
+    counting, self.counting = parts.countBlock()
 
     local content = ui.content {
         {
@@ -88,6 +88,7 @@ function AlchemyWindow:init(ctx)
                     type = ui.TYPE.Flex,
                     props = {
                         horizontal = false,
+                        position = v2(10, 10)
                     },
                     content = ui.content {
                         naming,
@@ -99,7 +100,6 @@ function AlchemyWindow:init(ctx)
                                 horizontal = true,
                             },
                             content = ui.content {
-                                T.Base.intervalH(5),
                                 {
                                     name = 'left',
                                     type = ui.TYPE.Flex,
@@ -136,7 +136,20 @@ function AlchemyWindow:init(ctx)
                         },
                     },
                 },
-                self.btnCreate,
+                {
+                    type = ui.TYPE.Flex,
+                    props = {
+                        horizontal = true,
+                        anchor = v2(1, 1),
+                        relativePosition = v2(1, 1),
+                        position = v2(-10, -10),
+                    },
+                    content = ui.content {
+                        counting,
+                        T.Base.intervalH(50),
+                        self.btnCreate,
+                    },
+                },
             },
         }
     }
@@ -398,12 +411,29 @@ function AlchemyWindow:createPotion()
     local ingredients = self:getSelectedIngredientList()
     local draft, errorCode = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player)
     local effects = draft.effects
-    local count = 1 --TODO: add ability to brew more than 1 potion, clamp to min amount ingredient
+    local count = self.counting.getCount() --TODO: clamp to min amount ingredient
     local brewed = 0
 
     if errorCode == A.PotionErrors.OK then
-        brewed = count --TODO: roll skill check for each `count` to find how many were brewed
-        if brewed <= 0 then errorCode = A.PotionErrors.FAIL end
+        for _ = 1, count do
+            if A.checkPotionBrewSuccess(player) then
+                brewed = brewed + 1
+                --TODO: grant skill use success XP
+            else
+                --TODO: optionally grant skill use failure XP
+            end
+        end
+
+        if brewed <= 0 then
+            errorCode = A.PotionErrors.FAIL
+        else
+            local msg = core.getGMST(A.PotionErrors.OK)
+            if brewed > 1 then
+                msg = msg .. ' ' .. name .. ' (' .. H.addSeparators(brewed) .. ')'
+            end
+            ui.showMessage(msg)
+            ambient.playSound('potion success', { scale = false })
+        end
     end
 
     if errorCode == A.PotionErrors.FAIL then
@@ -416,13 +446,11 @@ function AlchemyWindow:createPotion()
         return
     end
 
-    if #effects <= 0 then return end
     for i = 1, #effects do
         --this field can't be sent with event and it is not required to create new record
         effects[i].effect = nil
     end
 
-    ambient.playSound('potion success', { scale = false })
     self:deductIngredients(ingredients, count)
     local potion = A.findPotion(draft)
     if potion then
@@ -509,6 +537,7 @@ parts.naming = function(defaultText)
                     }
                 },
             },
+            T.Base.intervalH(3),
             btn,
         }
     }
@@ -635,7 +664,7 @@ parts.tools = function()
         props = {},
         content = ui.content {
             {
-                template = T.Base.textHeader,
+                template = T.Base.textNormal,
                 props = {
                     text = C.Strings.APPARATUS,
                 },
@@ -746,7 +775,7 @@ parts.selected = function(ctx, getId, onClick, tooltipFn)
         props = {},
         content = ui.content {
             {
-                template = T.Base.textHeader,
+                template = T.Base.textNormal,
                 props = {
                     text = C.Strings.INGREDIENTS,
                 },
@@ -872,7 +901,7 @@ parts.resultingEffects = function()
         content = ui.content {
             {
                 name = 'title',
-                template = T.Base.textHeader,
+                template = T.Base.textNormal,
                 props = {
                     text = C.Strings.CREATED_EFFECTS,
                 },
@@ -880,6 +909,75 @@ parts.resultingEffects = function()
             box,
         }
     }
+end
+
+parts.countBlock = function()
+    local value = 1
+    local element
+    local path = { 'countBar', 'padding', 'textEdit' }
+    local wdg = {
+        setValue = function(v)
+            local txt = H.findLayoutByPath(element, path)
+            value = math.max(math.floor(v), 1)
+            txt.props.text = tostring(value)
+            element:update()
+        end,
+        getCount = function() return value end,
+    }
+
+    local function validate(text)
+        local number = tonumber(text)
+        if not number then
+            wdg.setValue(value)
+        else
+            wdg.setValue(number)
+        end
+    end
+
+    local btnMinus = T.Base.button('-', function() validate(value - 1) end, 'btn-minus')
+    local btnPlus = T.Base.button('+', function() validate(value + 1) end, 'btn-plus')
+
+    element = ui.create {
+        name = 'potion-count',
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = true,
+            arrange = ui.ALIGNMENT.Center,
+        },
+        content = ui.content {
+            btnMinus,
+            T.Base.intervalH(3),
+            {
+                name = 'countBar',
+                template = I.MWUI.templates.box,
+                content = ui.content {
+                    {
+                        name = 'padding',
+                        template = I.MWUI.templates.padding,
+                        content = ui.content {
+                            {
+                                name = 'textEdit',
+                                template = T.Base.textEditLine,
+                                props = {
+                                    size = v2(60, T.Base.TEXT_SIZE),
+                                    text = tostring(value),
+                                    textColor = C.Colors.DEFAULT_LIGHT,
+                                    textAlignH = ui.ALIGNMENT.Center,
+                                },
+                                events = {
+                                    textChanged = async:callback(validate),
+                                }
+                            }
+                        }
+                    }
+                },
+            },
+            T.Base.intervalH(3),
+            btnPlus,
+        }
+    }
+
+    return element, wdg
 end
 
 return AlchemyWindow
