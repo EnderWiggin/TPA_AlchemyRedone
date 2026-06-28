@@ -42,17 +42,21 @@ end
 local parts = {}
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
+local MIN_SIZE = v2(710, 355) --TODO: update with font sizes?
 
 local BLOCK_WIDTH = 350
+local EFFECTS_WIDTH = 300
 local ICON_SZ
 local GAP_END
 local GAP_MID
 local GAP_ICON
+local GAP_EFFECT
 local function updateSizes()
     ICON_SZ = util.round(T.Base.TEXT_SIZE * 1.5)
     GAP_ICON = 3
     GAP_END = util.round((ICON_SZ - T.Base.TEXT_SIZE) / 2)
     GAP_MID = 2 * GAP_END + GAP_ICON
+    GAP_EFFECT = 8
 end
 
 updateSizes()
@@ -143,10 +147,10 @@ function AlchemyWindow:init(ctx)
             self:updateSize()
         end
     })
-    self.element.layout.userData.minWidth = 760
-    self.element.layout.userData.minHeight = 355
+    self.element.layout.userData.minWidth = MIN_SIZE.x
+    self.element.layout.userData.minHeight = MIN_SIZE.y
     self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
-    self:setSize(v2(760, 355))
+    self:setSize(MIN_SIZE)
     self:updateSize()
 end
 
@@ -227,10 +231,54 @@ function AlchemyWindow:update(deep)
     for i = 1, #effects.content do
         auxUi.deepDestroy(effects.content[i])
     end
-    local effectCount = 4 --min 4 for beauty
-    effects.props.size = v2(BLOCK_WIDTH, ICON_SZ * effectCount + GAP_ICON * (effectCount - 1))
-    effects.content = ui.content {
-    }
+    local effectCount = 8 --min 4 for beauty
+    effects.content = ui.content {}
+
+    if self.data.matching then
+        effectCount = math.max(effectCount, #self.data.matching)
+        local effectLayouts = {}
+        for i = 1, #self.data.matching do
+            local effect = self.data.matching[i]
+            local isVisible = true --TODO: account for unknown effects
+            local content = ui.content {}
+
+            if isVisible then
+                content:add(T.Special.effectIcon(effect.id))
+                content:add(T.Base.intervalH(4))
+                local effectText = H.getMagicEffectString(effect) or '?'
+                content:add({ name = 'effect_' .. i, template = T.Base.textNormal, props = { text = effectText } })
+            else
+                content:add({ name = 'effect_' .. i, template = T.Base.textNormal, props = { text = '?' } })
+            end
+
+            local effectLayout = {
+                type = ui.TYPE.Flex,
+                props = {
+                    horizontal = true,
+                    arrange = ui.ALIGNMENT.Center,
+                },
+                content = content,
+            }
+
+            if i ~= 1 then
+                table.insert(effectLayouts, T.Base.intervalV(GAP_EFFECT))
+            end
+            table.insert(effectLayouts, effectLayout)
+        end
+
+
+        effects.content:add({
+            name = 'effects',
+            type = ui.TYPE.Flex,
+            props = {
+                arrange = ui.ALIGNMENT.Center,
+            },
+            content = ui.content {
+                table.unpack(effectLayouts)
+            }
+        })
+    end
+    effects.props.size = v2(EFFECTS_WIDTH, T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1))
 
     Window.update(self, deep)
 end

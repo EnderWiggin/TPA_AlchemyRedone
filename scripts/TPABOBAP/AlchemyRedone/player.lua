@@ -25,6 +25,7 @@ local m = {
 ---@field sources openmw.GObject[]
 ---@field ingredients table<string, integer>
 ---@field selected string[]
+---@field matching? openmw.core.MagicEffectWithParams[]
 
 ---@class AlchemyContext: WindowContext
 ---@field data AlchemyData?

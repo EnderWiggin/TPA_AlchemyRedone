@@ -160,7 +160,7 @@ function IngredientWindow:init(ctx)
     })
     self.element.layout.userData.minWidth = 300
     self.element.layout.userData.minHeight = 100
-    self:setDimensions({ x = 0.75, y = 0.15, w = 0.15, h = 0.5 })
+    self:setDimensions({ x = 0.70, y = 0.15, w = 0.15, h = 0.5 })
     self:updateSize()
     --local sz = self.element.layout.userData.getInnerSize()
 end
