@@ -304,9 +304,9 @@ end
 
 function AlchemyWindow:createPotion()
     local ingredients = self:getSelectedIngredientList()
-    local effects = A.getPotionStats(ingredients, self.data.apparatus or {}, player)
+    local stats = A.getPotionStats(ingredients, self.data.apparatus or {}, player)
+    local effects = stats.effects
 
-    --TODO: try find potion with same stats and use it, instead of creating new one when possible
     print('createPotion', effects, #effects)
     if #effects <= 0 then return end
     for i = 1, #effects do
@@ -318,19 +318,24 @@ function AlchemyWindow:createPotion()
     local mIcon = "icons/m/tx_potion_exclusive_01.dds";
 
     ---@type openmw.types.PotionRecord
-    local potion = {
+    local draft = {
         id = '',               --this id is not needed to create new record
         name = '- NEW POTION', --TODO: get name from text input
         model = mModel,
         mwscript = nil,
         icon = mIcon,
-        weight = 1,  --TODO: get proper weight
-        value = 100, --TODO: get proper value
+        weight = stats.weight,
+        value = util.round(stats.value),
         effects = effects,
         isAutocalc = false,
     }
 
-    core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', { draft = potion, actor = player })
+    local potion = A.findPotion(draft)
+    if potion then
+        core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = 1 })
+    else
+        core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', { draft = draft, actor = player })
+    end
 end
 
 function AlchemyWindow:destroy()

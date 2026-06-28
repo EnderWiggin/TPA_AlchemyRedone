@@ -6,6 +6,12 @@ local types = require("openmw.types")
 local I = require("openmw.interfaces")
 
 
+---@class PotionStats
+---@field name? string
+---@field effects openmw.core.MagicEffectWithParams[]
+---@field value number
+---@field weight number
+
 local Alchemy = {}
 
 ---@param list? openmw.core.MagicEffectWithParams[]
@@ -131,22 +137,29 @@ end
 ---@param ingredientIds string[] ordered list of ingredient ids
 ---@param apparatus LocalApparatusIds info about apparatus being used
 ---@param actor openmw.LObject|openmw.GObject|nil
----@return openmw.core.MagicEffectWithParams[]
+---@return PotionStats
 Alchemy.getPotionStats = function(ingredientIds, apparatus, actor)
+    ---@type openmw.core.MagicEffectWithParams[]
     local effects = {}
-    if #ingredientIds < 2 then return effects end
+    ---@type PotionStats
+    local stats = {
+        effects = effects,
+        value = 0,
+        weight = 0,
+    }
+    if #ingredientIds < 2 then return stats end
     local mortar = apparatus.Mortar and types.Apparatus.record(apparatus.Mortar)
-    if not mortar then return effects end
+    if not mortar then return stats end
 
     local matching = Alchemy.getMatchingEffects(ingredientIds)
-    if #matching <= 0 then return effects end
+    if #matching <= 0 then return stats end
 
     local factor = Alchemy.getAlchemyFactor(actor)
     factor = factor * mortar.quality
     factor = factor * core.getGMST('fPotionStrengthMult')
 
-    -- seems to be to cost of the potion?
-    local value = factor * core.getGMST('iAlchemyMod')
+    -- seems to be to cost of the potion
+    stats.value = factor * core.getGMST('iAlchemyMod')
 
     local fPotionT1MagMul = core.getGMST('fPotionT1MagMult')
     if fPotionT1MagMul <= 0 then error('invalid gmst: fPotionT1MagMul') end
@@ -204,7 +217,54 @@ Alchemy.getPotionStats = function(ingredientIds, apparatus, actor)
         end
     end
 
-    return effects
+    return stats
+end
+
+---@param a openmw.core.MagicEffectWithParams[]
+---@param b openmw.core.MagicEffectWithParams[]
+local function potionEffectsEqual(a, b)
+    if #a ~= #b then return false end
+    for i = 1, #a do
+        local ea = a[i]
+        local eb = b[i]
+        if ea.id ~= eb.id
+            or ea.affectedAttribute ~= eb.affectedAttribute
+            or ea.affectedSkill ~= ea.affectedSkill
+            or ea.duration ~= eb.duration
+            or ea.magnitudeMin ~= eb.magnitudeMin
+            or ea.magnitudeMax ~= eb.magnitudeMax
+            or ea.range ~= ea.range
+            or ea.area ~= ea.area
+        then
+            return false
+        end
+    end
+    return true
+end
+
+---@param a openmw.types.PotionRecord
+---@param b openmw.types.PotionRecord
+local function potionRecordsEqual(a, b)
+    if a.name ~= b.name then return false end
+    if a.weight ~= b.weight then return false end
+    if a.value ~= b.value then return false end
+    if a.mwscript ~= b.mwscript then return false end
+    if a.icon ~= b.icon then return false end
+    if a.model ~= b.model then return false end
+    if a.isAutocalc ~= b.isAutocalc then return false end
+    if not potionEffectsEqual(a.effects, b.effects) then return false end
+    return true
+end
+
+---@param record openmw.types.PotionRecord
+---@return openmw.types.PotionRecord?
+Alchemy.findPotion = function(record)
+    for i = 1, #types.Potion.records do
+        ---@type openmw.types.PotionRecord
+        local potion = types.Potion.records[i]
+        if potion and potionRecordsEqual(record, potion) then return potion end
+    end
+    return nil
 end
 
 ---@param actor openmw.LObject|openmw.GObject|nil

@@ -112,8 +112,7 @@ m.collectAlchemyInfo = function(data)
 end
 
 m.addObject = function(actor, recordId, count)
-    local newObject = world.createObject(recordId, count)
-    newObject:moveInto(actor.type.inventory(actor))
+    world.createObject(recordId, count or 1):moveInto(actor.type.inventory(actor))
 end
 
 m.createAndAddNewPotion = function(data)
@@ -143,5 +142,6 @@ return {
     eventHandlers = {
         TPA_AlchemyRedone_CollectInfo = m.collectAlchemyInfo,
         TPA_AlchemyRedone_CreateAndAddNewPotion = m.createAndAddNewPotion,
+        TPA_AlchemyRedone_AddItem = function(data) m.addObject(data.actor, data.recordId, data.count) end,
     },
 }
