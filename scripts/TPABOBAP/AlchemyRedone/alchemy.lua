@@ -10,11 +10,11 @@ local Alchemy = {}
 
 ---@enum AlchemyPotionErrors
 Alchemy.PotionErrors = {
-    OK = 'sPotionSuccess',
-    FAIL = 'sNotifyMessage8',
-    NO_MORTAR = 'sNotifyMessage45',
-    NO_NAME = 'sNotifyMessage37',
-    TOO_FEW_INGREDIENTS = 'sNotifyMessage6a',
+    OK = 'sPotionSuccess',                    --- Potion can be created
+    FAIL = 'sNotifyMessage8',                 --- Potion was attempted, but failed - ingredients are still consumed.
+    NO_MORTAR = 'sNotifyMessage45',           --- Potion can't be created - need Mortar and pestle
+    NO_NAME = 'sNotifyMessage37',             --- Potion can't be created - it needs a name
+    TOO_FEW_INGREDIENTS = 'sNotifyMessage6a', --- Potion can't be created - needs more ingredients
 }
 
 ---@param list? openmw.core.MagicEffectWithParams[]
