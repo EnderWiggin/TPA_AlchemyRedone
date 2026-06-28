@@ -21,7 +21,7 @@ local m = {
 }
 
 ---@class AlchemyContext: WindowContext
----@field data {apparatus: LocalApparatusIds}?
+---@field data {apparatus: LocalApparatusIds, sources: openmw.GObject[]}?
 ---@field selectIngredient fun(info: IngredientInfo)
 ---@field updateIngredients fun(deep: boolean)
 
@@ -35,7 +35,14 @@ local ctx = {
 }
 
 m.onOpenAlchemy = function(data)
-    ctx.data = data
+    if not ctx.data then
+        ctx.data = data
+    else
+        ctx.data.apparatus = data.apparatus
+        ctx.data.sources = data.sources
+    end
+    if m.wndIngredient then m.wndIngredient:updateData() end
+    if m.wndAlchemy then m.wndAlchemy:updateData() end
     I.UI.setMode(I.UI.MODE.Alchemy, { windows = { I.UI.WINDOW.Alchemy } })
 end
 
@@ -46,7 +53,7 @@ m.openWindow = function()
 
     if not ctx.data then
         ctx.data = {}
-        core.sendGlobalEvent('TPA_AlchemyRedone_CollectInfo', { cellId = player.cell.id })
+        core.sendGlobalEvent('TPA_AlchemyRedone_CollectInfo', { actor = player })
     end
 
     m.wndAlchemy:init(ctx)

@@ -173,15 +173,39 @@ function IngredientWindow:update(deep)
     Window.update(self, deep)
 end
 
+function IngredientWindow:updateData()
+    if not self.element then return end
+    local ingredients = self:getAllIngredients()
+    if self.data.selected then
+        for i = 1, 4 do
+            local itm = self.data.selected[i]
+            if itm then
+                local count = self.data.ingredientsMap[itm.id]
+                if count and count > 0 then
+                    itm.count = count
+                else
+                    self.data.selected[i] = nil
+                end
+            end
+        end
+    end
+
+    self.itemTable.layout.userData.updateData(ingredients)
+    self:update(true)
+end
+
 function IngredientWindow:getAllIngredients()
-    if not self.data or not self.data.ingredients then
+    if not self.data.sources then
         return {}
     end
     local map = {}
-    for _, list in pairs(self.data.ingredients) do
-        for i = 1, #list do
-            local ingredient = list[i]
-            map[ingredient.id] = (map[ingredient.id] or 0) + ingredient.count
+    self.data.ingredientsMap = map
+    for i = 1, #self.data.sources do
+        local source = self.data.sources[i]
+        local list = source.type.inventory(source):getAll(types.Ingredient)
+        for j = 1, #list do
+            local ingredient = list[j]
+            map[ingredient.recordId] = (map[ingredient.recordId] or 0) + ingredient.count
         end
     end
     local result = {}

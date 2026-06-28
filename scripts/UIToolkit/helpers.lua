@@ -1404,8 +1404,9 @@ if isPlayer then
         )
     end
 
-    Helpers.setInteractiveColor = function(layout)
-        layout = layout.layout or layout
+    ---@param layoutOrElement openmw.ui.Layout|openmw.ui.Element
+    Helpers.setInteractiveColor = function(layoutOrElement)
+        local layout = Helpers.toLayout(layoutOrElement)
         local userData = layout.userData or {}
         Helpers.forEachInLayout(layout, function(l)
             if l.userData and l.userData.colorable then

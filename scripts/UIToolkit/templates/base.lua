@@ -908,7 +908,7 @@ Templates.scrollBar = function(scrollable)
                 if e.button ~= 1 then return end
                 ambient.playSound('menu click')
                 scrollable.layout.content[1].props.position = scrollable.layout.content[1].props.position +
-                util.vector2(0, scrollable.layout.userData.scrollStep)
+                    util.vector2(0, scrollable.layout.userData.scrollStep)
                 scrollable.layout.content[1].props.position = util.vector2(0,
                     util.clamp(scrollable.layout.content[1].props.position.y, -scrollable.layout.userData.scrollLimit, 0))
                 scrollable.layout.userData.onScroll()
@@ -935,7 +935,7 @@ Templates.scrollBar = function(scrollable)
                 if e.button ~= 1 then return end
                 ambient.playSound('menu click')
                 scrollable.layout.content[1].props.position = scrollable.layout.content[1].props.position -
-                util.vector2(0, scrollable.layout.userData.scrollStep)
+                    util.vector2(0, scrollable.layout.userData.scrollStep)
                 scrollable.layout.content[1].props.position = util.vector2(0,
                     util.clamp(scrollable.layout.content[1].props.position.y, -scrollable.layout.userData.scrollLimit, 0))
                 scrollable.layout.userData.onScroll()
@@ -949,8 +949,8 @@ Templates.scrollBar = function(scrollable)
     end
     local function calcHandleSize()
         return math.max(
-        (scrollable.layout.props.size.y / (scrollable.layout.userData.scrollLimit + scrollable.layout.props.size.y)) *
-        (scrollable.layout.props.size.y - (SCROLL_BAR_INNER_WIDTH * 2)), SCROLL_BAR_INNER_WIDTH)
+            (scrollable.layout.props.size.y / (scrollable.layout.userData.scrollLimit + scrollable.layout.props.size.y)) *
+            (scrollable.layout.props.size.y - (SCROLL_BAR_INNER_WIDTH * 2)), SCROLL_BAR_INNER_WIDTH)
     end
 
     local function handlePosToScrollPos(y)
@@ -1001,11 +1001,11 @@ Templates.scrollBar = function(scrollable)
             mouseMove = async:callback(function(e, layout)
                 if e.button == 1 then
                     local adjustedY = e.offset.y - (layout.content[1].userData.dragOffset or (calcHandleSize() / 2)) +
-                    (calcHandleSize() / 2)
+                        (calcHandleSize() / 2)
                     scrollable.layout.content[1].props.position = util.vector2(0, handlePosToScrollPos(adjustedY))
                     scrollable.layout.content[1].props.position = util.vector2(0,
                         util.clamp(scrollable.layout.content[1].props.position.y, -scrollable.layout.userData
-                        .scrollLimit, 0))
+                            .scrollLimit, 0))
                     scrollable.layout.userData.onScroll()
                 end
                 return true
@@ -1017,7 +1017,7 @@ Templates.scrollBar = function(scrollable)
                     scrollable.layout.content[1].props.position = util.vector2(0, handlePosToScrollPos(e.offset.y))
                     scrollable.layout.content[1].props.position = util.vector2(0,
                         util.clamp(scrollable.layout.content[1].props.position.y, -scrollable.layout.userData
-                        .scrollLimit, 0))
+                            .scrollLimit, 0))
                     scrollable.layout.userData.onScroll()
                 end
             end),
@@ -1097,9 +1097,9 @@ Templates.scrollable = function(size, content, flexSize, padding, borderThicknes
             util.clamp(scrollWidget.layout.content[1].props.position.y, -scrollWidget.layout.userData.scrollLimit, 0))
         local handle = scrollBar.content.scrollBar.content.handle
         local scrollProgress = -scrollWidget.layout.content[1].props.position.y /
-        scrollWidget.layout.userData.scrollLimit
+            scrollWidget.layout.userData.scrollLimit
         local handleProgress = (scrollWidget.layout.props.size.y - ((SCROLL_BAR_INNER_WIDTH + omwConstants.padding) * 2) - handle.props.size.y - 4) *
-        scrollProgress
+            scrollProgress
         handle.props.position = util.vector2(0, handleProgress)
         scrollWidget:update()
     end
@@ -1111,7 +1111,7 @@ Templates.scrollable = function(size, content, flexSize, padding, borderThicknes
 
     scrollWidget.layout.userData.update = function(outerSize, innerSize)
         outerSize = (outerSize or scrollWidget.layout.props.size) -
-        util.vector2((padding + borderThickness) * 2, (padding + borderThickness) * 2)
+            util.vector2((padding + borderThickness) * 2, (padding + borderThickness) * 2)
         innerSize = innerSize or scrollWidget.layout.content[1].props.size
 
         local scrollLimit = math.max(innerSize.y - outerSize.y - padding * 2, 0)
@@ -1130,8 +1130,8 @@ Templates.scrollable = function(size, content, flexSize, padding, borderThicknes
             scrollBar.content.scrollBar.content.handle.props.size = util.vector2(
                 SCROLL_BAR_INNER_WIDTH - BORDER_THICKNESS * 2 - 1,
                 math.max(
-                (scrollWidget.layout.props.size.y / (scrollWidget.layout.userData.scrollLimit + scrollWidget.layout.props.size.y)) *
-                scrollBar.content.scrollBar.props.size.y, SCROLL_BAR_INNER_WIDTH)
+                    (scrollWidget.layout.props.size.y / (scrollWidget.layout.userData.scrollLimit + scrollWidget.layout.props.size.y)) *
+                    scrollBar.content.scrollBar.props.size.y, SCROLL_BAR_INNER_WIDTH)
             )
         else
             scrollBar.content.scrollBar.content.handle.props.size = util.vector2(0, 0)

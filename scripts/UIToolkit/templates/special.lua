@@ -22,7 +22,15 @@ Templates.TEX = {
     UNKNOWN_EFFECT = BASE.createTexture('icons/TPABOBAP/AlchemyRedone/unknown-effect.png')
 }
 
----@param props any
+---@class InteractiveProps
+---@field name string sets name for the element
+---@field tooltipFn? fun():openmw.ui.Layout optional function to get tooltip layout
+---@field onClick? fun() optional function to be called when element is clicked. Note: element won't change colors if there's no click callback set
+---@field canClick? fun():boolean
+---@field parent? any parent element? not sure
+---@field onMouseMove? fun(e, tgt, element)
+
+---@param props InteractiveProps
 ---@param element openmw.ui.Element|openmw.ui.Layout
 ---@param ctx any
 ---@return any
@@ -169,6 +177,43 @@ Templates.interactive = function(props, element, ctx)
         return true
     end)
     return element
+end
+
+---@param text string
+---@param opts InteractiveProps
+---@param ctx WindowContext
+---@return openmw.ui.Element
+Templates.button = function(text, opts, ctx)
+    local base = {
+        name = opts.name,
+        template = BASE.buttonBoxBgr(0.5),
+        props = {},
+        content = ui.content {
+            {
+                type = ui.TYPE.Flex,
+                props = {
+                    horizontal = true,
+                    arrange = ui.ALIGNMENT.Center,
+                },
+                content = ui.content {
+                    BASE.intervalH(8),
+                    {
+                        template = BASE.textNormal,
+                        props = {
+                            text = text,
+                            textColor = constants.Colors.DEFAULT,
+                        },
+                        userData = { colorable = true },
+                    },
+                    BASE.intervalH(8),
+                }
+            }
+        },
+        events = {},
+        userData = {},
+    }
+
+    return Templates.interactive(opts, base, ctx)
 end
 
 Templates.tooltip = function(padding, content, name)

@@ -8,24 +8,13 @@ local H = require("scripts.UIToolkit.helpers")
 
 local m = {}
 
----@param object GameObject
 ---@param actor openmw.GObject
-m.activateApparatus = function(object, actor)
-    --TODO: search for apparatus in containers too? need to check container ownership in that case
+m.activateApparatus = function(_, actor)
     if actor.type == T.Player then
-        local inventory = T.Player.inventory(actor)
-        local apparatus = m.collectApparatus(
-            actor.cell:getAll(T.Apparatus),
-            inventory:getAll(T.Apparatus)
-        )
-        local ingredients = m.collectIngredients(actor.cell:getAll(T.Container))
-        local actorIngredients = m.formatIngredients(inventory:getAll(T.Ingredient))
-        if actorIngredients and #actorIngredients > 0 then
-            ingredients[actor] = actorIngredients
-        end
-        actor:sendEvent('TPA_AlchemyRedone_Open', { apparatus = apparatus, ingredients = ingredients })
+        actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(actor))
+        return false
     end
-    return false
+    return true
 end
 
 ---@alias LocalApparatusIds {Mortar: string?, Alembic: string?, Calcinator: string?, Retort: string?}
@@ -76,18 +65,14 @@ m.collectApparatus = function(...)
 end
 
 ---@param containers openmw.ObjectList<openmw.GObject>
----@return LocalApparatusIds
-m.collectIngredients = function(containers)
+---@return GObject[]
+m.filterContainers = function(containers)
     local result = {}
     for i = 1, #containers do
         ---@type openmw.GObject
         local container = containers[i]
         if m.isAllowed(container) then
-            local tmp = T.Container.inventory(container):getAll(T.Ingredient)
-            local ingredients = m.formatIngredients(tmp)
-            if ingredients and #ingredients > 0 then
-                result[container] = ingredients
-            end
+            table.insert(result, container)
         end
     end
     return result
@@ -105,10 +90,17 @@ m.formatIngredients = function(list)
     return infos
 end
 
-m.collectAlchemyInfo = function(data)
-    local cell = world.getCellById(data.cellId)
-    local apparatus = m.collectApparatus(cell:getAll(T.Apparatus))
-    --TODO: send event with this info?
+---@param actor openmw.GObject
+m.collectAlchemyInfo = function(actor)
+    --TODO: search for apparatus in containers too? need to check container ownership in that case
+    local inventory = T.Player.inventory(actor)
+    local apparatus = m.collectApparatus(
+        actor.cell:getAll(T.Apparatus),
+        inventory:getAll(T.Apparatus)
+    )
+    local sources = m.filterContainers(actor.cell:getAll(T.Container))
+    table.insert(sources, actor)
+    return { apparatus = apparatus, sources = sources }
 end
 
 m.addObject = function(actor, recordId, count)
@@ -128,6 +120,7 @@ m.deductIngredients = function(data)
     local ingredients = data.ingredients
     ---@type integer
     local count = data.count
+    local actor = data.actor
 
     if not sources or #sources <= 0
         or not ingredients or #ingredients <= 0
@@ -167,6 +160,7 @@ m.deductIngredients = function(data)
             print('WARNING: not consumed:', H.deepPrint(consume))
         end
     end
+    actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(actor))
 end
 
 ---Returns whether apparatus is owned by someone
@@ -187,7 +181,9 @@ I.Activation.addHandlerForType(T.Apparatus, m.activateApparatus)
 
 return {
     eventHandlers = {
-        TPA_AlchemyRedone_CollectInfo = m.collectAlchemyInfo,
+        TPA_AlchemyRedone_CollectInfo = function(data)
+            data.actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(data.actor))
+        end,
         TPA_AlchemyRedone_CreateAndAddNewPotion = m.createAndAddNewPotion,
         TPA_AlchemyRedone_AddItem = function(data) m.addObject(data.actor, data.recordId, data.count) end,
         TPA_AlchemyRedone_DeductIngredients = m.deductIngredients,

@@ -577,7 +577,7 @@ IngredientTable.create = function(ctx, opts)
         -- Create a map of new items by ID
         local newItemsMap = {}
         for i = 1, #newDataRows do
-            local row = dataRows[i]
+            local row = newDataRows[i]
             local itemId = row.id
             if itemId then
                 newItemsMap[itemId] = row

@@ -63,6 +63,13 @@ function AlchemyWindow:init(ctx)
     self.data = ctx.data
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
+
+    self.btnCreate = T.Special.button(C.Strings.CREATE, {
+        name = 'btnCreate',
+        onClick = function() self:createPotion() end,
+        canClick = function() return not self.btnCreate.layout.userData.disabled end
+    }, self.ctx)
+
     local content = ui.content {
         {
             name = 'main',
@@ -72,9 +79,7 @@ function AlchemyWindow:init(ctx)
             },
             content = ui.content {
                 naming,
-                T.Base.button('Create', function() --TODO: properly position this buton
-                    self:createPotion()
-                end, 'btnCreate'),
+                self.btnCreate, --TODO: properly position this buton
                 T.Base.intervalV(15),
                 {
                     name = 'panel',
@@ -214,6 +219,12 @@ function AlchemyWindow:update(deep)
     }
 
     Window.update(self, deep)
+end
+
+function AlchemyWindow:updateData()
+    if not self.element then return end
+    parts.setInteractiveState(self.btnCreate, false, false)
+    self:update(true)
 end
 
 ---@param type number
@@ -359,12 +370,11 @@ end
 ---@param ingredients string[]
 ---@param count integer
 function AlchemyWindow:deductIngredients(ingredients, count)
-    local sources = {}
-    for source, _ in pairs(self.data.ingredients or {}) do
-        table.insert(sources, source)
-    end
+    parts.setInteractiveState(self.btnCreate, false, true)
+
     core.sendGlobalEvent('TPA_AlchemyRedone_DeductIngredients', {
-        sources = sources,
+        actor = player,
+        sources = self.data.sources,
         ingredients = ingredients,
         count = count,
     })
@@ -439,6 +449,16 @@ parts.naming = function(defaultText)
     }
 
     return element, wdg
+end
+
+---@param wdg openmw.ui.Element
+---@param active boolean
+---@param disabled boolean
+parts.setInteractiveState = function(wdg, active, disabled)
+    wdg.layout.userData.active = active
+    wdg.layout.userData.disabled = disabled
+    H.setInteractiveColor(wdg)
+    wdg:update()
 end
 
 parts.tools = function()
