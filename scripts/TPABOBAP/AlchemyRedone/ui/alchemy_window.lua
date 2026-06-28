@@ -70,63 +70,74 @@ function AlchemyWindow:init(ctx)
         canClick = function() return not self.btnCreate.layout.userData.disabled end
     }, self.ctx)
 
+    self.btnCreate.layout.props.relativePosition = v2(1, 1)
+    self.btnCreate.layout.props.anchor = v2(1, 1)
+
     local content = ui.content {
         {
-            name = 'main',
-            type = ui.TYPE.Flex,
-            props = {
-                horizontal = false,
-            },
+            name = 'content',
+            type = ui.TYPE.Widget,
+            props = {},
             content = ui.content {
-                naming,
-                self.btnCreate, --TODO: properly position this buton
-                T.Base.intervalV(15),
                 {
-                    name = 'panel',
+                    name = 'main',
                     type = ui.TYPE.Flex,
                     props = {
-                        horizontal = true,
+                        horizontal = false,
                     },
                     content = ui.content {
-                        T.Base.intervalH(5),
+                        naming,
+                        T.Base.intervalV(15),
                         {
-                            name = 'left',
-                            type = ui.TYPE.Flex,
-                            props = {},
-                            content = ui.content {
-                                parts.tools(),
-                                T.Base.intervalV(15),
-                                parts.selected(ctx,
-                                    function(n)
-                                        local r = self:getSelectedIngredientRecord(n)
-                                        return r and r.id
-                                    end,
-                                    function(n)
-                                        self:onIngredientClicked(n)
-                                    end,
-                                    function(n)
-                                        return self:makeIngredientTip(n)
-                                    end),
-                            }
-                        },
-                        T.Base.intervalH(15),
-                        {
-                            name = 'right',
+                            name = 'panel',
                             type = ui.TYPE.Flex,
                             props = {
-                                autoSize = false,
-                                size = v2(200, 300)
+                                horizontal = true,
                             },
                             content = ui.content {
-                                parts.resultingEffects()
+                                T.Base.intervalH(5),
+                                {
+                                    name = 'left',
+                                    type = ui.TYPE.Flex,
+                                    props = {},
+                                    content = ui.content {
+                                        parts.tools(),
+                                        T.Base.intervalV(15),
+                                        parts.selected(ctx,
+                                            function(n)
+                                                local r = self:getSelectedIngredientRecord(n)
+                                                return r and r.id
+                                            end,
+                                            function(n)
+                                                self:onIngredientClicked(n)
+                                            end,
+                                            function(n)
+                                                return self:makeIngredientTip(n)
+                                            end),
+                                    }
+                                },
+                                T.Base.intervalH(15),
+                                {
+                                    name = 'right',
+                                    type = ui.TYPE.Flex,
+                                    props = {
+                                        autoSize = false,
+                                        size = v2(200, 300)
+                                    },
+                                    content = ui.content {
+                                        parts.resultingEffects()
+                                    }
+                                },
                             }
                         },
-                    }
+                    },
                 },
+                self.btnCreate,
             },
         }
     }
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
+        noResize = true,
         draggable = true,
         onDrag = function()
             self:updateSize()
@@ -135,6 +146,7 @@ function AlchemyWindow:init(ctx)
     self.element.layout.userData.minWidth = 760
     self.element.layout.userData.minHeight = 355
     self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
+    self:setSize(v2(760, 355))
     self:updateSize()
 end
 
@@ -142,7 +154,9 @@ function AlchemyWindow:updateSize()
     if not self.element then return end
     local inner = self.element.layout.userData.getInnerSize()
 
-    local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'main', 'panel', 'right' })
+    local content = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content' })
+    content.props.size = inner
+    local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel', 'right' })
     right.props.size = v2(inner.x / 2, inner.y)
 end
 
@@ -150,7 +164,7 @@ function AlchemyWindow:update(deep)
     if not self.element then return end
     updateSizes()
     self:updateMatchingEffects()
-    local panel = H.findLayoutByPath(self.element, { 'foreground', 'body', 'main', 'panel' })
+    local panel = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel' })
 
     local tools = H.findLayoutByPath(panel, { 'left', 'tools-block', 'tools-box', 'padding', 'tools' })
     local function updateTool(name, type)

@@ -101,6 +101,12 @@ function Window:setDimensions(dimensions)
     self:update()
 end
 
+function Window:setSize(size)
+    if not self.element then return end
+    self.element.layout.props.size = size
+    self:update()
+end
+
 -- Stub methods to be overridden
 function Window:saveState() end
 
