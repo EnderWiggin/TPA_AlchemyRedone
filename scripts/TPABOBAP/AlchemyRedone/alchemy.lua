@@ -6,12 +6,6 @@ local types = require("openmw.types")
 local I = require("openmw.interfaces")
 
 
----@class AlchemyPotionStats
----@field name? string
----@field effects openmw.core.MagicEffectWithParams[]
----@field value number
----@field weight number
-
 local Alchemy = {}
 
 ---@enum AlchemyPotionErrors
@@ -142,33 +136,58 @@ Alchemy.applyTools = function(value, alembic, calcinator, retort, hasMagnitude, 
     return value
 end
 
+---Returns `str` with spaces in front and end trimmed
+---@param str string
+---@return string
+local function trim(str)
+    return str:match("^%s*(.-)%s*$")
+end
+
+---@return string model, string  icon
+Alchemy.selectPotionArt = function()
+    --TODO: select icon randomly or by skill factor?
+    local mModel = "meshes/m/misc_potion_exclusive_01.nif"
+    local mIcon = "icons/m/tx_potion_exclusive_01.dds"
+    return mModel, mIcon
+end
+
 ---Returns potion stats based on ingredients, apparatus and actor skills
+---@param name string potion name
 ---@param ingredientIds string[] ordered list of ingredient ids
 ---@param apparatus LocalApparatusIds info about apparatus being used
 ---@param actor openmw.LObject|openmw.GObject|nil
----@return AlchemyPotionStats, AlchemyPotionErrors
-Alchemy.getPotionStats = function(ingredientIds, apparatus, actor)
+---@return openmw.types.PotionRecord, AlchemyPotionErrors
+Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
     ---@type openmw.core.MagicEffectWithParams[]
     local effects = {}
-    ---@type AlchemyPotionStats
+    name = name and trim(name)
+    local model, icon = Alchemy.selectPotionArt()
+    ---@type openmw.types.PotionRecord
     local stats = {
+        id = '',
+        name = name,
         effects = effects,
+        model = model,
+        icon = icon,
         value = 0,
         weight = 0,
+        isAutocalc = false,
+        mwscript = nil,
     }
     if #ingredientIds < 2 then return stats, Alchemy.PotionErrors.TOO_FEW_INGREDIENTS end
     local mortar = apparatus.Mortar and types.Apparatus.record(apparatus.Mortar)
     if not mortar then return stats, Alchemy.PotionErrors.NO_MORTAR end
+    if not name or #name <= 0 then return stats, Alchemy.PotionErrors.NO_NAME end
 
     local matching = Alchemy.getMatchingEffects(ingredientIds)
-    if #matching <= 0 then return stats, Alchemy.PotionErrors.OK end
+    if #matching <= 0 then return stats, Alchemy.PotionErrors.FAIL end
 
     local factor = Alchemy.getAlchemyFactor(actor)
     factor = factor * mortar.quality
     factor = factor * core.getGMST('fPotionStrengthMult')
 
     -- seems to be to cost of the potion
-    stats.value = factor * core.getGMST('iAlchemyMod')
+    stats.value = util.round(factor * core.getGMST('iAlchemyMod'))
 
     local fPotionT1MagMul = core.getGMST('fPotionT1MagMult')
     if fPotionT1MagMul <= 0 then error('invalid gmst: fPotionT1MagMul') end
@@ -226,7 +245,7 @@ Alchemy.getPotionStats = function(ingredientIds, apparatus, actor)
         end
     end
 
-    return stats, Alchemy.PotionErrors.OK
+    return stats, #effects <= 0 and Alchemy.PotionErrors.FAIL or Alchemy.PotionErrors.OK
 end
 
 ---@param a openmw.core.MagicEffectWithParams[]

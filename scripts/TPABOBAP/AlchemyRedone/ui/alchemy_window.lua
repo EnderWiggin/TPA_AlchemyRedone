@@ -6,6 +6,7 @@ local util = require("openmw.util")
 local types = require("openmw.types")
 local async = require('openmw.async')
 local player = require('openmw.self')
+local ambient = require('openmw.ambient')
 local auxUi = require('openmw_aux.ui')
 
 local I = require("openmw.interfaces")
@@ -22,6 +23,7 @@ local Window = require("scripts.UIToolkit.window")
 
 local MWUI = I.MWUI.templates
 local v2 = util.vector2
+local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'
 
 local ApparatusTypes = types.Apparatus.TYPE
 
@@ -59,6 +61,8 @@ updateSizes()
 function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
+    local naming
+    naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
     local content = ui.content {
         {
             name = 'main',
@@ -67,7 +71,7 @@ function AlchemyWindow:init(ctx)
                 horizontal = false,
             },
             content = ui.content {
-                parts.naming(),
+                naming,
                 T.Base.button('Create', function() --TODO: properly position this buton
                     self:createPotion()
                 end, 'btnCreate'),
@@ -297,17 +301,27 @@ function AlchemyWindow:getSelectedIngredientList()
     return ids
 end
 
+function AlchemyWindow:getDefaultPotionName()
+    ---@type MagicEffectWithParams[]
+    local matching = self.data.matching
+    if matching and #matching > 0 then
+        return H.getMagicEffectString(matching[1])
+    end
+    return ''
+end
+
 function AlchemyWindow:updateMatchingEffects()
     local ingredients = self:getSelectedIngredientList()
     self.data.matching = A.getMatchingEffects(ingredients)
+    self.naming.setText(self:getDefaultPotionName())
 end
 
 function AlchemyWindow:createPotion()
     local ingredients = self:getSelectedIngredientList()
-    local stats, error = A.getPotionStats(ingredients, self.data.apparatus or {}, player)
-    local effects = stats.effects
+    local draft, error = A.getPotionStats(self.naming.getText(), ingredients, self.data.apparatus or {}, player)
+    local effects = draft.effects
 
-    if error == A.PotionErrors.FAIL or error == A.PotionErrors.OK and #effects == 0 then
+    if error == A.PotionErrors.FAIL then
         ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
         ambient.playSound('potion fail', { scale = false })
         --TODO: potion failed - deduct ingredients
@@ -323,22 +337,6 @@ function AlchemyWindow:createPotion()
         effects[i].effect = nil
     end
 
-    local mModel = "meshes/m/misc_potion_exclusive_01.nif";
-    local mIcon = "icons/m/tx_potion_exclusive_01.dds";
-
-    ---@type openmw.types.PotionRecord
-    local draft = {
-        id = '',               --this id is not needed to create new record
-        name = '- NEW POTION', --TODO: get name from text input
-        model = mModel,
-        mwscript = nil,
-        icon = mIcon,
-        weight = stats.weight,
-        value = util.round(stats.value),
-        effects = effects,
-        isAutocalc = false,
-    }
-
     ambient.playSound('potion success', { scale = false })
     local potion = A.findPotion(draft)
     if potion then
@@ -353,8 +351,27 @@ function AlchemyWindow:destroy()
     Window.destroy(self)
 end
 
-parts.naming = function()
-    return {
+---@param defaultText fun():string
+parts.naming = function(defaultText)
+    local path = { 'nameBar', 'padding', 'textEdit' }
+    local element
+    local wdg = {
+        setText = function(text)
+            local txt = H.findLayoutByPath(element, path)
+            txt.props.text = text
+            element:update()
+        end,
+        getText = function()
+            local txt = H.findLayoutByPath(element, path)
+            return txt.props.text
+        end,
+    }
+
+    local btn = T.Base.imageButton(REVERT_PATH, v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE), function()
+        wdg.setText(defaultText())
+    end, 'btn-revert')
+
+    element = ui.create {
         name = 'naming',
         type = ui.TYPE.Flex,
         props = {
@@ -366,12 +383,12 @@ parts.naming = function()
             {
                 template = T.Base.textNormal,
                 props = {
-                    text = 'Name',
+                    text = C.Strings.NAME,
                 },
             },
             T.Base.intervalH(10),
             {
-                name = 'searchBar',
+                name = 'nameBar',
                 template = I.MWUI.templates.box,
                 content = ui.content {
                     {
@@ -382,25 +399,20 @@ parts.naming = function()
                                 name = 'textEdit',
                                 template = T.Base.textEditLine,
                                 props = {
-                                    size = v2(300, 16),
-                                    text = '',
+                                    size = v2(300, T.Base.TEXT_SIZE),
+                                    text = defaultText(),
                                     textColor = C.Colors.DEFAULT_LIGHT,
                                 },
-                                events = {
-                                    textChanged = async:callback(function(text, layout)
-                                    end),
-                                    focusGain = async:callback(function(_, layout)
-                                    end),
-                                    focusLoss = async:callback(function(_, layout)
-                                    end),
-                                }
                             }
                         }
                     }
                 },
             },
+            btn,
         }
     }
+
+    return element, wdg
 end
 
 parts.tools = function()

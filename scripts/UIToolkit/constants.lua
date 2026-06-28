@@ -143,6 +143,7 @@ C.Strings = {
     CONTAINER_ORGANIC = 'sContentsMessage2',
     THATS_MINE = 'sNotifyMessage49',
     PROFIT_VALUE = 'sProfitValue',
+    NAME = 'sNameTitle',
     EFFECTS = 'sEffects',
     CREATED_EFFECTS = 'sCreatedEffects',
     INGREDIENTS = 'sIngredients',
