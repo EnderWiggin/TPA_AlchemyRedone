@@ -29,7 +29,7 @@ local ApparatusTypes = types.Apparatus.TYPE
 
 ---@class AlchemyWindow: Window
 ---@field protected ctx AlchemyContext
----@field private data table?
+---@field private data AlchemyData
 local AlchemyWindow = Window:new()
 
 ---@return AlchemyWindow
@@ -249,18 +249,19 @@ end
 ---@return openmw.types.IngredientRecord?, number
 function AlchemyWindow:getSelectedIngredientRecord(n)
     if self.data and self.data.selected then
-        local info = self.data.selected[n]
-        if info then
-            return types.Ingredient.records[info.id], info.count
+        local recordId = self.data.selected[n]
+        if recordId then
+            return types.Ingredient.records[recordId], self.data.ingredients[recordId] or 0
         end
     end
     return nil, 0
 end
 
 function AlchemyWindow:makeIngredientTip(n)
-    if not self.data or not self.data.selected then return nil end
-    if self.data.selected[n] then
-        return T.Special.ingredientTooltip(self.data.selected[n].id, player)
+    if not self.data.selected then return nil end
+    local recordId = self.data.selected[n]
+    if recordId then
+        return T.Special.ingredientTooltip(recordId, player)
     end
     return nil
 end
@@ -273,14 +274,14 @@ function AlchemyWindow:onIngredientClicked(n)
     end
 end
 
+---@param info {id: string, count:integer}
 function AlchemyWindow:onSelectIngredient(info)
-    if not self.data then self.data = {} end
     if not self.data.selected then self.data.selected = {} end
 
     --Try to remove already selected ingredient
     for i = 1, 4 do
-        local item = self.data.selected[i]
-        if item and item.id == info.id then
+        local recordId = self.data.selected[i]
+        if recordId and recordId == info.id then
             self.data.selected[i] = nil
             self:update(true)
             return true
@@ -290,7 +291,7 @@ function AlchemyWindow:onSelectIngredient(info)
     --Try to add newly selected ingredient
     for i = 1, 4 do
         if not self.data.selected[i] then
-            self.data.selected[i] = info
+            self.data.selected[i] = info.id
             self:update(true)
             return true
         end
@@ -305,8 +306,9 @@ function AlchemyWindow:getSelectedIngredientList()
     local selected = self.data.selected
     if selected then
         for i = 1, 4 do
-            if selected[i] and selected[i].id then
-                table.insert(ids, selected[i].id)
+            local recordId = selected[i]
+            if recordId then
+                table.insert(ids, recordId)
             end
         end
     end

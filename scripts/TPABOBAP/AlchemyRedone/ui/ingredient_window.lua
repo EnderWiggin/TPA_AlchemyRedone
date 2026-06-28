@@ -24,7 +24,7 @@ local v2 = util.vector2
 
 ---@class IngredientWindow: Window
 ---@field protected ctx AlchemyContext
----@field private data table?
+---@field private data AlchemyData
 ---@field private itemTable openmw.ui.Element?
 local IngredientWindow = Window:new()
 
@@ -175,41 +175,16 @@ end
 
 function IngredientWindow:updateData()
     if not self.element then return end
-    local ingredients = self:getAllIngredients()
-    if self.data.selected then
-        for i = 1, 4 do
-            local itm = self.data.selected[i]
-            if itm then
-                local count = self.data.ingredientsMap[itm.id]
-                if count and count > 0 then
-                    itm.count = count
-                else
-                    self.data.selected[i] = nil
-                end
-            end
-        end
-    end
-
-    self.itemTable.layout.userData.updateData(ingredients)
-    self:update(true)
+    self.itemTable.layout.userData.updateData(self:getAllIngredients())
 end
 
 function IngredientWindow:getAllIngredients()
     if not self.data.sources then
         return {}
     end
-    local map = {}
-    self.data.ingredientsMap = map
-    for i = 1, #self.data.sources do
-        local source = self.data.sources[i]
-        local list = source.type.inventory(source):getAll(types.Ingredient)
-        for j = 1, #list do
-            local ingredient = list[j]
-            map[ingredient.recordId] = (map[ingredient.recordId] or 0) + ingredient.count
-        end
-    end
+
     local result = {}
-    for id, count in pairs(map) do
+    for id, count in pairs(self.data.ingredients) do
         local record = types.Ingredient.record(id)
         local name = record and record.name .. ' (' .. H.addSeparators(count) .. ')' or C.Strings.NONE
         table.insert(result, {
@@ -219,8 +194,8 @@ function IngredientWindow:getAllIngredients()
             activeFn = function()
                 if self.data and self.data.selected then
                     for i = 1, 4 do
-                        local itm = self.data.selected[i]
-                        if itm and itm.id == id then return true end
+                        local recordId = self.data.selected[i]
+                        if recordId == id then return true end
                     end
                 end
                 return false

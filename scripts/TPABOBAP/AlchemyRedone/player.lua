@@ -20,8 +20,14 @@ local m = {
     wndIngredient = nil,
 }
 
+---@class AlchemyData
+---@field apparatus LocalApparatusIds
+---@field sources openmw.GObject[]
+---@field ingredients table<string, integer>
+---@field selected string[]
+
 ---@class AlchemyContext: WindowContext
----@field data {apparatus: LocalApparatusIds, sources: openmw.GObject[]}?
+---@field data AlchemyData?
 ---@field selectIngredient fun(info: IngredientInfo)
 ---@field updateIngredients fun(deep: boolean)
 
@@ -41,6 +47,7 @@ m.onOpenAlchemy = function(data)
         ctx.data.apparatus = data.apparatus
         ctx.data.sources = data.sources
     end
+    m.updateIngredients()
     if m.wndIngredient then m.wndIngredient:updateData() end
     if m.wndAlchemy then m.wndAlchemy:updateData() end
     I.UI.setMode(I.UI.MODE.Alchemy, { windows = { I.UI.WINDOW.Alchemy } })
@@ -83,6 +90,32 @@ m.selectIngredient = function(info)
     if m.wndAlchemy then
         if m.wndAlchemy:onSelectIngredient(info) then
             m.updateWnd(m.wndIngredient, true)
+        end
+    end
+end
+
+m.updateIngredients = function()
+    local map = {}
+    ctx.data.ingredients = map
+    for i = 1, #ctx.data.sources do
+        local source = ctx.data.sources[i]
+        local list = source.type.inventory(source):getAll(T.Ingredient)
+        for j = 1, #list do
+            local ingredient = list[j]
+            map[ingredient.recordId] = (map[ingredient.recordId] or 0) + ingredient.count
+        end
+    end
+
+    local selected = ctx.data.selected
+    if selected then
+        for i = 1, 4 do
+            local recordId = selected[i]
+            if recordId then
+                local count = ctx.data.ingredients[recordId]
+                if not count or count <= 0 then
+                    selected[i] = nil
+                end
+            end
         end
     end
 end
