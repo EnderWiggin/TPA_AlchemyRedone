@@ -21,7 +21,7 @@ m.activateApparatus = function(object, actor)
         local ingredients = m.collectIngredients(actor.cell:getAll(T.Container))
         local actorIngredients = m.formatIngredients(inventory:getAll(T.Ingredient))
         if actorIngredients and #actorIngredients > 0 then
-            ingredients[actor.id] = actorIngredients
+            ingredients[actor] = actorIngredients
         end
         actor:sendEvent('TPA_AlchemyRedone_Open', { apparatus = apparatus, ingredients = ingredients })
     end
@@ -86,7 +86,7 @@ m.collectIngredients = function(containers)
             local tmp = T.Container.inventory(container):getAll(T.Ingredient)
             local ingredients = m.formatIngredients(tmp)
             if ingredients and #ingredients > 0 then
-                result[container.id] = ingredients
+                result[container] = ingredients
             end
         end
     end
@@ -118,9 +118,56 @@ end
 m.createAndAddNewPotion = function(data)
     local draft = T.Potion.createRecordDraft(data.draft)
     local potion = world.createRecord(draft)
-    m.addObject(data.actor, potion.id, 1)
+    m.addObject(data.actor, potion.id, data.count)
 end
 
+m.deductIngredients = function(data)
+    ---@type openmw.GObject[]
+    local sources = data.sources
+    ---@type string[]
+    local ingredients = data.ingredients
+    ---@type integer
+    local count = data.count
+
+    if not sources or #sources <= 0
+        or not ingredients or #ingredients <= 0
+        or not count or count <= 0
+    then
+        return
+    end
+
+    local consume = {}
+    for i = 1, #ingredients do
+        consume[ingredients[i]] = count
+    end
+
+    for i = 1, #sources do
+        local source = sources[i]
+        if source:isValid() then
+            ---@type openmw.core.Inventory
+            local inv = source.type.inventory(source)
+            for id, need in pairs(consume) do
+                local item = inv:find(id)
+                ---@cast item openmw.GObject
+                if item then
+                    local take = math.min(need, item.count)
+                    item:remove(take)
+                    need = need - take
+                    if need <= 0 then
+                        consume[id] = nil
+                    else
+                        consume[id] = need
+                    end
+                end
+            end
+        end
+    end
+    for _, need in pairs(consume) do
+        if need > 0 then
+            print('WARNING: not consumed:', H.deepPrint(consume))
+        end
+    end
+end
 
 ---Returns whether apparatus is owned by someone
 ---@param object openmw.GObject
@@ -143,5 +190,6 @@ return {
         TPA_AlchemyRedone_CollectInfo = m.collectAlchemyInfo,
         TPA_AlchemyRedone_CreateAndAddNewPotion = m.createAndAddNewPotion,
         TPA_AlchemyRedone_AddItem = function(data) m.addObject(data.actor, data.recordId, data.count) end,
+        TPA_AlchemyRedone_DeductIngredients = m.deductIngredients,
     },
 }

@@ -288,6 +288,7 @@ function AlchemyWindow:onSelectIngredient(info)
     return false
 end
 
+---@return string[]
 function AlchemyWindow:getSelectedIngredientList()
     local ids = {}
     local selected = self.data.selected
@@ -319,16 +320,23 @@ end
 function AlchemyWindow:createPotion()
     local name = self.naming.getText()
     local ingredients = self:getSelectedIngredientList()
-    local draft, error = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player)
+    local draft, errorCode = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player)
     local effects = draft.effects
+    local count = 1 --TODO: add ability to brew more than 1 potion, clamp to min amount ingredient
+    local brewed = 0
 
-    if error == A.PotionErrors.FAIL then
+    if errorCode == A.PotionErrors.OK then
+        brewed = count --TODO: roll skill check for each `count` to find how many were brewed
+        if brewed <= 0 then errorCode = A.PotionErrors.FAIL end
+    end
+
+    if errorCode == A.PotionErrors.FAIL then
         ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
         ambient.playSound('potion fail', { scale = false })
-        --TODO: potion failed - deduct ingredients
+        self:deductIngredients(ingredients, count)
         return
-    elseif error ~= A.PotionErrors.OK then
-        ui.showMessage(core.getGMST(error))
+    elseif errorCode ~= A.PotionErrors.OK then
+        ui.showMessage(core.getGMST(errorCode))
         return
     end
 
@@ -339,12 +347,27 @@ function AlchemyWindow:createPotion()
     end
 
     ambient.playSound('potion success', { scale = false })
+    self:deductIngredients(ingredients, count)
     local potion = A.findPotion(draft)
     if potion then
-        core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = 1 })
+        core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = brewed })
     else
-        core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', { draft = draft, actor = player })
+        core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', { draft = draft, actor = player, count = brewed })
     end
+end
+
+---@param ingredients string[]
+---@param count integer
+function AlchemyWindow:deductIngredients(ingredients, count)
+    local sources = {}
+    for source, _ in pairs(self.data.ingredients or {}) do
+        table.insert(sources, source)
+    end
+    core.sendGlobalEvent('TPA_AlchemyRedone_DeductIngredients', {
+        sources = sources,
+        ingredients = ingredients,
+        count = count,
+    })
 end
 
 function AlchemyWindow:destroy()
