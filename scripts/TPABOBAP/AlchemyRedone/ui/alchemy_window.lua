@@ -309,6 +309,7 @@ function AlchemyWindow:createPotion()
 
     if error == A.PotionErrors.FAIL or error == A.PotionErrors.OK and #effects == 0 then
         ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
+        ambient.playSound('potion fail', { scale = false })
         --TODO: potion failed - deduct ingredients
         return
     elseif error ~= A.PotionErrors.OK then
@@ -338,6 +339,7 @@ function AlchemyWindow:createPotion()
         isAutocalc = false,
     }
 
+    ambient.playSound('potion success', { scale = false })
     local potion = A.findPotion(draft)
     if potion then
         core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = 1 })
