@@ -12,6 +12,15 @@ local H = require('scripts.UIToolkit.helpers')
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
 local IngredientWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.ingredient_window')
 
+---@return AlchemyData
+local function defaultData()
+    return {
+        apparatus = {},
+        sources = {},
+        selected = {},
+        ingredients = {},
+    }
+end
 
 local m = {
     ---@type AlchemyWindow?
@@ -28,7 +37,7 @@ local m = {
 ---@field matching? openmw.core.MagicEffectWithParams[]
 
 ---@class AlchemyContext: WindowContext
----@field data AlchemyData?
+---@field data AlchemyData
 ---@field selectIngredient fun(info: IngredientInfo)
 ---@field updateIngredients fun(deep: boolean)
 
@@ -36,18 +45,14 @@ local m = {
 local ctx = {
     updateQueue = {},
     focusedScrollable = nil,
-    data = nil,
+    data = defaultData(),
     selectIngredient = function(info) m.selectIngredient(info) end,
     updateIngredients = function(deep) m.updateWnd(m.wndIngredient, deep) end,
 }
 
 m.onOpenAlchemy = function(data)
-    if not ctx.data then
-        ctx.data = data
-    else
-        ctx.data.apparatus = data.apparatus
-        ctx.data.sources = data.sources
-    end
+    ctx.data.apparatus = data.apparatus
+    ctx.data.sources = data.sources
     m.updateIngredients()
     if m.wndIngredient then m.wndIngredient:updateData() end
     if m.wndAlchemy then m.wndAlchemy:updateData() end
@@ -59,8 +64,7 @@ m.openWindow = function()
     m.wndAlchemy = AlchemyWindow:new()
     m.wndIngredient = IngredientWindow:new()
 
-    if not ctx.data then
-        ctx.data = {}
+    if #ctx.data.sources <= 0 then
         core.sendGlobalEvent('TPA_AlchemyRedone_CollectInfo', { actor = player })
     end
 
@@ -72,19 +76,18 @@ m.closeWindow = function()
     if m.wndAlchemy then
         m.wndAlchemy:destroy()
         m.wndAlchemy = nil
-        ctx.data = nil
     end
 
     if m.wndIngredient then
         m.wndIngredient:destroy()
         m.wndIngredient = nil
-        ctx.data = nil
     end
 
     if ctx.activeTooltip then
         auxUi.deepDestroy(ctx.activeTooltip)
         ctx.activeTooltip = nil
     end
+    ctx.data = defaultData()
 end
 
 m.selectIngredient = function(info)
