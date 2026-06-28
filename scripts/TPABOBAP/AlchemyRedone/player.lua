@@ -35,6 +35,7 @@ local m = {
 ---@field ingredients table<string, integer>
 ---@field selected string[]
 ---@field matching? openmw.core.MagicEffectWithParams[]
+---@field matchingKnowledge? table<integer, boolean>
 
 ---@class AlchemyContext: WindowContext
 ---@field data AlchemyData

@@ -240,7 +240,7 @@ function AlchemyWindow:update(deep)
         local effectLayouts = {}
         for i = 1, #self.data.matching do
             local effect = self.data.matching[i]
-            local isVisible = true --TODO: account for unknown effects
+            local isVisible = self.data.matchingKnowledge[i] ~= false
             local content = ui.content {}
 
             if isVisible then
@@ -389,7 +389,7 @@ end
 
 function AlchemyWindow:updateMatchingEffects()
     local ingredients = self:getSelectedIngredientList()
-    self.data.matching = A.getMatchingEffects(ingredients)
+    self.data.matching, self.data.matchingKnowledge = A.getMatchingEffects(ingredients, player)
     self.naming.setText(self:getDefaultPotionName())
 end
 

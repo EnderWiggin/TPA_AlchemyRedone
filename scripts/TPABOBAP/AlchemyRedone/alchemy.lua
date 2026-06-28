@@ -35,17 +35,21 @@ Alchemy.containsEffect = function(list, effect)
 end
 
 ---@param ingredientIds string[] ordered list of ingredient ids
----@return openmw.core.MagicEffectWithParams[] ordered list of matching effect ids
-Alchemy.getMatchingEffects = function(ingredientIds)
+---@param actor openmw.LObject|openmw.GObject|nil actor to test the effect knowledge for - omit to assume full knowledge
+---@return openmw.core.MagicEffectWithParams[] effects, table<integer, boolean> knowledge ordered list of matching effect ids and map of which effects are known
+Alchemy.getMatchingEffects = function(ingredientIds, actor)
     ---@type openmw.core.MagicEffectWithParams[]
     local effects = {}
+    local knowledge = {}
 
     for i = 1, #ingredientIds do
         local ingredient = types.Ingredient.record(ingredientIds[i])
+        local known = Alchemy.getKnownEffectFlagsForIngredient(ingredient, actor)
 
         if ingredient then
             for j = i + 1, #ingredientIds do
                 local ingredient2 = types.Ingredient.record(ingredientIds[j])
+                local known2 = Alchemy.getKnownEffectFlagsForIngredient(ingredient2, actor)
                 if ingredient2 then
                     for k = 1, #ingredient.effects do
                         local effect = ingredient.effects[k]
@@ -53,6 +57,7 @@ Alchemy.getMatchingEffects = function(ingredientIds)
                             and Alchemy.containsEffect(ingredient2.effects, effect)
                         then
                             table.insert(effects, effect)
+                            table.insert(knowledge, known[i] or known2[j])
                         end
                     end
                 end
@@ -60,7 +65,7 @@ Alchemy.getMatchingEffects = function(ingredientIds)
         end
     end
 
-    return effects
+    return effects, knowledge
 end
 
 ---@param actor openmw.LObject|openmw.GObject|nil
@@ -311,6 +316,7 @@ local function getKnownAlchemyEffectCount(actor, isPotion)
     return visibleEffectCount
 end
 
+---Returns map of effect index to whether actor knows this effect. If actor is omitted - assume we know all effects.
 ---@param ingredient string|openmw.types.IngredientRecord|nil
 ---@param actor openmw.LObject|openmw.GObject|nil
 ---@return table<integer, boolean>
