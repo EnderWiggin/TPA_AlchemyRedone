@@ -205,10 +205,11 @@ function AlchemyWindow:update(deep)
                     local effect = effects[i]
                     if known[i] then
                         icon.props.resource = T.Base.effectIconTexture(effect.id)
+                        icon.props.alpha = A.containsEffect(self.data.matching, effect) and 1 or 0.5
                     else
                         icon.props.resource = T.Special.TEX.UNKNOWN_EFFECT
+                        icon.props.alpha = 0.5
                     end
-                    icon.props.alpha = A.containsEffect(self.data.matching, effect) and 1 or 0.5
                 else
                     icon.props.resource = nil
                 end
