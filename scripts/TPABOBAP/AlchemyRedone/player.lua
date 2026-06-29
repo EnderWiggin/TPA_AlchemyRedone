@@ -57,7 +57,9 @@ m.onOpenAlchemy = function(data)
     m.updateIngredients()
     if m.wndIngredient then m.wndIngredient:updateData() end
     if m.wndAlchemy then m.wndAlchemy:updateData() end
-    I.UI.setMode(I.UI.MODE.Alchemy, { windows = { I.UI.WINDOW.Alchemy } })
+    if I.UI.getMode() ~= I.UI.MODE.Alchemy then
+        I.UI.addMode(I.UI.MODE.Alchemy, { windows = { I.UI.WINDOW.Alchemy } })
+    end
 end
 
 m.openWindow = function()

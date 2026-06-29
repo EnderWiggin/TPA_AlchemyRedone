@@ -76,7 +76,7 @@ function AlchemyWindow:init(ctx)
 
     local btnCancel = T.Special.button(C.Strings.CANCEL, {
         name = 'btnCancel',
-        onClick = function() I.UI.setMode() end
+        onClick = function() I.UI.removeMode(I.UI.MODE.Alchemy) end
     }, self.ctx)
 
     local counting
@@ -148,6 +148,7 @@ function AlchemyWindow:init(ctx)
                         anchor = v2(1, 1),
                         relativePosition = v2(1, 1),
                         position = v2(-10, -10),
+                        arrange = ui.ALIGNMENT.Center,
                     },
                     content = ui.content {
                         counting,
