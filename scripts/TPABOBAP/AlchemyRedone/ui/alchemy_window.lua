@@ -94,6 +94,9 @@ function AlchemyWindow:init(ctx)
             return self:makeIngredientTip(n)
         end)
 
+    local resultingEffects
+    resultingEffects, self.resultingEffects = parts.resultingEffects(self)
+
     local counting
     counting, self.counting = parts.countBlock()
 
@@ -139,7 +142,7 @@ function AlchemyWindow:init(ctx)
                                         size = v2(200, 300)
                                     },
                                     content = ui.content {
-                                        parts.resultingEffects()
+                                        resultingEffects,
                                     }
                                 },
                             }
@@ -194,63 +197,10 @@ function AlchemyWindow:update(deep)
     if not self.element then return end
     updateSizes()
     self:updateMatchingEffects()
-    local panel = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel' })
 
     self.tools.update()
     self.selected.update()
-
-    local effects = H.findLayoutByPath(panel, { 'right', 'result-block', 'result-box', 'padding', 'effect-list' })
-    for i = 1, #effects.content do
-        auxUi.deepDestroy(effects.content[i])
-    end
-    local effectCount = 8 --min 4 for beauty
-    effects.content = ui.content {}
-
-    if self.data.matching then
-        effectCount = math.max(effectCount, #self.data.matching)
-        local effectLayouts = {}
-        for i = 1, #self.data.matching do
-            local effect = self.data.matching[i]
-            local isVisible = self.data.matchingKnowledge[i] ~= false
-            local content = ui.content {}
-
-            if isVisible then
-                content:add(T.Special.effectIcon(effect.id))
-                content:add(T.Base.intervalH(4))
-                local effectText = H.getMagicEffectString(effect) or '?'
-                content:add({ name = 'effect_' .. i, template = T.Base.textNormal, props = { text = effectText } })
-            else
-                content:add({ name = 'effect_' .. i, template = T.Base.textNormal, props = { text = '?' } })
-            end
-
-            local effectLayout = {
-                type = ui.TYPE.Flex,
-                props = {
-                    horizontal = true,
-                    arrange = ui.ALIGNMENT.Center,
-                },
-                content = content,
-            }
-
-            if i ~= 1 then
-                table.insert(effectLayouts, T.Base.intervalV(GAP_EFFECT))
-            end
-            table.insert(effectLayouts, effectLayout)
-        end
-
-
-        effects.content:add({
-            name = 'effects',
-            type = ui.TYPE.Flex,
-            props = {
-                arrange = ui.ALIGNMENT.Start,
-            },
-            content = ui.content {
-                table.unpack(effectLayouts)
-            }
-        })
-    end
-    effects.props.size = v2(EFFECTS_WIDTH, T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1))
+    self.resultingEffects.update()
 
     Window.update(self, deep)
 end
@@ -893,7 +843,68 @@ parts.namedEffects = function(name)
     }
 end
 
-parts.resultingEffects = function()
+---@param self AlchemyWindow
+parts.resultingEffects = function(self)
+    local element
+    local path = { 'result-box', 'padding', 'effect-list' }
+    local wdg = {
+        update = function()
+            local effects = H.findLayoutByPath(element, path)
+            for i = 1, #effects.content do
+                auxUi.deepDestroy(effects.content[i])
+            end
+            local effectCount = 8 --min 4 for beauty
+            effects.content = ui.content {}
+
+            if self.data.matching then
+                effectCount = math.max(effectCount, #self.data.matching)
+                local effectLayouts = {}
+                for i = 1, #self.data.matching do
+                    local effect = self.data.matching[i]
+                    local isVisible = self.data.matchingKnowledge[i] ~= false
+                    local content = ui.content {}
+
+                    if isVisible then
+                        content:add(T.Special.effectIcon(effect.id))
+                        content:add(T.Base.intervalH(4))
+                        local effectText = H.getMagicEffectString(effect) or '?'
+                        content:add({ name = 'effect_' .. i, template = T.Base.textNormal, props = { text = effectText } })
+                    else
+                        content:add({ name = 'effect_' .. i, template = T.Base.textNormal, props = { text = '?' } })
+                    end
+
+                    local effectLayout = {
+                        type = ui.TYPE.Flex,
+                        props = {
+                            horizontal = true,
+                            arrange = ui.ALIGNMENT.Center,
+                        },
+                        content = content,
+                    }
+
+                    if i ~= 1 then
+                        table.insert(effectLayouts, T.Base.intervalV(GAP_EFFECT))
+                    end
+                    table.insert(effectLayouts, effectLayout)
+                end
+
+
+                effects.content:add({
+                    name = 'effects',
+                    type = ui.TYPE.Flex,
+                    props = {
+                        arrange = ui.ALIGNMENT.Start,
+                    },
+                    content = ui.content {
+                        table.unpack(effectLayouts)
+                    }
+                })
+            end
+            effects.props.size = v2(EFFECTS_WIDTH, T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1))
+        end,
+    }
+
+
     local box = {
         name = 'result-box',
         template = T.Base.boxSolid,
@@ -919,7 +930,7 @@ parts.resultingEffects = function()
 
         }
     }
-    return {
+    element = ui.create {
         name = 'result-block',
         type = ui.TYPE.Flex,
         props = {},
@@ -934,6 +945,7 @@ parts.resultingEffects = function()
             box,
         }
     }
+    return element, wdg
 end
 
 parts.countBlock = function()
