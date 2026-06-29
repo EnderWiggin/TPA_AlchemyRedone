@@ -74,6 +74,11 @@ function AlchemyWindow:init(ctx)
         canClick = function() return not self.btnCreate.layout.userData.disabled end
     }, self.ctx)
 
+    local btnCancel = T.Special.button(C.Strings.CANCEL, {
+        name = 'btnCancel',
+        onClick = function() I.UI.setMode() end
+    }, self.ctx)
+
     local counting
     counting, self.counting = parts.countBlock()
 
@@ -146,8 +151,10 @@ function AlchemyWindow:init(ctx)
                     },
                     content = ui.content {
                         counting,
-                        T.Base.intervalH(50),
+                        T.Base.intervalH(15),
                         self.btnCreate,
+                        T.Base.intervalH(30),
+                        btnCancel,
                     },
                 },
             },
