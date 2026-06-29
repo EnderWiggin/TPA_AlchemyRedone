@@ -100,75 +100,7 @@ function AlchemyWindow:init(ctx)
     local counting
     counting, self.counting = parts.countBlock()
 
-    local content = ui.content {
-        {
-            name = 'content',
-            type = ui.TYPE.Widget,
-            props = {},
-            content = ui.content {
-                {
-                    name = 'main',
-                    type = ui.TYPE.Flex,
-                    props = {
-                        horizontal = false,
-                        position = v2(10, 10)
-                    },
-                    content = ui.content {
-                        naming,
-                        T.Base.intervalV(15),
-                        {
-                            name = 'panel',
-                            type = ui.TYPE.Flex,
-                            props = {
-                                horizontal = true,
-                            },
-                            content = ui.content {
-                                {
-                                    name = 'left',
-                                    type = ui.TYPE.Flex,
-                                    props = {},
-                                    content = ui.content {
-                                        tools,
-                                        T.Base.intervalV(15),
-                                        selected,
-                                    }
-                                },
-                                T.Base.intervalH(15),
-                                {
-                                    name = 'right',
-                                    type = ui.TYPE.Flex,
-                                    props = {
-                                        autoSize = false,
-                                        size = v2(200, 300)
-                                    },
-                                    content = ui.content {
-                                        resultingEffects,
-                                    }
-                                },
-                            }
-                        },
-                    },
-                },
-                {
-                    type = ui.TYPE.Flex,
-                    props = {
-                        horizontal = true,
-                        anchor = v2(1, 1),
-                        relativePosition = v2(1, 1),
-                        position = v2(-10, -10),
-                        arrange = ui.ALIGNMENT.Center,
-                    },
-                    content = ui.content {
-                        counting,
-                        T.Base.intervalH(15),
-                        self.btnCreate,
-                        T.Base.intervalH(30),
-                        btnCancel,
-                    },
-                },
-            },
-        }
-    }
+    local content = self:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel)
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
         noResize = true,
         draggable = true,
@@ -370,6 +302,86 @@ end
 function AlchemyWindow:destroy()
     self.data = nil
     Window.destroy(self)
+end
+
+--- Creates two-pane UI
+---@param naming openmw.ui.Element|openmw.ui.Layout
+---@param tools openmw.ui.Element|openmw.ui.Layout
+---@param selected openmw.ui.Element|openmw.ui.Layout
+---@param resultingEffects openmw.ui.Element|openmw.ui.Layout
+---@param counting openmw.ui.Element|openmw.ui.Layout
+---@param btnCancel openmw.ui.Element|openmw.ui.Layout
+---@return openmw.ui.Content
+function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel)
+    return ui.content {
+        {
+            name = 'content',
+            type = ui.TYPE.Widget,
+            props = {},
+            content = ui.content {
+                {
+                    name = 'main',
+                    type = ui.TYPE.Flex,
+                    props = {
+                        horizontal = false,
+                        position = v2(10, 10)
+                    },
+                    content = ui.content {
+                        naming,
+                        T.Base.intervalV(15),
+                        {
+                            name = 'panel',
+                            type = ui.TYPE.Flex,
+                            props = {
+                                horizontal = true,
+                            },
+                            content = ui.content {
+                                {
+                                    name = 'left',
+                                    type = ui.TYPE.Flex,
+                                    props = {},
+                                    content = ui.content {
+                                        tools,
+                                        T.Base.intervalV(15),
+                                        selected,
+                                    }
+                                },
+                                T.Base.intervalH(15),
+                                {
+                                    name = 'right',
+                                    type = ui.TYPE.Flex,
+                                    props = {
+                                        autoSize = false,
+                                        size = v2(200, 300)
+                                    },
+                                    content = ui.content {
+                                        resultingEffects,
+                                    }
+                                },
+                            }
+                        },
+                    },
+                },
+                {
+                    type = ui.TYPE.Flex,
+                    props = {
+                        horizontal = true,
+                        anchor = v2(1, 1),
+                        relativePosition = v2(1, 1),
+                        position = v2(-10, -10),
+                        arrange = ui.ALIGNMENT.Center,
+                    },
+                    content = ui.content {
+                        counting,
+                        T.Base.intervalH(15),
+                        self.btnCreate,
+                        T.Base.intervalH(30),
+                        btnCancel,
+                    },
+                },
+            },
+        }
+    }
 end
 
 ---@param defaultText fun():string
@@ -591,6 +603,7 @@ parts.tools = function(getToolRecord)
                     text = C.Strings.APPARATUS,
                 },
             },
+            T.Base.intervalV(3),
             box,
         }
     }
@@ -754,6 +767,7 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                     text = C.Strings.INGREDIENTS,
                 },
             },
+            T.Base.intervalV(3),
             box,
         }
     }
@@ -942,6 +956,7 @@ parts.resultingEffects = function(self)
                     text = C.Strings.CREATED_EFFECTS,
                 },
             },
+            T.Base.intervalV(3),
             box,
         }
     }
