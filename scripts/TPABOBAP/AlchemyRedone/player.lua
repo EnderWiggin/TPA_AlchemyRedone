@@ -19,7 +19,7 @@ local C = require('scripts.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
 local IngredientWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.ingredient_window')
-local IngredientTable = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredient_table")
+local IngredientTable = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 
 ---@return AlchemyData
 local function defaultData()
