@@ -27,8 +27,8 @@ local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'
 local ApparatusTypes = types.Apparatus.TYPE
 
 ---@class AlchemyWindow: Window
----@field protected ctx AlchemyContext
----@field private data AlchemyData
+---@field ctx AlchemyContext
+---@field data AlchemyData
 local AlchemyWindow = Window:new()
 
 ---@return AlchemyWindow
@@ -81,6 +81,19 @@ function AlchemyWindow:init(ctx)
     local tools
     tools, self.tools = parts.tools(function(type) return self:getToolRecord(type) end)
 
+    local selected
+    selected, self.selected = parts.selected(self,
+        function(n)
+            local r = self:getSelectedIngredientRecord(n)
+            return r and r.id
+        end,
+        function(n)
+            self:onIngredientClicked(n)
+        end,
+        function(n)
+            return self:makeIngredientTip(n)
+        end)
+
     local counting
     counting, self.counting = parts.countBlock()
 
@@ -114,17 +127,7 @@ function AlchemyWindow:init(ctx)
                                     content = ui.content {
                                         tools,
                                         T.Base.intervalV(15),
-                                        parts.selected(ctx,
-                                            function(n)
-                                                local r = self:getSelectedIngredientRecord(n)
-                                                return r and r.id
-                                            end,
-                                            function(n)
-                                                self:onIngredientClicked(n)
-                                            end,
-                                            function(n)
-                                                return self:makeIngredientTip(n)
-                                            end),
+                                        selected,
                                     }
                                 },
                                 T.Base.intervalH(15),
@@ -194,46 +197,7 @@ function AlchemyWindow:update(deep)
     local panel = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel' })
 
     self.tools.update()
-
-    local selected = H.findLayoutByPath(panel, { 'left', 'selected-block', 'selected-box', 'padding', 'selected' })
-    local function updateSelected(n)
-        local record, amount = self:getSelectedIngredientRecord(n)
-        local name = H.findLayoutByPath(selected, { 'name', Slots[n] })
-        local icon = H.findLayoutByPath(selected, { 'icon', Slots[n] })
-
-        if record and amount > 0 then
-            local effects = record.effects
-            name.props.text = record.name .. ' (' .. H.addSeparators(amount) .. ')'
-            icon.props.resource = T.Base.createTexture(record.icon)
-            local known = A.getKnownEffectFlagsForIngredient(record, player)
-            for i = 1, 4 do
-                icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
-                if #effects >= i then
-                    local effect = effects[i]
-                    if known[i] then
-                        icon.props.resource = T.Base.effectIconTexture(effect.id)
-                        icon.props.alpha = A.containsEffect(self.data.matching, effect) and 1 or 0.5
-                    else
-                        icon.props.resource = T.Special.TEX.UNKNOWN_EFFECT
-                        icon.props.alpha = 0.5
-                    end
-                else
-                    icon.props.resource = nil
-                end
-            end
-        else
-            name.props.text = C.Strings.NONE
-            icon.props.resource = nil
-
-            for i = 1, 4 do
-                icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
-                icon.props.resource = nil
-            end
-        end
-    end
-    for i = 1, #Slots do
-        updateSelected(i)
-    end
+    self.selected.update()
 
     local effects = H.findLayoutByPath(panel, { 'right', 'result-block', 'result-box', 'padding', 'effect-list' })
     for i = 1, #effects.content do
@@ -559,6 +523,8 @@ parts.tools = function(getToolRecord)
             updateTool(C.Strings.ALEMBIC, ApparatusTypes.Alembic)
             updateTool(C.Strings.CALCINATOR, ApparatusTypes.Calcinator)
             updateTool(C.Strings.RETORT, ApparatusTypes.Retort)
+
+            element:update()
         end,
     }
     local box = {
@@ -681,7 +647,58 @@ parts.tools = function(getToolRecord)
     return element, wdg
 end
 
-parts.selected = function(ctx, getId, onClick, tooltipFn)
+---@param self AlchemyWindow
+---@param getId fun(n:integer):string?
+---@param onClick fun(n:integer)
+---@param tooltipFn fun(n:integer):table?
+parts.selected = function(self, getId, onClick, tooltipFn)
+    local element
+    local path = { 'selected-box', 'padding', 'selected' }
+    local wdg = {
+        update = function()
+            local selected = H.findLayoutByPath(element, path)
+            local function updateSelected(n)
+                local record, amount = self:getSelectedIngredientRecord(n)
+                local name = H.findLayoutByPath(selected, { 'name', Slots[n] })
+                local icon = H.findLayoutByPath(selected, { 'icon', Slots[n] })
+
+                if record and amount > 0 then
+                    local effects = record.effects
+                    name.props.text = record.name .. ' (' .. H.addSeparators(amount) .. ')'
+                    icon.props.resource = T.Base.createTexture(record.icon)
+                    local known = A.getKnownEffectFlagsForIngredient(record, player)
+                    for i = 1, 4 do
+                        icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
+                        if #effects >= i then
+                            local effect = effects[i]
+                            if known[i] then
+                                icon.props.resource = T.Base.effectIconTexture(effect.id)
+                                icon.props.alpha = A.containsEffect(self.data.matching, effect) and 1 or 0.5
+                            else
+                                icon.props.resource = T.Special.TEX.UNKNOWN_EFFECT
+                                icon.props.alpha = 0.5
+                            end
+                        else
+                            icon.props.resource = nil
+                        end
+                    end
+                else
+                    name.props.text = C.Strings.NONE
+                    icon.props.resource = nil
+
+                    for i = 1, 4 do
+                        icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
+                        icon.props.resource = nil
+                    end
+                end
+            end
+
+            for i = 1, #Slots do updateSelected(i) end
+
+            element:update()
+        end
+    }
+
     local box = {
         name = 'selected-box',
         template = T.Base.boxSolid,
@@ -728,22 +745,22 @@ parts.selected = function(ctx, getId, onClick, tooltipFn)
                                 },
                                 content = ui.content {
                                     T.Base.intervalV(GAP_END),
-                                    parts.namedActiveHeader(Slots[1], ctx,
+                                    parts.namedActiveHeader(Slots[1], self.ctx,
                                         function() return getId(1) end,
                                         function() onClick(1) end,
                                         function() return tooltipFn(1) end),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedActiveHeader(Slots[2], ctx,
+                                    parts.namedActiveHeader(Slots[2], self.ctx,
                                         function() return getId(2) end,
                                         function() onClick(2) end,
                                         function() return tooltipFn(2) end),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedActiveHeader(Slots[3], ctx,
+                                    parts.namedActiveHeader(Slots[3], self.ctx,
                                         function() return getId(3) end,
                                         function() onClick(3) end,
                                         function() return tooltipFn(3) end),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedActiveHeader(Slots[4], ctx,
+                                    parts.namedActiveHeader(Slots[4], self.ctx,
                                         function() return getId(4) end,
                                         function() onClick(4) end,
                                         function() return tooltipFn(4) end),
@@ -776,7 +793,7 @@ parts.selected = function(ctx, getId, onClick, tooltipFn)
             }
         }
     }
-    return {
+    element = ui.create {
         name = 'selected-block',
         type = ui.TYPE.Flex,
         props = {},
@@ -790,6 +807,7 @@ parts.selected = function(ctx, getId, onClick, tooltipFn)
             box,
         }
     }
+    return element, wdg
 end
 
 parts.namedTitle = function(name)
