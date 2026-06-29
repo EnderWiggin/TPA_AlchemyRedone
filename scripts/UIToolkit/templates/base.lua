@@ -6,6 +6,7 @@ local core = require('openmw.core')
 local I = require('openmw.interfaces')
 local async = require('openmw.async')
 local ambient = require('openmw.ambient')
+local vfs = require('openmw.vfs')
 
 local omwConstants = require('scripts.omw.mwui.constants')
 
@@ -14,7 +15,9 @@ local constants = require('scripts.UIToolkit.constants')
 
 --local configPlayer = require('scripts.InventoryExtender.config.player')
 
-local intRe = true --configPlayer.modIntegration.b_InterfaceReimagined
+--detects Interface Reimagined by existence of a file it adds
+local hasRe = vfs.fileExists('textures/menu_thin_border_top2.dds')
+local intRe = false --configPlayer.modIntegration.b_InterfaceReimagined
 
 local HEADER_HEIGHT = 20
 local SCROLL_BAR_OUTER_WIDTH = 16
@@ -195,6 +198,7 @@ Templates.textEditLine.props.size = util.vector2(0, 0)
 
 local v2 = util.vector2
 local buttonBorderSize = 4
+local buttonBorderSizeIntRe = 2
 local borderSideParts = {
     left = v2(0, 0),
     right = v2(1, 0),
@@ -302,6 +306,7 @@ local buttonBorderCornerPattern = 'textures/menu_button_frame_%s_corner.dds'
 
 local buttonBorderResources = {}
 local buttonBorderPieces = {}
+local buttonBorderPiecesIntRE = {}
 
 for k in pairs(borderSideParts) do
     buttonBorderResources[k] = Templates.createTexture(buttonBorderSidePattern:format(k))
@@ -310,6 +315,15 @@ for k in pairs(borderSideParts) do
         type = ui.TYPE.Image,
         props = {
             resource = buttonBorderResources[k],
+            tileH = horizontal,
+            tileV = not horizontal,
+        }
+    }
+
+    buttonBorderPiecesIntRE[k] = {
+        type = ui.TYPE.Image,
+        props = {
+            resource = borderResources['thin'][k],
             tileH = horizontal,
             tileV = not horizontal,
         }
@@ -439,15 +453,22 @@ Templates.buttonBox = function()
         type = ui.TYPE.Container,
         content = ui.content {},
     }
+    local broderSz = intRe and buttonBorderSizeIntRe or buttonBorderSize
     for k, v in pairs(borderSideParts) do
         local horizontal = (k == 'top' or k == 'bottom')
         local direction = horizontal and v2(1, 0) or v2(0, 1)
+        local tmp
+        if intRe then
+            tmp = horizontal and buttonBorderPiecesIntRE[k] or nil
+        else
+            tmp = buttonBorderPieces[k]
+        end
         template.content:add {
-            template = buttonBorderPieces[k] and not intRe and buttonBorderPieces[k] or nil,
+            template = tmp,
             props = {
-                position = (direction + v) * buttonBorderSize,
+                position = (direction + v) * broderSz,
                 relativePosition = v,
-                size = (v2(1, 1) - direction) * buttonBorderSize,
+                size = (v2(1, 1) - direction) * broderSz,
                 relativeSize = direction,
             }
         }
@@ -456,16 +477,16 @@ Templates.buttonBox = function()
         template.content:add {
             template = buttonBorderPieces[k] and not intRe and buttonBorderPieces[k] or nil,
             props = {
-                position = v * buttonBorderSize,
+                position = v * broderSz,
                 relativePosition = v,
-                size = v2(buttonBorderSize, buttonBorderSize),
+                size = v2(broderSz, broderSz),
             }
         }
     end
     template.content:add {
         external = { slot = true },
         props = {
-            position = v2(buttonBorderSize, buttonBorderSize),
+            position = v2(broderSz, broderSz),
             relativeSize = v2(1, 1),
         }
     }
