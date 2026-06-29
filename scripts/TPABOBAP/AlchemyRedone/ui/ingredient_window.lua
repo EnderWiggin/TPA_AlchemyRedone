@@ -15,6 +15,7 @@ local H = require("scripts.UIToolkit.helpers")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local Window = require("scripts.UIToolkit.window")
+local ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
 
 local v2 = util.vector2
 
@@ -36,7 +37,7 @@ function IngredientWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
 
-    self.itemTable = self.ctx.makeIngredientsTable(self)
+    self.itemTable = ingredients.makeTable(self)
 
     local content = ui.content {
         self.itemTable
