@@ -223,17 +223,12 @@ local function onMouseWheel(v, h)
 end
 
 local function onFrame()
+    if I.UI.getMode() ~= I.UI.MODE.Alchemy then return end
+
     for element in pairs(ctx.updateQueue) do
         element:update()
     end
     ctx.updateQueue = {}
-
-    local mouseMoved
-    if I.UI.getMode() ~= nil then
-        if input.getMouseMoveX() ~= 0 or input.getMouseMoveY() ~= 0 then
-            mouseMoved = true
-        end
-    end
 end
 
 I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
