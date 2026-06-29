@@ -391,6 +391,21 @@ function AlchemyWindow:getSelectedIngredientList()
     return ids
 end
 
+---returns the amount of selected ingredient that's smallest - this is our limit for brewing batch size
+---@param ingredients string[]?
+---@return integer
+function AlchemyWindow:getLeastIngredientAmount(ingredients)
+    ingredients = ingredients or self:getSelectedIngredientList()
+    local min = math.huge
+    for i = 1, #ingredients do
+        local count = self.data.ingredients[ingredients[i]]
+        if count then
+            min = math.min(min, count)
+        end
+    end
+    return min
+end
+
 function AlchemyWindow:getDefaultPotionName()
     ---@type MagicEffectWithParams[]
     local matching = self.data.matching
@@ -411,7 +426,7 @@ function AlchemyWindow:createPotion()
     local ingredients = self:getSelectedIngredientList()
     local draft, errorCode = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player)
     local effects = draft.effects
-    local count = self.counting.getCount() --TODO: clamp to min amount ingredient
+    local count = math.min(self.counting.getCount(), self:getLeastIngredientAmount(ingredients))
     local brewed = 0
 
     if errorCode == A.PotionErrors.OK then
