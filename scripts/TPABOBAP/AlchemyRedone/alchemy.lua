@@ -149,11 +149,21 @@ local function trim(str)
     return str:match("^%s*(.-)%s*$")
 end
 
+local parts = { "bargain", "cheap", "standard", "fresh", "quality", "exclusive" }
+
+---Returns icon and model based on passed number, or randomly if number is not passed
+---@param n number?
 ---@return string model, string  icon
-Alchemy.selectPotionArt = function()
-    --TODO: select icon randomly or by skill factor?
-    local mModel = "meshes/m/misc_potion_exclusive_01.nif"
-    local mIcon = "icons/m/tx_potion_exclusive_01.dds"
+Alchemy.selectPotionArt = function(n)
+    if not n or type(n) ~= "number" then
+        n = math.random(1, #parts)
+    else
+        n = util.clamp(util.round(n), 1, #parts)
+    end
+
+    local part = parts[n]
+    local mModel = ("meshes/m/misc_potion_%s_01.nif"):format(part)
+    local mIcon = ("icons/m/tx_potion_%s_01.dds"):format(part)
     return mModel, mIcon
 end
 
@@ -167,6 +177,8 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
     ---@type openmw.core.MagicEffectWithParams[]
     local effects = {}
     name = name and trim(name)
+    local factor = Alchemy.getAlchemyFactor(actor)
+    -- local model, icon = Alchemy.selectPotionArt(factor / 20) --TODO: add option to select model based on effective skill
     local model, icon = Alchemy.selectPotionArt()
     ---@type openmw.types.PotionRecord
     local stats = {
@@ -188,7 +200,6 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
     local matching = Alchemy.getMatchingEffects(ingredientIds)
     if #matching <= 0 then return stats, Alchemy.PotionErrors.FAIL end
 
-    local factor = Alchemy.getAlchemyFactor(actor)
     factor = factor * mortar.quality
     factor = factor * core.getGMST('fPotionStrengthMult')
 
@@ -282,27 +293,43 @@ local function potionEffectsEqual(a, b)
     return true
 end
 
+---@class PotionCompareOpts
+---@field ignore {icon:boolean?, model:boolean? } which properties to ignore when comparing? Id is always ignored.
+---@field generated boolean? if true, will look only among dynamically generated records
+
 ---@param a openmw.types.PotionRecord
 ---@param b openmw.types.PotionRecord
-local function potionRecordsEqual(a, b)
+---@param opts PotionCompareOpts?
+local function potionRecordsEqual(a, b, opts)
+    local ignoreIcon = false
+    local ignoreModel = false
+    if opts and opts.ignore then
+        ignoreIcon = opts.ignore.icon
+        ignoreModel = opts.ignore.model
+    end
+
     if a.name ~= b.name then return false end
     if a.weight ~= b.weight then return false end
     if a.value ~= b.value then return false end
     if a.mwscript ~= b.mwscript then return false end
-    if a.icon ~= b.icon then return false end
-    if a.model ~= b.model then return false end
+    if not ignoreIcon and a.icon ~= b.icon then return false end
+    if not ignoreModel and a.model ~= b.model then return false end
     if a.isAutocalc ~= b.isAutocalc then return false end
     if not potionEffectsEqual(a.effects, b.effects) then return false end
     return true
 end
 
 ---@param record openmw.types.PotionRecord
+---@param opts PotionCompareOpts?
 ---@return openmw.types.PotionRecord?
-Alchemy.findPotion = function(record)
+Alchemy.findPotion = function(record, opts)
+    local generated = opts and opts.generated
     for i = 1, #types.Potion.records do
         ---@type openmw.types.PotionRecord
         local potion = types.Potion.records[i]
-        if potion and potionRecordsEqual(record, potion) then return potion end
+        if not generated or potion.id:lower():sub(1, 9) == "generated" then
+            if potionRecordsEqual(record, potion, opts) then return potion end
+        end
     end
     return nil
 end
