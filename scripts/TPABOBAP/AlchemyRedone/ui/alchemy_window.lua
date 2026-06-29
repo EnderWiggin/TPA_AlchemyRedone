@@ -434,9 +434,6 @@ function AlchemyWindow:createPotion()
         for _ = 1, count do
             if A.checkPotionBrewSuccess(factor) then
                 brewed = brewed + 1
-                --TODO: grant skill use success XP
-            else
-                --TODO: optionally grant skill use failure XP
             end
         end
 
@@ -449,6 +446,9 @@ function AlchemyWindow:createPotion()
             end
             ui.showMessage(msg)
             ambient.playSound('potion success', { scale = false })
+            self:deductIngredients(ingredients, count)
+            I.SkillProgression.skillUsed('alchemy', {
+                useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion, scale = brewed })
         end
     end
 
@@ -456,6 +456,7 @@ function AlchemyWindow:createPotion()
         ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
         ambient.playSound('potion fail', { scale = false })
         self:deductIngredients(ingredients, count)
+        --TODO: optionally grant skill use failure XP
         return
     elseif errorCode ~= A.PotionErrors.OK then
         ui.showMessage(core.getGMST(errorCode))
@@ -467,7 +468,6 @@ function AlchemyWindow:createPotion()
         effects[i].effect = nil
     end
 
-    self:deductIngredients(ingredients, count)
     local potion = A.findPotion(draft)
     if potion then
         core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = brewed })
