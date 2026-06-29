@@ -11,8 +11,9 @@ local auxUi = require('openmw_aux.ui')
 
 local I = require("openmw.interfaces")
 local T = {
-    Base = require("scripts.UIToolkit.templates.base"),
-    Special = require("scripts.UIToolkit.templates.special"),
+    Base        = require("scripts.UIToolkit.templates.base"),
+    Special     = require("scripts.UIToolkit.templates.special"),
+    Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients"),
 }
 local S = require("scripts.UIToolkit.templates.special")
 local C = require("scripts.UIToolkit.constants")
@@ -20,7 +21,6 @@ local H = require("scripts.UIToolkit.helpers")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local Window = require("scripts.UIToolkit.window")
-local ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
 
 local v2 = util.vector2
 local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'
@@ -115,7 +115,7 @@ function AlchemyWindow:init(ctx, mode)
 
     local content
     if mode == 'single' then
-        self.itemTable = ingredients.makeTable(self)
+        self.itemTable = T.Ingredients.makeTable(self)
         content = self:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel,
             self.itemTable)
     else

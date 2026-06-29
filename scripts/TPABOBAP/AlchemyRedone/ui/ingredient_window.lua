@@ -1,23 +1,15 @@
 ---@omw-context player
 
 local ui = require("openmw.ui")
-local util = require("openmw.util")
-local types = require("openmw.types")
-local player = require('openmw.self')
 
-local I = require("openmw.interfaces")
 local T = {
-    Base    = require("scripts.UIToolkit.templates.base"),
-    Special = require("scripts.UIToolkit.templates.special"),
+    Base        = require("scripts.UIToolkit.templates.base"),
+    Special     = require("scripts.UIToolkit.templates.special"),
+    Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients"),
 }
 local C = require("scripts.UIToolkit.constants")
-local H = require("scripts.UIToolkit.helpers")
-local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local Window = require("scripts.UIToolkit.window")
-local ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
-
-local v2 = util.vector2
 
 ---@class IngredientWindow: Window
 ---@field protected ctx AlchemyContext
@@ -37,7 +29,7 @@ function IngredientWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
 
-    self.itemTable = ingredients.makeTable(self)
+    self.itemTable = T.Ingredients.makeTable(self)
 
     local content = ui.content {
         self.itemTable
