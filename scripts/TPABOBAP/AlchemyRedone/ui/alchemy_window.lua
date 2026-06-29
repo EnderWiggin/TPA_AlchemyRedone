@@ -41,7 +41,9 @@ end
 local parts = {}
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
-local MIN_SIZE = v2(730, 380) --TODO: update with font sizes?
+local MIN_SIZE_TWO = v2(730, 405)    --TODO: update with font sizes?
+local MIN_SIZE_SINGLE = v2(400, 675) --TODO: update with font sizes?
+local MIN_SIZE = MIN_SIZE_TWO
 
 local BLOCK_WIDTH = 350
 local EFFECTS_WIDTH = 300
@@ -61,9 +63,18 @@ end
 updateSizes()
 
 ---@param ctx AlchemyContext
-function AlchemyWindow:init(ctx)
+function AlchemyWindow:init(ctx, mode)
     self:setContext(ctx)
     self.data = ctx.data
+
+    if mode == 'single' then
+        MIN_SIZE = MIN_SIZE_SINGLE
+        EFFECTS_WIDTH = BLOCK_WIDTH
+    else
+        MIN_SIZE = MIN_SIZE_TWO
+        EFFECTS_WIDTH = 300
+    end
+
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
 
@@ -100,7 +111,13 @@ function AlchemyWindow:init(ctx)
     local counting
     counting, self.counting = parts.countBlock()
 
-    local content = self:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel)
+    local content
+    if mode == 'single' then
+        content = self:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
+    else
+        content = self:makeTwoPaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
+    end
+
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
         noResize = true,
         draggable = true,
@@ -121,8 +138,9 @@ function AlchemyWindow:updateSize()
 
     local content = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content' })
     content.props.size = inner
+
     local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel', 'right' })
-    right.props.size = v2(inner.x / 2, inner.y)
+    right.props.size = v2(BLOCK_WIDTH, inner.y)
 end
 
 function AlchemyWindow:update(deep)
@@ -312,7 +330,7 @@ end
 ---@param counting openmw.ui.Element|openmw.ui.Layout
 ---@param btnCancel openmw.ui.Element|openmw.ui.Layout
 ---@return openmw.ui.Content
-function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel)
+function AlchemyWindow:makeTwoPaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
     return ui.content {
         {
             name = 'content',
@@ -384,9 +402,109 @@ function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, co
     }
 end
 
+--- Creates single-pane UI
+---@param naming openmw.ui.Element|openmw.ui.Layout
+---@param tools openmw.ui.Element|openmw.ui.Layout
+---@param selected openmw.ui.Element|openmw.ui.Layout
+---@param resultingEffects openmw.ui.Element|openmw.ui.Layout
+---@param counting openmw.ui.Element|openmw.ui.Layout
+---@param btnCancel openmw.ui.Element|openmw.ui.Layout
+---@return openmw.ui.Content
+function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
+    return ui.content {
+        {
+            name = 'content',
+            type = ui.TYPE.Widget,
+            props = {},
+            content = ui.content {
+                {
+                    name = 'main',
+                    type = ui.TYPE.Flex,
+                    props = {
+                        horizontal = false,
+                        position = v2(10, 10)
+                    },
+                    content = ui.content {
+                        naming,
+                        T.Base.intervalV(15),
+                        {
+                            name = 'panel',
+                            type = ui.TYPE.Flex,
+                            props = {
+                                horizontal = true,
+                            },
+                            content = ui.content {
+                                {
+                                    name = 'left',
+                                    type = ui.TYPE.Flex,
+                                    props = {
+                                        horizontal = false,
+                                    },
+                                    content = ui.content {
+                                        tools,
+                                        T.Base.intervalV(15),
+                                        selected,
+                                        T.Base.intervalV(15),
+                                        resultingEffects,
+                                    },
+                                },
+                                {
+                                    name = 'right',
+                                    type = ui.TYPE.Flex,
+                                    props = {
+                                        horizontal = false,
+                                    },
+                                    content = ui.content {
+
+                                    },
+                                },
+                            }
+                        },
+                    },
+                },
+                {
+                    type = ui.TYPE.Widget,
+                    props = {
+                        anchor = v2(0, 1),
+                        relativePosition = v2(0, 1),
+                        relativeSize = v2(1, 1),
+                    },
+                    content = ui.content {
+                        {
+                            type = ui.TYPE.Flex,
+                            props = {
+                                horizontal = true,
+                                anchor = v2(0, 1),
+                                relativePosition = v2(0, 1),
+                                position = v2(10, -10),
+                            },
+                            content = ui.content {
+                                counting,
+                                T.Base.intervalH(10),
+                                self.btnCreate,
+                            },
+                        },
+                        {
+                            type = ui.TYPE.Container,
+                            props = {
+                                anchor = v2(1, 1),
+                                relativePosition = v2(1, 1),
+                                position = v2(-10, -10),
+                            },
+                            content = ui.content {
+                                btnCancel,
+                            },
+                        }
+                    },
+                },
+            },
+        }
+    }
+end
+
 ---@param defaultText fun():string
 parts.naming = function(defaultText)
-    local path = { 'nameBar', 'padding', 'textEdit' }
+    local path = { 'naming', 'nameBar', 'padding', 'textEdit' }
     local name = defaultText()
     local element
     local wdg = {
@@ -404,12 +522,10 @@ parts.naming = function(defaultText)
     end, 'btn-revert')
 
     element = ui.create {
-        name = 'naming',
+        name = 'naming-box',
         type = ui.TYPE.Flex,
         props = {
-            horizontal = true,
-            --gap = 10, --TODO: this is not in 0.51, hope for 0.52
-            arrange = ui.ALIGNMENT.Center,
+
         },
         content = ui.content {
             {
@@ -418,33 +534,45 @@ parts.naming = function(defaultText)
                     text = C.Strings.NAME,
                 },
             },
-            T.Base.intervalH(10),
+            T.Base.intervalV(3),
             {
-                name = 'nameBar',
-                template = I.MWUI.templates.box,
+                name = 'naming',
+                type = ui.TYPE.Flex,
+                props = {
+                    horizontal = true,
+                    --gap = 10, --TODO: this is not in 0.51, hope for 0.52
+                    arrange = ui.ALIGNMENT.Center,
+                },
                 content = ui.content {
+
                     {
-                        name = 'padding',
-                        template = I.MWUI.templates.padding,
+                        name = 'nameBar',
+                        template = I.MWUI.templates.box,
                         content = ui.content {
                             {
-                                name = 'textEdit',
-                                template = T.Base.textEditLine,
-                                props = {
-                                    size = v2(300, T.Base.TEXT_SIZE),
-                                    text = name,
-                                    textColor = C.Colors.DEFAULT_LIGHT,
-                                },
-                                events = {
-                                    textChanged = async:callback(function(text) name = text end),
+                                name = 'padding',
+                                template = I.MWUI.templates.padding,
+                                content = ui.content {
+                                    {
+                                        name = 'textEdit',
+                                        template = T.Base.textEditLine,
+                                        props = {
+                                            size = v2(330, T.Base.TEXT_SIZE),
+                                            text = name,
+                                            textColor = C.Colors.DEFAULT_LIGHT,
+                                        },
+                                        events = {
+                                            textChanged = async:callback(function(text) name = text end),
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
+                        },
+                    },
+                    T.Base.intervalH(5),
+                    btn,
                 },
             },
-            T.Base.intervalH(3),
-            btn,
         }
     }
 
