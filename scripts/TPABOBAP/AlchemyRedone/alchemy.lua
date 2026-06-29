@@ -69,6 +69,7 @@ Alchemy.getMatchingEffects = function(ingredientIds, actor)
 end
 
 ---@param actor openmw.LObject|openmw.GObject|nil
+---@return number
 Alchemy.getAlchemyFactor = function(actor)
     if not actor or not actor.type or not actor.type.stats
         or not actor.type.stats.skills or not actor.type.stats.skills.alchemy
@@ -253,12 +254,10 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
     return stats, #effects <= 0 and Alchemy.PotionErrors.FAIL or Alchemy.PotionErrors.OK
 end
 
----@param actor openmw.LObject|openmw.GObject|nil
+---@param alchemyFactor number
 ---@return boolean success
-Alchemy.checkPotionBrewSuccess = function(actor)
-    local factor = Alchemy.getAlchemyFactor(actor)
-    local roll = math.random(0, 99)
-    return factor >= roll
+Alchemy.checkPotionBrewSuccess = function(alchemyFactor)
+    return alchemyFactor >= math.random(0, 99)
 end
 
 ---@param a openmw.core.MagicEffectWithParams[]

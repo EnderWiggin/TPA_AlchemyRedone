@@ -430,8 +430,9 @@ function AlchemyWindow:createPotion()
     local brewed = 0
 
     if errorCode == A.PotionErrors.OK then
+        local factor = A.getAlchemyFactor(player)
         for _ = 1, count do
-            if A.checkPotionBrewSuccess(player) then
+            if A.checkPotionBrewSuccess(factor) then
                 brewed = brewed + 1
                 --TODO: grant skill use success XP
             else
