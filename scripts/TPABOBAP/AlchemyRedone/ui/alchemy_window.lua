@@ -78,6 +78,9 @@ function AlchemyWindow:init(ctx)
         onClick = function() I.UI.removeMode(I.UI.MODE.Alchemy) end
     }, self.ctx)
 
+    local tools
+    tools, self.tools = parts.tools(function(type) return self:getToolRecord(type) end)
+
     local counting
     counting, self.counting = parts.countBlock()
 
@@ -109,7 +112,7 @@ function AlchemyWindow:init(ctx)
                                     type = ui.TYPE.Flex,
                                     props = {},
                                     content = ui.content {
-                                        parts.tools(),
+                                        tools,
                                         T.Base.intervalV(15),
                                         parts.selected(ctx,
                                             function(n)
@@ -190,23 +193,7 @@ function AlchemyWindow:update(deep)
     self:updateMatchingEffects()
     local panel = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel' })
 
-    local tools = H.findLayoutByPath(panel, { 'left', 'tools-block', 'tools-box', 'padding', 'tools' })
-    local function updateTool(name, type)
-        local record = self:getToolRecord(type)
-        local layout = H.findLayoutByPath(tools, { 'name', name })
-        layout.props.text = record and record.name or C.Strings.NONE
-
-        layout = H.findLayoutByPath(tools, { 'quality', name })
-        layout.props.text = record and 'x' .. record.quality or ''
-
-        layout = H.findLayoutByPath(tools, { 'icon', name })
-        layout.props.resource = record and T.Base.createTexture(record.icon)
-    end
-
-    updateTool(C.Strings.MORTAR, ApparatusTypes.MortarPestle)
-    updateTool(C.Strings.ALEMBIC, ApparatusTypes.Alembic)
-    updateTool(C.Strings.CALCINATOR, ApparatusTypes.Calcinator)
-    updateTool(C.Strings.RETORT, ApparatusTypes.Retort)
+    self.tools.update()
 
     local selected = H.findLayoutByPath(panel, { 'left', 'selected-block', 'selected-box', 'padding', 'selected' })
     local function updateSelected(n)
@@ -548,7 +535,32 @@ parts.setInteractiveState = function(wdg, active, disabled)
     wdg:update()
 end
 
-parts.tools = function()
+---@param getToolRecord fun(type:number):openmw.types.ApparatusRecord?
+parts.tools = function(getToolRecord)
+    local element
+    local path = { 'tools-box', 'padding', 'tools' }
+
+    local wdg = {
+        update = function()
+            local tools = H.findLayoutByPath(element, path)
+            local function updateTool(name, type)
+                local record = getToolRecord(type)
+                local layout = H.findLayoutByPath(tools, { 'name', name })
+                layout.props.text = record and record.name or C.Strings.NONE
+
+                layout = H.findLayoutByPath(tools, { 'quality', name })
+                layout.props.text = record and 'x' .. record.quality or ''
+
+                layout = H.findLayoutByPath(tools, { 'icon', name })
+                layout.props.resource = record and T.Base.createTexture(record.icon)
+            end
+
+            updateTool(C.Strings.MORTAR, ApparatusTypes.MortarPestle)
+            updateTool(C.Strings.ALEMBIC, ApparatusTypes.Alembic)
+            updateTool(C.Strings.CALCINATOR, ApparatusTypes.Calcinator)
+            updateTool(C.Strings.RETORT, ApparatusTypes.Retort)
+        end,
+    }
     local box = {
         name = 'tools-box',
         template = T.Base.boxSolid,
@@ -651,7 +663,8 @@ parts.tools = function()
             }
         }
     }
-    return {
+
+    element = ui.create {
         name = 'tools-block',
         type = ui.TYPE.Flex,
         props = {},
@@ -665,6 +678,7 @@ parts.tools = function()
             box,
         }
     }
+    return element, wdg
 end
 
 parts.selected = function(ctx, getId, onClick, tooltipFn)
