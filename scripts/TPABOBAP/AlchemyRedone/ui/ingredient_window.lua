@@ -1,10 +1,8 @@
 ---@omw-context player
 
-local core = require("openmw.core")
 local ui = require("openmw.ui")
 local util = require("openmw.util")
 local types = require("openmw.types")
-local async = require('openmw.async')
 local player = require('openmw.self')
 
 local I = require("openmw.interfaces")
@@ -19,7 +17,6 @@ local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local Window = require("scripts.UIToolkit.window")
 local IngredientTable = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredient_table")
 
-local MWUI = I.MWUI.templates
 local v2 = util.vector2
 
 ---@class IngredientWindow: Window
@@ -54,25 +51,6 @@ local function renderIcon(ingredient, width, height)
                     size = v2(sz, sz),
                 }
             },
-        }
-    }
-end
-
-local function renderName(ingredient, width, height)
-    local record = types.Ingredient.record(ingredient.id)
-    local name = record and record.name .. ' (' .. H.addSeparators(ingredient.count) .. ')' or C.Strings.NONE
-    return {
-        name = 'ingredientName',
-        template = T.Base.textNormal,
-        props = {
-            text = name,
-            size = v2(width, height),
-            textAlignH = ui.ALIGNMENT.Start,
-            textAlignV = ui.ALIGNMENT.Center,
-            autoSize = false,
-        },
-        userData = {
-            colorable = true,
         }
     }
 end
@@ -121,7 +99,7 @@ function IngredientWindow:init(ctx)
             { id = 'name', },
             { id = 'effects', width = effectWidth,   renderer = renderEffects },
         },
-        data = self:getAllIngredients(),
+        data = self.ctx.getAllIngredients(),
         size = v2(600, 400),
         rowHeight = rowHeight,
         comparator = function(a, b)
@@ -175,34 +153,7 @@ end
 
 function IngredientWindow:updateData()
     if not self.element then return end
-    self.itemTable.layout.userData.updateData(self:getAllIngredients())
-end
-
-function IngredientWindow:getAllIngredients()
-    if not self.data.sources then
-        return {}
-    end
-
-    local result = {}
-    for id, count in pairs(self.data.ingredients) do
-        local record = types.Ingredient.record(id)
-        local name = record and record.name .. ' (' .. H.addSeparators(count) .. ')' or C.Strings.NONE
-        table.insert(result, {
-            id = id,
-            count = count,
-            name = name,
-            activeFn = function()
-                if self.data and self.data.selected then
-                    for i = 1, 4 do
-                        local recordId = self.data.selected[i]
-                        if recordId == id then return true end
-                    end
-                end
-                return false
-            end,
-        })
-    end
-    return result
+    self.itemTable.layout.userData.updateData(self.ctx.getAllIngredients())
 end
 
 function IngredientWindow:updateSize()

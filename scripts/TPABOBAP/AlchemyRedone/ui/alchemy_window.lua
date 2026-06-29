@@ -21,7 +21,6 @@ local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local Window = require("scripts.UIToolkit.window")
 
-local MWUI = I.MWUI.templates
 local v2 = util.vector2
 local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'
 
@@ -351,37 +350,7 @@ function AlchemyWindow:makeIngredientTip(n)
 end
 
 function AlchemyWindow:onIngredientClicked(n)
-    if self.data and self.data.selected then
-        self.data.selected[n] = nil
-        self:update()
-        self.ctx.updateIngredients(true)
-    end
-end
-
----@param info {id: string, count:integer}
-function AlchemyWindow:onSelectIngredient(info)
-    if not self.data.selected then self.data.selected = {} end
-
-    --Try to remove already selected ingredient
-    for i = 1, 4 do
-        local recordId = self.data.selected[i]
-        if recordId and recordId == info.id then
-            self.data.selected[i] = nil
-            self:update(true)
-            return true
-        end
-    end
-
-    --Try to add newly selected ingredient
-    for i = 1, 4 do
-        if not self.data.selected[i] then
-            self.data.selected[i] = info.id
-            self:update(true)
-            return true
-        end
-    end
-
-    return false
+    self.ctx.clearIngredient(n)
 end
 
 ---@return string[]

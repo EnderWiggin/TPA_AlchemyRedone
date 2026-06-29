@@ -9,6 +9,7 @@ local auxUi = require('openmw_aux.ui')
 local T = require("openmw.types")
 local I = require('openmw.interfaces')
 local H = require('scripts.UIToolkit.helpers')
+local C = require('scripts.UIToolkit.constants')
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
 local IngredientWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.ingredient_window')
 
@@ -40,7 +41,8 @@ local m = {
 ---@class AlchemyContext: WindowContext
 ---@field data AlchemyData
 ---@field selectIngredient fun(info: IngredientInfo)
----@field updateIngredients fun(deep: boolean)
+---@field clearIngredient fun(n:integer)
+---@field getAllIngredients fun():table[]
 
 ---@type AlchemyContext
 local ctx = {
@@ -48,7 +50,8 @@ local ctx = {
     focusedScrollable = nil,
     data = defaultData(),
     selectIngredient = function(info) m.selectIngredient(info) end,
-    updateIngredients = function(deep) m.updateWnd(m.wndIngredient, deep) end,
+    clearIngredient = function(n) m.clearIngredient(n) end,
+    getAllIngredients = function() return m.getAllIngredients() end,
 }
 
 m.onOpenAlchemy = function(data)
@@ -94,8 +97,40 @@ m.closeWindow = function()
 end
 
 m.selectIngredient = function(info)
-    if m.wndAlchemy then
-        if m.wndAlchemy:onSelectIngredient(info) then
+    if not ctx.data.selected then ctx.data.selected = {} end
+    local changed = false
+    --Try to remove already selected ingredient
+    for i = 1, 4 do
+        local recordId = ctx.data.selected[i]
+        if recordId and recordId == info.id then
+            ctx.data.selected[i] = nil
+            changed = true
+            break
+        end
+    end
+
+    --Try to add newly selected ingredient
+    if not changed then
+        for i = 1, 4 do
+            if not ctx.data.selected[i] then
+                ctx.data.selected[i] = info.id
+                changed = true
+                break
+            end
+        end
+    end
+
+    if changed then
+        m.updateWnd(m.wndAlchemy, true)
+        m.updateWnd(m.wndIngredient, true)
+    end
+end
+
+m.clearIngredient = function(n)
+    if ctx.data and ctx.data.selected then
+        if ctx.data.selected[n] then
+            ctx.data.selected[n] = nil
+            m.updateWnd(m.wndAlchemy, true)
             m.updateWnd(m.wndIngredient, true)
         end
     end
@@ -125,6 +160,33 @@ m.updateIngredients = function()
             end
         end
     end
+end
+
+m.getAllIngredients = function()
+    if not ctx.data.sources then
+        return {}
+    end
+
+    local result = {}
+    for id, count in pairs(ctx.data.ingredients) do
+        local record = T.Ingredient.record(id)
+        local name = record and record.name .. ' (' .. H.addSeparators(count) .. ')' or C.Strings.NONE
+        table.insert(result, {
+            id = id,
+            count = count,
+            name = name,
+            activeFn = function()
+                if ctx.data and ctx.data.selected then
+                    for i = 1, 4 do
+                        local recordId = ctx.data.selected[i]
+                        if recordId == id then return true end
+                    end
+                end
+                return false
+            end,
+        })
+    end
+    return result
 end
 
 m.updateWnd = function(wnd, deep)
