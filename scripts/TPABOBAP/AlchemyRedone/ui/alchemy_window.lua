@@ -79,6 +79,7 @@ function AlchemyWindow:init(ctx, mode)
 
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
+    self.lastDefaultPotionName = self:getDefaultPotionName()
 
     self.btnCreate = T.Special.button(C.Strings.CREATE, {
         name = 'btnCreate',
@@ -267,7 +268,11 @@ end
 function AlchemyWindow:updateMatchingEffects()
     local ingredients = self:getSelectedIngredientList()
     self.data.matching, self.data.matchingKnowledge = A.getMatchingEffects(ingredients, player)
-    self.naming.setText(self:getDefaultPotionName())
+    local defaultPotionName = self:getDefaultPotionName()
+    if self.lastDefaultPotionName ~= defaultPotionName then
+        self.naming.setText(defaultPotionName)
+        self.lastDefaultPotionName = defaultPotionName
+    end
 end
 
 function AlchemyWindow:createPotion()
@@ -610,7 +615,10 @@ parts.naming = function(defaultText)
                                             textColor = C.Colors.DEFAULT_LIGHT,
                                         },
                                         events = {
-                                            textChanged = async:callback(function(text) name = text end),
+                                            textChanged = async:callback(function(text, layout)
+                                                name = text
+                                                layout.props.text = text
+                                            end),
                                         }
                                     }
                                 }
