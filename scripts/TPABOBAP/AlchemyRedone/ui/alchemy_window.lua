@@ -138,6 +138,8 @@ end
 function AlchemyWindow:updateSize()
     if not self.element then return end
     local inner = self.element.layout.userData.getInnerSize()
+    if self.lastSz and self.lastSz == inner then return end
+    self.lastSz = inner
 
     local content = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content' })
     content.props.size = inner

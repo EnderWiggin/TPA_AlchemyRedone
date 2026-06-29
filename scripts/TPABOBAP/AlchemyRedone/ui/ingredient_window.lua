@@ -68,9 +68,11 @@ function IngredientWindow:updateData()
 end
 
 function IngredientWindow:updateSize()
-    if self.element then
-        self.itemTable.layout.userData.resize(self.element.layout.userData.getInnerSize())
-    end
+    if not self.element then return end
+    local inner = self.element.layout.userData.getInnerSize()
+    if self.lastSz and self.lastSz == inner then return end
+    self.lastSz = inner
+    self.itemTable.layout.userData.resize(inner)
 end
 
 function IngredientWindow:onRowUse(row, rowWidget, fromKBMKeybind)
