@@ -42,7 +42,7 @@ local parts = {}
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
 local MIN_SIZE_TWO = v2(730, 405)    --TODO: update with font sizes?
-local MIN_SIZE_SINGLE = v2(400, 675) --TODO: update with font sizes?
+local MIN_SIZE_SINGLE = v2(800, 675) --TODO: update with font sizes?
 local MIN_SIZE = MIN_SIZE_TWO
 
 local BLOCK_WIDTH = 350
@@ -64,6 +64,7 @@ updateSizes()
 
 ---@param ctx AlchemyContext
 function AlchemyWindow:init(ctx, mode)
+    self.mode = mode
     self:setContext(ctx)
     self.data = ctx.data
 
@@ -113,13 +114,15 @@ function AlchemyWindow:init(ctx, mode)
 
     local content
     if mode == 'single' then
-        content = self:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
+        self.itemTable = self.ctx.makeIngredientsTable(self)
+        content = self:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel,
+            self.itemTable)
     else
         content = self:makeTwoPaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
     end
 
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
-        noResize = true,
+        noResize = false,
         draggable = true,
         onDrag = function()
             self:updateSize()
@@ -140,7 +143,15 @@ function AlchemyWindow:updateSize()
     content.props.size = inner
 
     local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel', 'right' })
-    right.props.size = v2(BLOCK_WIDTH, inner.y)
+    if self.mode == 'single' then
+        right.props.size = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
+    else
+        right.props.size = v2(BLOCK_WIDTH, inner.y)
+    end
+
+    if self.itemTable then
+        self.itemTable.layout.userData.resize(right.props.size - v2(35, 90))
+    end
 end
 
 function AlchemyWindow:update(deep)
@@ -152,12 +163,19 @@ function AlchemyWindow:update(deep)
     self.selected.update()
     self.resultingEffects.update()
 
+    if deep and self.itemTable then
+        self.itemTable.layout.userData.redrawColumns()
+    end
+
     Window.update(self, deep)
 end
 
 function AlchemyWindow:updateData()
     if not self.element then return end
     parts.setInteractiveState(self.btnCreate, false, false)
+    if self.itemTable then
+        self.itemTable.layout.userData.updateData(self.ctx.getAllIngredients())
+    end
     self:update(true)
 end
 
@@ -409,8 +427,10 @@ end
 ---@param resultingEffects openmw.ui.Element|openmw.ui.Layout
 ---@param counting openmw.ui.Element|openmw.ui.Layout
 ---@param btnCancel openmw.ui.Element|openmw.ui.Layout
+---@param ingredientsTable openmw.ui.Element|openmw.ui.Layout
 ---@return openmw.ui.Content
-function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
+function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel,
+                                             ingredientsTable)
     return ui.content {
         {
             name = 'content',
@@ -425,8 +445,6 @@ function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingE
                         position = v2(10, 10)
                     },
                     content = ui.content {
-                        naming,
-                        T.Base.intervalV(15),
                         {
                             name = 'panel',
                             type = ui.TYPE.Flex,
@@ -441,6 +459,8 @@ function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingE
                                         horizontal = false,
                                     },
                                     content = ui.content {
+                                        naming,
+                                        T.Base.intervalV(15),
                                         tools,
                                         T.Base.intervalV(15),
                                         selected,
@@ -448,14 +468,38 @@ function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingE
                                         resultingEffects,
                                     },
                                 },
+                                T.Base.intervalH(15),
                                 {
                                     name = 'right',
                                     type = ui.TYPE.Flex,
                                     props = {
                                         horizontal = false,
                                     },
+                                    external = {
+                                        grow = 1,
+                                    },
                                     content = ui.content {
-
+                                        {
+                                            template = T.Base.textNormal,
+                                            props = {
+                                                text = C.Strings.INGREDIENTS
+                                            },
+                                        },
+                                        T.Base.intervalV(3),
+                                        {
+                                            name = 'ingredients-box',
+                                            template = T.Base.boxSolid,
+                                            props = {},
+                                            content = ui.content {
+                                                {
+                                                    name = 'padding',
+                                                    template = T.Base.padding(5),
+                                                    content = ui.content {
+                                                        ingredientsTable,
+                                                    }
+                                                },
+                                            }
+                                        },
                                     },
                                 },
                             }
@@ -467,7 +511,9 @@ function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingE
                     props = {
                         anchor = v2(0, 1),
                         relativePosition = v2(0, 1),
-                        relativeSize = v2(1, 1),
+                        relativeSize = v2(1, 0),
+                        position = v2(10, -10),
+                        size = v2(-20, 50),
                     },
                     content = ui.content {
                         {
@@ -476,7 +522,6 @@ function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingE
                                 horizontal = true,
                                 anchor = v2(0, 1),
                                 relativePosition = v2(0, 1),
-                                position = v2(10, -10),
                             },
                             content = ui.content {
                                 counting,
@@ -489,12 +534,12 @@ function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingE
                             props = {
                                 anchor = v2(1, 1),
                                 relativePosition = v2(1, 1),
-                                position = v2(-10, -10),
+                                --position = v2(-10, 0),
                             },
                             content = ui.content {
                                 btnCancel,
                             },
-                        }
+                        },
                     },
                 },
             },
