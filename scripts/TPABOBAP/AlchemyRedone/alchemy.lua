@@ -34,21 +34,56 @@ Alchemy.containsEffect = function(list, effect)
     return false
 end
 
----@param ingredientIds string[] ordered list of ingredient ids
+---@param recordOrId string|openmw.types.IngredientRecord|nil
+---@return openmw.types.IngredientRecord?
+Alchemy.toIngredientRecord = function(recordOrId)
+    if type(recordOrId) == "string" then
+        return types.Ingredient.record(recordOrId)
+    end
+    return recordOrId
+end
+
+---@param recordsOrIds string[]|openmw.types.IngredientRecord[]
+---@return openmw.types.IngredientRecord[]
+Alchemy.toIngredientRecords = function(recordsOrIds)
+    local result = {}
+    for i = 1, #recordsOrIds do
+        local record = Alchemy.toIngredientRecord(recordsOrIds[i])
+        if record then table.insert(result, record) end
+    end
+    return result
+end
+
+---@param recordsOrIds string[]|openmw.types.IngredientRecord[] list of ingredient ids
+---@return number weight
+Alchemy.getPotionWeight = function(recordsOrIds)
+    if not recordsOrIds or #recordsOrIds <= 0 then return 0 end
+    local weight = 0
+    for i = 1, #recordsOrIds do
+        local record = Alchemy.toIngredientRecord(recordsOrIds[i])
+        if record then
+            weight = weight + record.weight
+        end
+    end
+
+    return weight / #recordsOrIds
+end
+
+---@param recordsOrIds string[]|openmw.types.IngredientRecord[] ordered list of ingredient ids
 ---@param actor openmw.LObject|openmw.GObject|nil actor to test the effect knowledge for - omit to assume full knowledge
 ---@return openmw.core.MagicEffectWithParams[] effects, table<integer, boolean> knowledge ordered list of matching effect ids and map of which effects are known
-Alchemy.getMatchingEffects = function(ingredientIds, actor)
+Alchemy.getMatchingEffects = function(recordsOrIds, actor)
     ---@type openmw.core.MagicEffectWithParams[]
     local effects = {}
     local knowledge = {}
 
-    for i = 1, #ingredientIds do
-        local ingredient = types.Ingredient.record(ingredientIds[i])
+    for i = 1, #recordsOrIds do
+        local ingredient = Alchemy.toIngredientRecord(recordsOrIds[i])
         local known = Alchemy.getKnownEffectFlagsForIngredient(ingredient, actor)
 
         if ingredient then
-            for j = i + 1, #ingredientIds do
-                local ingredient2 = types.Ingredient.record(ingredientIds[j])
+            for j = i + 1, #recordsOrIds do
+                local ingredient2 = Alchemy.toIngredientRecord(recordsOrIds[j])
                 local known2 = Alchemy.getKnownEffectFlagsForIngredient(ingredient2, actor)
                 if ingredient2 then
                     for k = 1, #ingredient.effects do
@@ -149,6 +184,11 @@ local function trim(str)
     return str:match("^%s*(.-)%s*$")
 end
 
+local function roundToPlaces(num, places)
+    local mult = 10 ^ (places or 0)
+    return math.floor(num * mult + 0.5) / mult
+end
+
 local parts = { "bargain", "cheap", "standard", "fresh", "quality", "exclusive" }
 
 ---Returns icon and model based on passed number, or randomly if number is not passed
@@ -197,14 +237,14 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
     if not mortar then return stats, Alchemy.PotionErrors.NO_MORTAR end
     if not name or #name <= 0 then return stats, Alchemy.PotionErrors.NO_NAME end
 
-    local matching = Alchemy.getMatchingEffects(ingredientIds)
+    local ingredients = Alchemy.toIngredientRecords(ingredientIds)
+    local matching = Alchemy.getMatchingEffects(ingredients)
     if #matching <= 0 then return stats, Alchemy.PotionErrors.FAIL end
-
     factor = factor * mortar.quality
     factor = factor * core.getGMST('fPotionStrengthMult')
 
-    -- seems to be to cost of the potion
     stats.value = util.round(factor * core.getGMST('iAlchemyMod'))
+    stats.weight = roundToPlaces(Alchemy.getPotionWeight(ingredients), 4)
 
     local fPotionT1MagMul = core.getGMST('fPotionT1MagMult')
     if fPotionT1MagMul <= 0 then error('invalid gmst: fPotionT1MagMul') end
@@ -309,7 +349,7 @@ local function potionRecordsEqual(a, b, opts)
     end
 
     if a.name ~= b.name then return false end
-    if a.weight ~= b.weight then return false end
+    if math.floor(10000 * a.weight) ~= math.floor(10000 * b.weight) then return false end
     if a.value ~= b.value then return false end
     if a.mwscript ~= b.mwscript then return false end
     if not ignoreIcon and a.icon ~= b.icon then return false end
@@ -355,9 +395,7 @@ end
 ---@param actor openmw.LObject|openmw.GObject|nil
 ---@return table<integer, boolean>
 Alchemy.getKnownEffectFlagsForIngredient = function(ingredient, actor)
-    if type(ingredient) == "string" then
-        ingredient = types.Ingredient.record(ingredient)
-    end
+    ingredient = Alchemy.toIngredientRecord(ingredient)
     if not ingredient then return {} end
     local known = getKnownAlchemyEffectCount(actor, false)
     local result = {}
