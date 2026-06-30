@@ -2,7 +2,7 @@
 local world = require("openmw.world")
 local T = require("openmw.types")
 local I = require("openmw.interfaces")
-local H = require("scripts.UIToolkit.helpers")
+local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 
 
 

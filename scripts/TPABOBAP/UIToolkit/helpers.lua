@@ -10,7 +10,7 @@ local _, debug = pcall(require, 'openmw.debug')
 local _, ui = pcall(require, 'openmw.ui')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
-local C = require('scripts.UIToolkit.constants')
+local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local l10n = core.l10n('UIToolkit')
 
 --TODO: add options for these flags

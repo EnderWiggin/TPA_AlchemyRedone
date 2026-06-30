@@ -7,12 +7,12 @@ local input = require('openmw.input')
 local async = require('openmw.async')
 
 local v2 = util.vector2
-local H = require("scripts.UIToolkit.helpers")
+local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 local T = {
-    Base = require("scripts.UIToolkit.templates.base"),
-    Special = require("scripts.UIToolkit.templates.special"),
+    Base = require("scripts.TPABOBAP.UIToolkit.templates.base"),
+    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
 }
-local C = require("scripts.UIToolkit.constants")
+local C = require("scripts.TPABOBAP.UIToolkit.constants")
 
 ---@alias ColumnRenderer fun(item: IngredientInfo, w: number, h:number):openmw.ui.Layout
 

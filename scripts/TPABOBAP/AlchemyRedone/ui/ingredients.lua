@@ -7,11 +7,11 @@ local player = require('openmw.self')
 
 local v2 = util.vector2
 local T = {
-    Base    = require("scripts.UIToolkit.templates.base"),
-    Special = require("scripts.UIToolkit.templates.special"),
+    Base    = require("scripts.TPABOBAP.UIToolkit.templates.base"),
+    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
 }
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
-local H = require("scripts.UIToolkit.helpers")
+local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 
 local IngredientTable = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 

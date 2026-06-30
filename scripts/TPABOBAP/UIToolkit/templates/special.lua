@@ -10,9 +10,9 @@ local async = require('openmw.async')
 local ambient = require('openmw.ambient')
 
 local v2 = util.vector2
-local BASE = require('scripts.UIToolkit.templates.base')
-local helpers = require('scripts.UIToolkit.helpers')
-local constants = require('scripts.UIToolkit.constants')
+local BASE = require('scripts.TPABOBAP.UIToolkit.templates.base')
+local helpers = require('scripts.TPABOBAP.UIToolkit.helpers')
+local constants = require('scripts.TPABOBAP.UIToolkit.constants')
 
 local Templates = {}
 

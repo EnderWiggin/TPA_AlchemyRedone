@@ -10,8 +10,8 @@ local vfs = require('openmw.vfs')
 
 local omwConstants = require('scripts.omw.mwui.constants')
 
-local helpers = require('scripts.UIToolkit.helpers')
-local constants = require('scripts.UIToolkit.constants')
+local helpers = require('scripts.TPABOBAP.UIToolkit.helpers')
+local constants = require('scripts.TPABOBAP.UIToolkit.constants')
 
 --local configPlayer = require('scripts.InventoryExtender.config.player')
 

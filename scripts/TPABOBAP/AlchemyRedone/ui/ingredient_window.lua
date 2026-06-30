@@ -3,13 +3,13 @@
 local ui = require("openmw.ui")
 
 local T = {
-    Base        = require("scripts.UIToolkit.templates.base"),
-    Special     = require("scripts.UIToolkit.templates.special"),
+    Base        = require("scripts.TPABOBAP.UIToolkit.templates.base"),
+    Special     = require("scripts.TPABOBAP.UIToolkit.templates.special"),
     Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients"),
 }
-local C = require("scripts.UIToolkit.constants")
+local C = require("scripts.TPABOBAP.UIToolkit.constants")
 
-local Window = require("scripts.UIToolkit.window")
+local Window = require("scripts.TPABOBAP.UIToolkit.window")
 
 ---@class IngredientWindow: Window
 ---@field protected ctx AlchemyContext

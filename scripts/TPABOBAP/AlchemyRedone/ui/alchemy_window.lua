@@ -11,16 +11,16 @@ local auxUi = require('openmw_aux.ui')
 
 local I = require("openmw.interfaces")
 local T = {
-    Base        = require("scripts.UIToolkit.templates.base"),
-    Special     = require("scripts.UIToolkit.templates.special"),
+    Base        = require("scripts.TPABOBAP.UIToolkit.templates.base"),
+    Special     = require("scripts.TPABOBAP.UIToolkit.templates.special"),
     Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients"),
 }
-local S = require("scripts.UIToolkit.templates.special")
-local C = require("scripts.UIToolkit.constants")
-local H = require("scripts.UIToolkit.helpers")
+local S = require("scripts.TPABOBAP.UIToolkit.templates.special")
+local C = require("scripts.TPABOBAP.UIToolkit.constants")
+local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
-local Window = require("scripts.UIToolkit.window")
+local Window = require("scripts.TPABOBAP.UIToolkit.window")
 
 local v2 = util.vector2
 local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'
