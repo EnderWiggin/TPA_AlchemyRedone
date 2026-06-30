@@ -113,13 +113,13 @@ m.makeTable = function(wnd)
     })
 end
 
-m.getSearchText = function(recordOrId)
+m.getSearchText = function(recordOrId, actor)
     local record = A.toIngredientRecord(recordOrId)
     if not record then return '' end
 
     local searchParts = { record.name }
 
-    for _, effectData in ipairs(H.getTooltipIngredientEffectEntries(record)) do
+    for i, effectData in ipairs(H.getTooltipIngredientEffectEntries(record, actor)) do
         if effectData.visible and effectData.text and effectData.text ~= '' then
             table.insert(searchParts, effectData.text)
         end

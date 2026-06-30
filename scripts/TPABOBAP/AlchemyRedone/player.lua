@@ -183,7 +183,7 @@ m.getAllIngredients = function()
             id = id,
             count = count,
             name = name,
-            searchText = Ingredients.getSearchText(record),
+            searchText = Ingredients.getSearchText(record, player),
             activeFn = function()
                 if ctx.data and ctx.data.selected then
                     for i = 1, 4 do
