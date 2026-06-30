@@ -287,6 +287,11 @@ function AlchemyWindow:updateMatchingEffects()
     end
 end
 
+--TODO: find ways to improve this
+local function handleModError(err)
+    print('ERROR in potion modifier:\n\t' .. tostring(err))
+end
+
 function AlchemyWindow:createPotion()
     local name = self.naming.getText()
     local ingredients = self:getSelectedIngredientList()
@@ -305,44 +310,56 @@ function AlchemyWindow:createPotion()
 
         if brewed <= 0 then
             errorCode = A.PotionErrors.FAIL
-        else
-            local msg = core.getGMST(A.PotionErrors.OK)
-            if brewed > 1 then
-                msg = msg .. ' ' .. name .. ' (' .. H.addSeparators(brewed) .. ')'
-            end
-            ui.showMessage(msg)
-            ambient.playSound('potion success', { scale = false })
-            self:deductIngredients(ingredients, count)
-            I.SkillProgression.skillUsed('alchemy', {
-                useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion, scale = brewed })
         end
     end
 
-    if errorCode == A.PotionErrors.FAIL then
+    if errorCode == A.PotionErrors.OK then --Brewing succeeded
+        local msg = core.getGMST(A.PotionErrors.OK)
+        if brewed > 1 then
+            msg = msg .. ' ' .. name .. ' (' .. H.addSeparators(brewed) .. ')'
+        end
+        ui.showMessage(msg)
+        ambient.playSound('potion success', { scale = false })
+        self:deductIngredients(ingredients, count)
+
+        for i = 1, #self.ctx.potionModifiers do
+            local mod = self.ctx.potionModifiers[i].mod
+            local ok, result = xpcall(mod, handleModError, draft, ingredients)
+            if ok then
+                draft = result or draft
+            end
+        end
+
+        I.SkillProgression.skillUsed('alchemy', {
+            useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
+            scale = brewed,
+            data = {
+                batch = count,
+                brewed = brewed,
+                draft = H.deepCopy(draft),
+                ingredients = ingredients,
+            }
+        })
+
+        for i = 1, #effects do
+            --this field can't be sent with event and it is not required to create new record
+            effects[i].effect = nil
+        end
+
+        local potion = A.findPotion(draft, { ignore = { icon = true, model = true }, generated = true })
+        if potion then
+            core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = brewed })
+        else
+            core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion',
+                { draft = draft, actor = player, count = brewed })
+        end
+    elseif errorCode == A.PotionErrors.FAIL then -- Brewing was attempted, but failed
         ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
         ambient.playSound('potion fail', { scale = false })
         self:deductIngredients(ingredients, count)
         --TODO: optionally grant skill use failure XP
-        return
-    elseif errorCode ~= A.PotionErrors.OK then
+    else -- Something prevented brewing, show error
         ui.showMessage(core.getGMST(errorCode))
-        return
-    end
-
-    for i = 1, #effects do
-        --this field can't be sent with event and it is not required to create new record
-        effects[i].effect = nil
-    end
-
-    for i = 1, #self.ctx.potionModifiers do
-        draft = self.ctx.potionModifiers[i].mod(draft, ingredients) or draft
-    end
-
-    local potion = A.findPotion(draft, { ignore = { icon = true, model = true }, generated = true })
-    if potion then
-        core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = brewed })
-    else
-        core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', { draft = draft, actor = player, count = brewed })
     end
 end
 
