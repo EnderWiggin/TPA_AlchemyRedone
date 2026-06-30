@@ -77,14 +77,15 @@ Alchemy.getMatchingEffects = function(recordsOrIds, actor)
     local effects = {}
     local knowledge = {}
 
+    local knownCount = Alchemy.getKnownAlchemyEffectCount(actor, true)
     for i = 1, #recordsOrIds do
         local ingredient = Alchemy.toIngredientRecord(recordsOrIds[i])
-        local known = Alchemy.getKnownEffectFlagsForIngredient(ingredient, actor)
+        --local known = Alchemy.getKnownEffectFlagsForIngredient(ingredient, actor)
 
         if ingredient then
             for j = i + 1, #recordsOrIds do
                 local ingredient2 = Alchemy.toIngredientRecord(recordsOrIds[j])
-                local known2 = Alchemy.getKnownEffectFlagsForIngredient(ingredient2, actor)
+                --local known2 = Alchemy.getKnownEffectFlagsForIngredient(ingredient2, actor)
                 if ingredient2 then
                     for k = 1, #ingredient.effects do
                         local effect = ingredient.effects[k]
@@ -92,7 +93,8 @@ Alchemy.getMatchingEffects = function(recordsOrIds, actor)
                             and Alchemy.containsEffect(ingredient2.effects, effect)
                         then
                             table.insert(effects, effect)
-                            table.insert(knowledge, known[i] or known2[j])
+                            table.insert(knowledge, knownCount >= #effects) -- OpenMW shows known matching effect as if this was ready potion
+                            -- table.insert(knowledge, known[i] and known2[j]) --TODO:add option for alternate matching knowledge?
                         end
                     end
                 end
@@ -416,7 +418,7 @@ end
 
 ---@param actor openmw.LObject|openmw.GObject|nil
 ---@return integer
-local function getKnownAlchemyEffectCount(actor, isPotion)
+Alchemy.getKnownAlchemyEffectCount = function(actor, isPotion)
     if not actor or not actor.type or not actor.type.stats or not actor.type.stats.skills or not actor.type.stats.skills.alchemy then
         return 99 --consider knowing all effects when there's no actor
     end
@@ -437,7 +439,7 @@ end
 Alchemy.getKnownEffectFlagsForIngredient = function(ingredient, actor)
     ingredient = Alchemy.toIngredientRecord(ingredient)
     if not ingredient then return {} end
-    local known = getKnownAlchemyEffectCount(actor, false)
+    local known = Alchemy.getKnownAlchemyEffectCount(actor, false)
     local result = {}
     for i = 1, #ingredient.effects do
         --TODO: implement custom logic for knowing effects
