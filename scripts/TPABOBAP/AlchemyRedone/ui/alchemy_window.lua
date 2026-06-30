@@ -43,7 +43,7 @@ local parts = {}
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
 local MIN_SIZE_TWO = v2(730, 405)    --TODO: update with font sizes?
-local MIN_SIZE_SINGLE = v2(800, 675) --TODO: update with font sizes?
+local MIN_SIZE_SINGLE = v2(800, 695) --TODO: update with font sizes?
 local MIN_SIZE = MIN_SIZE_TWO
 
 local BLOCK_WIDTH = 350
@@ -155,7 +155,7 @@ function AlchemyWindow:updateSize()
     end
 
     if self.itemTable then
-        self.itemTable.layout.userData.resize(right.props.size - v2(35, 120))
+        self.itemTable.layout.userData.resize(right.props.size - v2(35, 140))
     end
 end
 
