@@ -269,6 +269,7 @@ end
 
 ---@type openmw.interfaces.TPA_AlchemyRedone
 local Interface = {
+    apiVersion = 1,
     registerPotionModifier = m.registerPotionModifier,
     unregisterPotionModifier = m.unregisterPotionModifier,
 }
