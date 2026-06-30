@@ -1247,6 +1247,7 @@ if isPlayer then
 
     ---@param itemRecord openmw.types.IngredientRecord
     ---@param actor openmw.GObject|openmw.LObject|nil
+    ---@return {effect:openmw.core.MagicEffectWithParams, visible: boolean, text: string?}[]
     Helpers.getTooltipIngredientEffectEntries = function(itemRecord, actor)
         local effectsToShow = {}
         local known = A.getKnownEffectFlagsForIngredient(itemRecord, actor)

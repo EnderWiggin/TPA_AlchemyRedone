@@ -11,6 +11,7 @@ local T = {
     Special = require("scripts.UIToolkit.templates.special"),
 }
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
+local H = require("scripts.UIToolkit.helpers")
 
 local IngredientTable = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 
@@ -110,6 +111,21 @@ m.makeTable = function(wnd)
         tooltipFn = function(row) return T.Special.ingredientTooltip(row.id, player) end,
         parentWindow = wnd,
     })
+end
+
+m.getSearchText = function(recordOrId)
+    local record = A.toIngredientRecord(recordOrId)
+    if not record then return '' end
+
+    local searchParts = { record.name }
+
+    for _, effectData in ipairs(H.getTooltipIngredientEffectEntries(record)) do
+        if effectData.visible and effectData.text and effectData.text ~= '' then
+            table.insert(searchParts, effectData.text)
+        end
+    end
+
+    return table.concat(searchParts, '\n'):lower()
 end
 
 

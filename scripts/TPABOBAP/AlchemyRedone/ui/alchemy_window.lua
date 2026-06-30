@@ -117,8 +117,11 @@ function AlchemyWindow:init(ctx, mode)
     local content
     if mode == 'single' then
         self.itemTable = T.Ingredients.makeTable(self)
+        self.itemTable.layout.userData.setFilter('default', function(row) return self:filterIngredient(row) end)
+        local filter
+        filter, self.filter = parts.filterInput(function(value) self:onFilterChanged(value) end)
         content = self:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel,
-            self.itemTable)
+            self.itemTable, filter)
     else
         content = self:makeTwoPaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
     end
@@ -154,7 +157,7 @@ function AlchemyWindow:updateSize()
     end
 
     if self.itemTable then
-        self.itemTable.layout.userData.resize(right.props.size - v2(35, 90))
+        self.itemTable.layout.userData.resize(right.props.size - v2(35, 120))
     end
 end
 
@@ -343,6 +346,16 @@ function AlchemyWindow:deductIngredients(ingredients, count)
     })
 end
 
+function AlchemyWindow:onFilterChanged(_)
+    self.itemTable.layout.userData.refresh()
+end
+
+function AlchemyWindow:filterIngredient(row)
+    local filter = self.filter.getText():lower()
+    local haystack = row.searchText or T.Ingredients.getItemSearchText(row.id)
+    return haystack:find(filter, 1, true) ~= nil
+end
+
 function AlchemyWindow:destroy()
     self.data = nil
     Window.destroy(self)
@@ -436,9 +449,10 @@ end
 ---@param counting openmw.ui.Element|openmw.ui.Layout
 ---@param btnCancel openmw.ui.Element|openmw.ui.Layout
 ---@param ingredientsTable openmw.ui.Element|openmw.ui.Layout
+---@param filter openmw.ui.Element|openmw.ui.Layout
 ---@return openmw.ui.Content
 function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel,
-                                             ingredientsTable)
+                                             ingredientsTable, filter)
     return ui.content {
         {
             name = 'content',
@@ -508,6 +522,8 @@ function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingE
                                                 },
                                             }
                                         },
+                                        T.Base.intervalV(5),
+                                        filter,
                                     },
                                 },
                             }
@@ -1211,6 +1227,69 @@ parts.countBlock = function()
             T.Base.intervalH(3),
             btnPlus,
         }
+    }
+
+    return element, wdg
+end
+
+---@param onValueUpdated fun(value:string)
+parts.filterInput = function(onValueUpdated)
+    local path = { 'filterBar', 'padding', 'textEdit' }
+    local filterValue = ''
+    local element
+    local wdg = {
+        setText = function(text)
+            local txt = H.findLayoutByPath(element, path)
+            txt.props.text = text
+            filterValue = text
+            element:update()
+        end,
+        getText = function() return filterValue end,
+    }
+
+    local btn = T.Base.imageButton(REVERT_PATH, v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE), function()
+        wdg.setText('')
+    end, 'btn-revert')
+
+    element = ui.create {
+        name = 'filter',
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = true,
+            arrange = ui.ALIGNMENT.Center,
+        },
+        content = ui.content {
+            {
+                name = 'filterBar',
+                template = I.MWUI.templates.box,
+                content = ui.content {
+                    {
+                        name = 'padding',
+                        template = I.MWUI.templates.padding,
+                        content = ui.content {
+                            {
+                                name = 'textEdit',
+                                template = T.Base.textEditLine,
+                                props = {
+                                    size = v2(BLOCK_WIDTH - 2, T.Base.TEXT_SIZE),
+                                    text = filterValue,
+                                    textColor = C.Colors.DEFAULT_LIGHT,
+                                },
+                                events = {
+                                    textChanged = async:callback(function(text, layout)
+                                        filterValue = text
+                                        layout.props.text = text
+                                        onValueUpdated(text)
+                                    end),
+                                }
+                            }
+                        }
+                    }
+                },
+            },
+            T.Base.intervalH(5),
+            btn,
+        },
     }
 
     return element, wdg

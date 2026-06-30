@@ -13,6 +13,7 @@ local C = require('scripts.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
 local IngredientWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.ingredient_window')
+local Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
 
 ---@return AlchemyData
 local function defaultData()
@@ -176,6 +177,7 @@ m.getAllIngredients = function()
             id = id,
             count = count,
             name = name,
+            searchText = Ingredients.getSearchText(record),
             activeFn = function()
                 if ctx.data and ctx.data.selected then
                     for i = 1, 4 do
