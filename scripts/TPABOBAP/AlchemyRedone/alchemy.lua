@@ -256,7 +256,7 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
     local calcinator = apparatus.Calcinator and types.Apparatus.record(apparatus.Calcinator)
     local retort = apparatus.Retort and types.Apparatus.record(apparatus.Retort)
 
-    local idx = 0
+    local idx = 1
     for i = 1, #matching do
         local effect = matching[i]
         ---@type openmw.core.MagicEffect?
