@@ -129,9 +129,7 @@ function AlchemyWindow:init(ctx, mode)
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
         noResize = false,
         draggable = true,
-        onDrag = function()
-            self:updateSize()
-        end
+        onDrag = function() self:updateSize() end,
     })
     self.element.layout.userData.minWidth = MIN_SIZE.x
     self.element.layout.userData.minHeight = MIN_SIZE.y
@@ -166,12 +164,14 @@ function AlchemyWindow:update(deep)
     updateSizes()
     self:updateMatchingEffects()
 
-    self.tools.update()
-    self.selected.update()
-    self.resultingEffects.update()
+    if deep then
+        self.tools.update()
+        self.selected.update()
+        self.resultingEffects.update()
 
-    if deep and self.itemTable then
-        self.itemTable.layout.userData.redrawColumns()
+        if self.itemTable then
+            self.itemTable.layout.userData.redrawColumns()
+        end
     end
 
     Window.update(self, deep)
@@ -242,6 +242,15 @@ function AlchemyWindow:getSelectedIngredientList()
         end
     end
     return ids
+end
+
+function AlchemyWindow:onIngredientSelectionChanged()
+    self:updateMatchingEffects()
+    self.selected.update()
+    self.resultingEffects.update()
+    if self.itemTable then
+        self.itemTable.layout.userData.refresh()
+    end
 end
 
 ---returns the amount of selected ingredient that's smallest - this is our limit for brewing batch size
@@ -858,7 +867,7 @@ parts.selected = function(self, getId, onClick, tooltipFn)
 
             for i = 1, #Slots do updateSelected(i) end
 
-            element:update()
+            auxUi.deepUpdate(element)
         end
     }
 
@@ -1115,6 +1124,8 @@ parts.resultingEffects = function(self)
                 })
             end
             effects.props.size = v2(EFFECTS_WIDTH, T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1))
+
+            auxUi.deepUpdate(element)
         end,
     }
 

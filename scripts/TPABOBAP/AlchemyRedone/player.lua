@@ -123,7 +123,9 @@ m.selectIngredient = function(info)
     end
 
     if changed then
-        m.updateWnd(m.wndAlchemy, true)
+        if m.wndAlchemy then
+            m.wndAlchemy:onIngredientSelectionChanged()
+        end
         m.updateWnd(m.wndIngredient, true)
     end
 end
@@ -132,7 +134,9 @@ m.clearIngredient = function(n)
     if ctx.data and ctx.data.selected then
         if ctx.data.selected[n] then
             ctx.data.selected[n] = nil
-            m.updateWnd(m.wndAlchemy, true)
+            if m.wndAlchemy then
+                m.wndAlchemy:onIngredientSelectionChanged()
+            end
             m.updateWnd(m.wndIngredient, true)
         end
     end
