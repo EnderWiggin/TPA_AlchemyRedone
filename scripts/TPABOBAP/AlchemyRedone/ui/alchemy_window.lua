@@ -280,10 +280,14 @@ end
 function AlchemyWindow:updateMatchingEffects()
     local ingredients = self:getSelectedIngredientList()
     self.data.matching, self.data.matchingKnowledge = A.getMatchingEffects(ingredients, player)
+    self.data.nonMatching, self.data.nonMatchingKnowledge = A.getNonMatchingEffects(ingredients, player)
     local defaultPotionName = self:getDefaultPotionName()
     if self.lastDefaultPotionName ~= defaultPotionName then
         self.naming.setText(defaultPotionName)
         self.lastDefaultPotionName = defaultPotionName
+    end
+    if self.itemTable then
+        self.itemTable.layout.userData.redrawColumns()
     end
 end
 

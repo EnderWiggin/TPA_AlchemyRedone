@@ -19,19 +19,19 @@ Alchemy.PotionErrors = {
 
 ---@param list? openmw.core.MagicEffectWithParams[]
 ---@param effect openmw.core.MagicEffectWithParams
----@return boolean
+---@return integer? index where effect is in the list, or nil
 Alchemy.containsEffect = function(list, effect)
-    if not list then return false end
+    if not list then return nil end
     for i = 1, #list do
-        local current = list[i]
-        if current.id == effect.id
-            and current.affectedAttribute == effect.affectedAttribute
-            and current.affectedSkill == current.affectedSkill
-        then
-            return true
-        end
+        if Alchemy.sameEffect(list[i], effect) then return i end
     end
-    return false
+    return nil
+end
+
+Alchemy.sameEffect = function(a, b)
+    return a.id == b.id
+        and a.affectedAttribute == b.affectedAttribute
+        and a.affectedSkill == a.affectedSkill
 end
 
 ---@param recordOrId string|openmw.types.IngredientRecord|nil
@@ -96,6 +96,46 @@ Alchemy.getMatchingEffects = function(recordsOrIds, actor)
                         end
                     end
                 end
+            end
+        end
+    end
+
+    return effects, knowledge
+end
+
+Alchemy.effectKey = function(effect)
+    return effect.id
+        .. ':' .. tostring(effect.affectedAttribute)
+        .. ':' .. tostring(effect.affectedSkill)
+end
+
+---@param recordsOrIds string[]|openmw.types.IngredientRecord[] ordered list of ingredient ids
+---@param actor openmw.LObject|openmw.GObject|nil actor to test the effect knowledge for - omit to assume full knowledge
+---@return openmw.core.MagicEffectWithParams[] effects, table<integer, boolean> knowledge ordered list of matching effect ids and map of which effects are known
+Alchemy.getNonMatchingEffects = function(recordsOrIds, actor)
+    ---@type openmw.core.MagicEffectWithParams[]
+    local effects = {}
+    local knowledge = {}
+    local all = {}
+
+    for i = 1, #recordsOrIds do
+        local ingredient = Alchemy.toIngredientRecord(recordsOrIds[i])
+        local known = Alchemy.getKnownEffectFlagsForIngredient(ingredient, actor)
+        if ingredient then
+            for k = 1, #ingredient.effects do
+                local effect = ingredient.effects[k]
+                local key = Alchemy.effectKey(effect)
+                if all[key] then
+                    local pos = Alchemy.containsEffect(effects, effect)
+                    if pos then
+                        table.remove(effects, pos)
+                        table.remove(knowledge, pos)
+                    end
+                else
+                    table.insert(effects, effect)
+                    table.insert(knowledge, known[k])
+                end
+                all[key] = true
             end
         end
     end

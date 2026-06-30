@@ -41,42 +41,61 @@ local function renderIcon(ingredient, width, height)
     }
 end
 
-local function renderEffects(ingredient, width, height)
-    local record = types.Ingredient.record(ingredient.id)
-    local effects = record and record.effects or {}
-    local sz = T.Base.TEXT_SIZE
-    local content = ui.content {}
-    local known = A.getKnownEffectFlagsForIngredient(record, player)
-    for i = 1, 4 do
-        if #effects >= i then
-            content:add({
-                name = 'effect_' .. i,
-                type = ui.TYPE.Image,
-                props = {
-                    resource = known[i] and T.Base.effectIconTexture(effects[i].id) or T.Special.TEX.UNKNOWN_EFFECT,
-                    anchor = v2(0, 0.5),
-                    relativePosition = v2(0, 0.5),
-                    position = v2((sz + 3) * (i - 1), 0),
-                    size = v2(sz, sz),
-                }
-            })
-        end
-    end
-
-    return {
-        name = 'Effects',
-        props = {
-            size = v2(width, height),
-        },
-        content = content
-    }
-end
-
 m.makeTable = function(wnd)
     ---@type AlchemyContext
     local ctx = wnd.ctx
+    ---@type AlchemyData
+    local data = wnd.data
     local rowHeight = 1.5 * (T.Base.TEXT_SIZE + 2)
     local effectWidth = 4 * (T.Base.TEXT_SIZE + 3)
+
+    local function renderEffects(ingredient, width, height)
+        local record = types.Ingredient.record(ingredient.id)
+        local effects = record and record.effects or {}
+        local sz = T.Base.TEXT_SIZE
+        local content = ui.content {}
+        local known = A.getKnownEffectFlagsForIngredient(record, player)
+        local nonMatching = data.nonMatching
+        local notActive = not ingredient.activeFn()
+        local brightKey = {}
+        local knownKey = {}
+
+        for i = 1, 4 do
+            if #effects >= i then
+                local effect = effects[i]
+                local bright = known[i]
+                if bright and nonMatching and #nonMatching > 0 then
+                    local idx = A.containsEffect(nonMatching, effect)
+                    bright = idx ~= nil and data.nonMatchingKnowledge[idx] and notActive
+                end
+                content:add({
+                    name = 'effect_' .. i,
+                    type = ui.TYPE.Image,
+                    props = {
+                        resource = known[i] and T.Base.effectIconTexture(effect.id) or T.Special.TEX.UNKNOWN_EFFECT,
+                        anchor = v2(0, 0.5),
+                        relativePosition = v2(0, 0.5),
+                        position = v2((sz + 3) * (i - 1), 0),
+                        size = v2(sz, sz),
+                        alpha = bright and 1 or 0.5
+                    }
+                })
+                table.insert(brightKey, tostring(bright))
+                table.insert(knownKey, tostring(known[i]))
+            end
+        end
+        return {
+            name = 'Effects',
+            props = {
+                size = v2(width, height),
+            },
+            content = content,
+            userData = {
+                brightKey = table.concat(brightKey, ':'),
+                knownKey = table.concat(knownKey, ':'),
+            }
+        }
+    end
 
     return IngredientTable.create(ctx, {
         columns = {

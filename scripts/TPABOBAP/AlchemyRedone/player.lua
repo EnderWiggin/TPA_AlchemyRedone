@@ -39,6 +39,8 @@ local m = {
 ---@field selected string[]
 ---@field matching? openmw.core.MagicEffectWithParams[]
 ---@field matchingKnowledge? table<integer, boolean>
+---@field nonMatching? openmw.core.MagicEffectWithParams[]
+---@field nonMatchingKnowledge? table<integer, boolean>
 
 ---@class AlchemyContext: WindowContext
 ---@field potionModifiers { id: string, mod: TPA_AlchemyRedone.PotionModifier }[]
