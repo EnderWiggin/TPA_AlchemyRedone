@@ -246,6 +246,14 @@ local function closeWindow()
     m.closeWindow()
 end
 
+m.useSkill = function(data)
+    I.SkillProgression.skillUsed('alchemy', {
+        useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
+        scale = data.brewed,
+        alchemyRedone = data,
+    })
+end
+
 local function onMouseWheel(v, h)
     if ctx.focusedScrollable and ctx.focusedScrollable.layout then
         local layout = ctx.focusedScrollable.layout
@@ -285,6 +293,7 @@ return {
         onFrame = onFrame,
     },
     eventHandlers = {
-        TPA_AlchemyRedone_Open = m.onOpenAlchemy
+        TPA_AlchemyRedone_Open = m.onOpenAlchemy,
+        TPA_AlchemyRedone_UseSkill = m.useSkill,
     },
 }

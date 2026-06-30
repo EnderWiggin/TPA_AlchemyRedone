@@ -296,7 +296,6 @@ function AlchemyWindow:createPotion()
     local name = self.naming.getText()
     local ingredients = self:getSelectedIngredientList()
     local draft, errorCode = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player)
-    local effects = draft.effects
     local count = math.min(self.counting.getCount(), self:getLeastIngredientAmount(ingredients))
     local brewed = 0
 
@@ -314,14 +313,6 @@ function AlchemyWindow:createPotion()
     end
 
     if errorCode == A.PotionErrors.OK then --Brewing succeeded
-        local msg = core.getGMST(A.PotionErrors.OK)
-        if brewed > 1 then
-            msg = msg .. ' ' .. name .. ' (' .. H.addSeparators(brewed) .. ')'
-        end
-        ui.showMessage(msg)
-        ambient.playSound('potion success', { scale = false })
-        self:deductIngredients(ingredients, count)
-
         for i = 1, #self.ctx.potionModifiers do
             local mod = self.ctx.potionModifiers[i].mod
             local ok, result = xpcall(mod, handleModError, draft, ingredients)
@@ -330,29 +321,30 @@ function AlchemyWindow:createPotion()
             end
         end
 
-        I.SkillProgression.skillUsed('alchemy', {
-            useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
-            scale = brewed,
-            data = {
-                batch = count,
-                brewed = brewed,
-                draft = H.deepCopy(draft),
-                ingredients = ingredients,
-            }
-        })
-
+        local effects = draft.effects
         for i = 1, #effects do
             --this field can't be sent with event and it is not required to create new record
             effects[i].effect = nil
         end
 
-        local potion = A.findPotion(draft, { ignore = { icon = true, model = true }, generated = true })
-        if potion then
-            core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = brewed })
-        else
-            core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion',
-                { draft = draft, actor = player, count = brewed })
+        ---@type CreateAndAddNewPotionData
+        local data = {
+            actor = player,
+            batch = count,
+            brewed = brewed,
+            draft = draft,
+            ingredients = ingredients,
+        }
+        core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', data)
+
+        local msg = core.getGMST(A.PotionErrors.OK)
+        if brewed > 1 then
+            msg = msg .. ' ' .. name .. ' (' .. H.addSeparators(brewed) .. ')'
         end
+        ui.showMessage(msg)
+
+        ambient.playSound('potion success', { scale = false })
+        self:deductIngredients(ingredients, count)
     elseif errorCode == A.PotionErrors.FAIL then -- Brewing was attempted, but failed
         ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
         ambient.playSound('potion fail', { scale = false })

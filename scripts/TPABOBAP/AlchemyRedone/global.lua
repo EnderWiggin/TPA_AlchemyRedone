@@ -3,7 +3,7 @@ local world = require("openmw.world")
 local T = require("openmw.types")
 local I = require("openmw.interfaces")
 local H = require("scripts.TPABOBAP.UIToolkit.helpers")
-
+local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 
 local m = {}
@@ -107,10 +107,29 @@ m.addObject = function(actor, recordId, count)
     world.createObject(recordId, count or 1):moveInto(actor.type.inventory(actor))
 end
 
+---@class CreateAndAddNewPotionData
+---@field actor openmw.self
+---@field batch integer
+---@field brewed integer
+---@field draft openmw.types.PotionRecord
+---@field ingredients string[]
+
+---@param data CreateAndAddNewPotionData
 m.createAndAddNewPotion = function(data)
-    local draft = T.Potion.createRecordDraft(data.draft)
-    local potion = world.createRecord(draft)
-    m.addObject(data.actor, potion.id, data.count)
+    local potion = A.findPotion(data.draft, { ignore = { icon = true, model = true }, generated = true })
+    if not potion then
+        local draft = T.Potion.createRecordDraft(data.draft)
+        potion = world.createRecord(draft)
+    end
+
+    m.addObject(data.actor, potion.id, data.brewed)
+
+    data.actor:sendEvent('TPA_AlchemyRedone_UseSkill', {
+        batch = data.batch,
+        brewed = data.brewed,
+        potion = potion.id,
+        ingredients = data.ingredients,
+    })
 end
 
 m.deductIngredients = function(data)
