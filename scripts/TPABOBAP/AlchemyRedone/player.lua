@@ -41,6 +41,7 @@ local m = {
 ---@field matchingKnowledge? table<integer, boolean>
 
 ---@class AlchemyContext: WindowContext
+---@field potionModifiers { id: string, mod: TPA_AlchemyRedone.PotionModifier }[]
 ---@field data AlchemyData
 ---@field selectIngredient fun(info: IngredientInfo)
 ---@field clearIngredient fun(n:integer)
@@ -48,6 +49,7 @@ local m = {
 
 ---@type AlchemyContext
 local ctx = {
+    potionModifiers = {},
     updateQueue = {},
     focusedScrollable = nil,
     data = defaultData(),
@@ -200,6 +202,34 @@ m.updateWnd = function(wnd, deep)
     if wnd then wnd:update(deep) end
 end
 
+---@param modId string
+---@param mod TPA_AlchemyRedone.PotionModifier
+m.registerPotionModifier = function(modId, mod)
+    for i = 1, #ctx.potionModifiers do
+        local existingModifier = ctx.potionModifiers[i]
+        if existingModifier.id:lower() == modId:lower() then
+            existingModifier.mod = mod
+            return
+        end
+    end
+    table.insert(ctx.potionModifiers, { id = modId, mod = mod })
+end
+
+---@param modId string
+m.unregisterPotionModifier = function(modId)
+    local k = nil
+    for i = 1, #ctx.potionModifiers do
+        local existingModifier = ctx.potionModifiers[i]
+        if existingModifier.id:lower() == modId:lower() then
+            k = i
+            break
+        end
+    end
+    if k then
+        table.remove(ctx.potionModifiers, k)
+    end
+end
+
 ---@param evt openmw.input.KeyboardEvent
 local function onKeyRelease(evt)
     if evt.code == input.KEY.Escape then
@@ -237,9 +267,17 @@ local function onFrame()
     ctx.updateQueue = {}
 end
 
+---@type openmw.interfaces.TPA_AlchemyRedone
+local Interface = {
+    registerPotionModifier = m.registerPotionModifier,
+    unregisterPotionModifier = m.unregisterPotionModifier,
+}
+
 I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
 
 return {
+    interfaceName = 'TPA_AlchemyRedone',
+    interface = Interface,
     engineHandlers = {
         onKeyRelease = onKeyRelease,
         onMouseWheel = onMouseWheel,

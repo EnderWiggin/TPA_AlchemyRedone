@@ -334,6 +334,10 @@ function AlchemyWindow:createPotion()
         effects[i].effect = nil
     end
 
+    for i = 1, #self.ctx.potionModifiers do
+        draft = self.ctx.potionModifiers[i].mod(draft, ingredients) or draft
+    end
+
     local potion = A.findPotion(draft, { ignore = { icon = true, model = true }, generated = true })
     if potion then
         core.sendGlobalEvent('TPA_AlchemyRedone_AddItem', { actor = player, recordId = potion.id, count = brewed })
