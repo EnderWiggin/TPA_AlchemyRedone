@@ -69,6 +69,7 @@ function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
     self.isPoison = false
+    self.showFullEffects = true --TODO: add setting to control this
 
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
@@ -101,8 +102,7 @@ function AlchemyWindow:init(ctx)
             return self:makeIngredientTip(n)
         end)
 
-    local resultingEffects
-    resultingEffects, self.resultingEffects = parts.resultingEffects(self)
+    self.resultingEffects = parts.resultingEffects(self)
 
     local counting
     counting, self.counting = parts.countBlock()
@@ -114,8 +114,7 @@ function AlchemyWindow:init(ctx)
 
     self.potionTypeSelector = parts.typeSelector(self)
 
-    local content = self:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel,
-        self.itemTable, filter, self.potionTypeSelector.element)
+    local content = self:makeContent(naming, tools, selected, counting, btnCancel, filter)
 
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
         noResize = false,
@@ -383,14 +382,11 @@ end
 ---@param naming openmw.ui.Element|openmw.ui.Layout
 ---@param tools openmw.ui.Element|openmw.ui.Layout
 ---@param selected openmw.ui.Element|openmw.ui.Layout
----@param resultingEffects openmw.ui.Element|openmw.ui.Layout
 ---@param counting openmw.ui.Element|openmw.ui.Layout
 ---@param btnCancel openmw.ui.Element|openmw.ui.Layout
----@param ingredientsTable openmw.ui.Element|openmw.ui.Layout
 ---@param filter openmw.ui.Element|openmw.ui.Layout
 ---@return openmw.ui.Content
-function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel,
-                                   ingredientsTable, filter, potionTypeSelector)
+function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel, filter)
     return ui.content {
         {
             name = 'content',
@@ -425,7 +421,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, co
                                         T.Base.intervalV(15),
                                         selected,
                                         T.Base.intervalV(15),
-                                        resultingEffects,
+                                        self.resultingEffects.element,
                                     },
                                 },
                                 T.Base.intervalH(15),
@@ -455,7 +451,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, co
                                                     name = 'padding',
                                                     template = T.Base.padding(5),
                                                     content = ui.content {
-                                                        ingredientsTable,
+                                                        self.itemTable,
                                                     }
                                                 },
                                             }
@@ -491,7 +487,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, co
                                 self.btnCreate,
                             },
                         },
-                        potionTypeSelector,
+                        self.potionTypeSelector.element,
                         {
                             type = ui.TYPE.Container,
                             props = {
@@ -1009,19 +1005,31 @@ parts.resultingEffects = function(self)
             local effectCount = 8 --min 4 for beauty
             effects.content = ui.content {}
 
-            if self.data.matching then
-                effectCount = math.max(effectCount, #self.data.matching)
+            local matching = self.data.matching
+            local known = self.data.matchingKnowledge
+            local full = false
+            if self.showFullEffects then
+                local potion, code, k = A.getPotionStats('temp', self.data.selected, self.data.apparatus, player,
+                    { isPoison = self.isPoison })
+                if code == A.PotionErrors.OK then
+                    matching = potion.effects
+                    known = k
+                    full = true
+                end
+            end
+            if matching then
+                effectCount = math.max(effectCount, #matching)
                 local effectLayouts = {}
-                for i = 1, #self.data.matching do
-                    local effect = self.data.matching[i]
-                    local isVisible = self.data.matchingKnowledge[i] ~= false
+                for i = 1, #matching do
+                    local effect = matching[i]
+                    local isVisible = (known and known[i]) ~= false
                     local content = ui.content {}
 
                     if isVisible then
                         content:add(T.Special.effectIcon(effect.id))
                         content:add(T.Base.intervalH(4))
-                        local effectText = H.getMagicEffectString(effect) or '?'
-                        content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = effectText } })
+                        local effectText = full and H.createSpellEffectString(effect) or H.getMagicEffectString(effect)
+                        content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = effectText or '?' } })
                     else
                         content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = '?' } })
                     end
@@ -1117,7 +1125,9 @@ parts.resultingEffects = function(self)
             box,
         }
     }
-    return element, wdg
+
+    wdg.element = element
+    return wdg
 end
 
 parts.countBlock = function()
@@ -1264,6 +1274,10 @@ parts.typeSelector = function(wnd)
         poison.layout.userData.active = wnd.isPoison
         H.setInteractiveColor(poison)
         poison:update()
+
+        if wnd.showFullEffects then
+            wnd.resultingEffects.update()
+        end
     end
 
     local wdg = {

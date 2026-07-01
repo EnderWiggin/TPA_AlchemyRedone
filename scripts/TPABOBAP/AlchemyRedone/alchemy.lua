@@ -255,10 +255,11 @@ end
 ---@param apparatus LocalApparatusIds info about apparatus being used
 ---@param actor openmw.LObject|openmw.GObject|nil
 ---@param opts {isPoison: boolean?}|nil
----@return openmw.types.PotionRecord, AlchemyPotionErrors
+---@return openmw.types.PotionRecord record, AlchemyPotionErrors code, boolean[] knowledge
 Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
     ---@type openmw.core.MagicEffectWithParams[]
     local effects = {}
+    local known = {}
     name = name and trim(name)
     local factor = Alchemy.getAlchemyFactor(actor)
     -- local model, icon = Alchemy.selectPotionArt(factor / 20) --TODO: add option to select model based on effective skill
@@ -275,19 +276,20 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
         isAutocalc = false,
         mwscript = nil,
     }
-    if #ingredientIds < 2 then return stats, Alchemy.PotionErrors.TOO_FEW_INGREDIENTS end
+    if #ingredientIds < 2 then return stats, Alchemy.PotionErrors.TOO_FEW_INGREDIENTS, known end
     local mortar = apparatus.Mortar and types.Apparatus.record(apparatus.Mortar)
-    if not mortar then return stats, Alchemy.PotionErrors.NO_MORTAR end
-    if not name or #name <= 0 then return stats, Alchemy.PotionErrors.NO_NAME end
+    if not mortar then return stats, Alchemy.PotionErrors.NO_MORTAR, known end
+    if not name or #name <= 0 then return stats, Alchemy.PotionErrors.NO_NAME, known end
 
     local ingredients = Alchemy.toIngredientRecords(ingredientIds)
     local matching = Alchemy.getMatchingEffects(ingredients)
-    if #matching <= 0 then return stats, Alchemy.PotionErrors.FAIL end
+    if #matching <= 0 then return stats, Alchemy.PotionErrors.FAIL, known end
     factor = factor * mortar.quality
     factor = factor * core.getGMST('fPotionStrengthMult')
 
     stats.value = util.round(factor * core.getGMST('iAlchemyMod'))
     stats.weight = roundToPlaces(Alchemy.getPotionWeight(ingredients), 4)
+    local knownCount = Alchemy.getKnownAlchemyEffectCount(actor, true)
 
     local fPotionT1MagMul = core.getGMST('fPotionT1MagMult')
     if fPotionT1MagMul <= 0 then error('invalid gmst: fPotionT1MagMul') end
@@ -350,10 +352,11 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
             }
             idx = idx + 1
             table.insert(effects, newEffect)
+            table.insert(known, #effects <= knownCount)
         end
     end
 
-    return stats, #effects <= 0 and Alchemy.PotionErrors.FAIL or Alchemy.PotionErrors.OK
+    return stats, #effects <= 0 and Alchemy.PotionErrors.FAIL or Alchemy.PotionErrors.OK, known
 end
 
 ---@param alchemyFactor number
