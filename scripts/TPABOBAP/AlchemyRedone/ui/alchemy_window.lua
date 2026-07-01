@@ -1231,6 +1231,7 @@ parts.filterInput = function(onValueUpdated)
 
     local btn = T.Base.imageButton(REVERT_PATH, v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE), function()
         wdg.setText('')
+        onValueUpdated(filterValue)
     end, 'btn-revert')
 
     element = ui.create {
