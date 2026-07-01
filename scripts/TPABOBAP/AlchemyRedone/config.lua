@@ -1,12 +1,13 @@
----@omw-context player
+---@omw-context runtime
 
 local async = require('openmw.async')
 local storage = require('openmw.storage')
 
 ---@class MainSettings
 ---@field b_ShowFullEffectInfo boolean
+---@field b_AllowOwnedContainerIngredients boolean
 
-local main = storage.playerSection('TPA_AlchemyRedone/MainSettings')
+local main = storage.globalSection('TPA_AlchemyRedone/MainSettings')
 
 
 

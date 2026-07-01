@@ -22,3 +22,6 @@ MainSettingsName: Main Settings
 
 SettingShowFullEffectInfo: Show full effect info
 SettingShowFullEffectInfoDesc: Created Effects block will show effect info with magnitudes and durations as affected by your skills and tools.
+
+SettingAllowOwnedContainerIngredients: Allow ingredients from owned containers
+SettingAllowOwnedContainerIngredientsDesc: If set to true, you will be able to use ingredients from containers that are owned by others.

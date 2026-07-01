@@ -1,15 +1,8 @@
----@omw-context menu
+---@omw-context global
 
 local I = require('openmw.interfaces')
 
 local MODNAME = 'TPA_AlchemyRedone'
-
-I.Settings.registerPage {
-    key = MODNAME,
-    l10n = MODNAME,
-    name = 'PageName',
-    description = 'PageDesc',
-}
 
 I.Settings.registerGroup {
     key = MODNAME .. '/MainSettings',
@@ -24,6 +17,13 @@ I.Settings.registerGroup {
             renderer = 'checkbox',
             name = 'SettingShowFullEffectInfo',
             description = 'SettingShowFullEffectInfoDesc',
+            default = false,
+        },
+        {
+            key = 'b_AllowOwnedContainerIngredients',
+            renderer = 'checkbox',
+            name = 'SettingAllowOwnedContainerIngredients',
+            description = 'SettingAllowOwnedContainerIngredientsDesc',
             default = false,
         },
     },

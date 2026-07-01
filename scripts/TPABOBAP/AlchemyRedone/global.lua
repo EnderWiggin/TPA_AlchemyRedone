@@ -5,6 +5,7 @@ local T = require("openmw.types")
 local I = require("openmw.interfaces")
 local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
+local config = require('scripts.TPABOBAP.AlchemyRedone.config')
 
 
 local m = {}
@@ -39,7 +40,7 @@ m.collectApparatus = function(...)
             local apparatus = objectList[i]
             local recordId = apparatus.recordId
             local record = T.Apparatus.record(recordId)
-            if record and m.isAllowed(apparatus) then
+            if record and m.isAllowedApparatus(apparatus) then
                 local quality = record.quality
                 local type = record.type
                 if (type == T.Apparatus.TYPE.Alembic and quality > qAlembic) then
@@ -72,7 +73,7 @@ m.filterContainers = function(containers)
     for i = 1, #containers do
         ---@type openmw.GObject
         local container = containers[i]
-        if m.isAllowed(container) then
+        if m.isAllowedIngredientContainer(container) then
             table.insert(result, container)
         end
     end
@@ -194,8 +195,12 @@ end
 ---Returns whether apparatus can be used by player
 ---@param object openmw.GObject
 ---@return boolean
-m.isAllowed = function(object)
+m.isAllowedApparatus = function(object)
     return not m.isOwned(object)
+end
+
+m.isAllowedIngredientContainer = function(object)
+    return config.main.b_AllowOwnedContainerIngredients or not m.isOwned(object)
 end
 
 local function printError(data)
