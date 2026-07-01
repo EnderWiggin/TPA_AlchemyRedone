@@ -291,9 +291,8 @@ function AlchemyWindow:updateMatchingEffects()
     end
 end
 
---TODO: find ways to improve this
-local function handleModError(err)
-    print('ERROR in potion modifier:\n\t' .. tostring(err))
+local function handleModError(...)
+    core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { ... })
 end
 
 function AlchemyWindow:createPotion()
@@ -318,8 +317,10 @@ function AlchemyWindow:createPotion()
 
     if errorCode == A.PotionErrors.OK then --Brewing succeeded
         for i = 1, #self.ctx.potionModifiers do
-            local mod = self.ctx.potionModifiers[i].mod
-            local ok, result = xpcall(mod, handleModError, draft, ingredients)
+            local modData = self.ctx.potionModifiers[i]
+            local ok, result = xpcall(modData.mod, function(err)
+                handleModError(('ERROR in potion modifier [%s]'):format(modData.id), err)
+            end, draft, ingredients)
             if ok then
                 draft = result or draft
             end

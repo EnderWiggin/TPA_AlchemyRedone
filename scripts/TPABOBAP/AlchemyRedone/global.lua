@@ -1,5 +1,6 @@
 ---@omw-context global
 local world = require("openmw.world")
+local core = require("openmw.core")
 local T = require("openmw.types")
 local I = require("openmw.interfaces")
 local H = require("scripts.TPABOBAP.UIToolkit.helpers")
@@ -176,7 +177,8 @@ m.deductIngredients = function(data)
     end
     for _, need in pairs(consume) do
         if need > 0 then
-            print('WARNING: not consumed:', H.deepPrint(consume))
+            core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { 'WARNING: not consumed:', H.deepPrint(consume) })
+            break
         end
     end
     actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(actor))
@@ -196,6 +198,18 @@ m.isAllowed = function(object)
     return not m.isOwned(object)
 end
 
+local function printError(data)
+    if #data > 0 then
+        local parts = {}
+        for i = 1, #data do
+            table.insert(parts, H.deepPrint(data[i]))
+        end
+        error(table.concat(parts, '\n\t'))
+    else
+        error(H.deepPrint(data))
+    end
+end
+
 I.Activation.addHandlerForType(T.Apparatus, m.activateApparatus)
 
 return {
@@ -206,5 +220,6 @@ return {
         TPA_AlchemyRedone_CreateAndAddNewPotion = m.createAndAddNewPotion,
         TPA_AlchemyRedone_AddItem = function(data) m.addObject(data.actor, data.recordId, data.count) end,
         TPA_AlchemyRedone_DeductIngredients = m.deductIngredients,
+        TPA_AlchemyRedone_PrintError = printError,
     },
 }
