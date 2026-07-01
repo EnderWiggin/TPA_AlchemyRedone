@@ -12,6 +12,7 @@ local storage = require('openmw.storage')
 
 local settings = storage.playerSection('TPA_AlchemyRedone:AlchemyWindow')
 
+local l10n = core.l10n('TPA_AlchemyRedone')
 local I = require("openmw.interfaces")
 local T = {
     Base        = require("scripts.TPABOBAP.UIToolkit.templates.base"),
@@ -67,6 +68,7 @@ updateSizes()
 function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
+    self.isPoison = false
 
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
@@ -110,8 +112,10 @@ function AlchemyWindow:init(ctx)
     local filter
     filter, self.filter = parts.filterInput(function(value) self:onFilterChanged(value) end)
 
+    self.potionTypeSelector = parts.typeSelector(self)
+
     local content = self:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel,
-        self.itemTable, filter)
+        self.itemTable, filter, self.potionTypeSelector.element)
 
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
         noResize = false,
@@ -285,7 +289,8 @@ end
 function AlchemyWindow:createPotion()
     local name = self.naming.getText()
     local ingredients = self:getSelectedIngredientList()
-    local draft, errorCode = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player)
+    local draft, errorCode = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player,
+        { isPoison = self.isPoison })
     local count = math.min(self.counting.getCount(), self:getLeastIngredientAmount(ingredients))
     local brewed = 0
 
@@ -385,7 +390,7 @@ end
 ---@param filter openmw.ui.Element|openmw.ui.Layout
 ---@return openmw.ui.Content
 function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel,
-                                   ingredientsTable, filter)
+                                   ingredientsTable, filter, potionTypeSelector)
     return ui.content {
         {
             name = 'content',
@@ -486,6 +491,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, co
                                 self.btnCreate,
                             },
                         },
+                        potionTypeSelector,
                         {
                             type = ui.TYPE.Container,
                             props = {
@@ -1228,6 +1234,93 @@ parts.filterInput = function(onValueUpdated)
     }
 
     return element, wdg
+end
+
+---@param wnd AlchemyWindow
+parts.typeSelector = function(wnd)
+    local element, potion, poison
+
+    local function update()
+        potion.layout.userData.active = not wnd.isPoison
+        H.setInteractiveColor(potion)
+        potion:update()
+
+        poison.layout.userData.active = wnd.isPoison
+        H.setInteractiveColor(poison)
+        poison:update()
+    end
+
+    local wdg = {
+        onPotionClick = function()
+            wnd.isPoison = false
+            update()
+        end,
+        onPoisonClick = function()
+            wnd.isPoison = true
+            update()
+        end,
+    }
+
+    potion = T.Special.interactive({
+        name = 'type-selector-potion',
+        onClick = wdg.onPotionClick,
+        tooltipFn = function()
+            return T.Special.lineTooltip(l10n('AlchemyWindow_Type_Potion_Tooltip'))
+        end,
+    }, {
+        template = T.Base.textNormal,
+        props = {
+            text = l10n('Label_Potion')
+        },
+        userData = {
+            colorable = true,
+        }
+    }, wnd.ctx)
+
+    poison = T.Special.interactive({
+        name = 'type-selector-poison',
+        onClick = wdg.onPoisonClick,
+        tooltipFn = function()
+            return T.Special.lineTooltip(l10n('AlchemyWindow_Type_Poison_Tooltip'))
+        end,
+    }, {
+        template = T.Base.textNormal,
+        props = {
+            text = l10n('Label_Poison')
+        },
+        userData = {
+            colorable = true,
+        }
+    }, wnd.ctx)
+
+    element = ui.create {
+        name = 'potion-type',
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = true,
+            anchor = v2(0.5, 1),
+            relativePosition = v2(0.5, 1),
+            align = ui.ALIGNMENT.Center,
+            arrange = ui.ALIGNMENT.Center,
+            position = v2(0, -3)
+        },
+        content = ui.content {
+            potion,
+            T.Base.intervalH(5),
+            {
+                template = T.Base.textHeader,
+                props = {
+                    text = '|'
+                },
+            },
+            T.Base.intervalH(5),
+            poison,
+        }
+    }
+    wdg.element = element
+    update()
+
+    return wdg
 end
 
 return AlchemyWindow

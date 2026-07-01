@@ -240,6 +240,7 @@ Templates.lineTooltip = function(text, name)
             props = {
                 text = text or '',
                 autoSize = true,
+                multiline = true,
             }
         }
     }, name)

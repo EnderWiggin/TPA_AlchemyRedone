@@ -254,8 +254,9 @@ end
 ---@param ingredientIds string[] ordered list of ingredient ids
 ---@param apparatus LocalApparatusIds info about apparatus being used
 ---@param actor openmw.LObject|openmw.GObject|nil
+---@param opts {isPoison: boolean?}|nil
 ---@return openmw.types.PotionRecord, AlchemyPotionErrors
-Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
+Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
     ---@type openmw.core.MagicEffectWithParams[]
     local effects = {}
     name = name and trim(name)
@@ -309,19 +310,27 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor)
             error("invalid base cost for magic effect '" .. effect.id .. "'")
         end
 
+        local hasMagnitude = effectRecord.hasMagnitude
+        local hasDuration = effectRecord.hasDuration
+        local harmful = effectRecord.harmful
+
+        if opts and opts.isPoison then
+            harmful = not harmful
+        end
+
         local magnitude = 1
-        if effectRecord.hasMagnitude then
+        if hasMagnitude then
             magnitude = factor / fPotionT1MagMul / effectRecord.baseCost
             magnitude = Alchemy.applyTools(magnitude, alembic, calcinator, retort,
-                effectRecord.hasMagnitude, effectRecord.hasDuration, effectRecord.harmful)
+                hasMagnitude, hasDuration, harmful)
             magnitude = util.round(magnitude)
         end
 
         local duration = 1
-        if effectRecord.hasDuration then
+        if hasDuration then
             duration = factor / fPotionT1DurMult / effectRecord.baseCost
             duration = Alchemy.applyTools(duration, alembic, calcinator, retort,
-                effectRecord.hasMagnitude, effectRecord.hasDuration, effectRecord.harmful)
+                hasMagnitude, hasDuration, harmful)
             duration = util.round(duration)
         end
 

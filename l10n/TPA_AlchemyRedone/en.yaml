@@ -1,0 +1,12 @@
+AlchemyWindow_Type_Potion_Tooltip: |-
+  Make a potion:
+  Alembic reduces the strength and duration of all negative effects
+  Retort increases the strength and duration of all positive effects.
+
+AlchemyWindow_Type_Poison_Tooltip: |-
+  Make a poison:
+  Alembic reduces the strength and duration of all positive effects.
+  Retort increases the strength and duration of all negative effects
+
+Label_Potion: Potion
+Label_Poison: Poison
