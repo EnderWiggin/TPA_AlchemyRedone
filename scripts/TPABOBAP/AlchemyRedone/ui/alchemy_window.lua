@@ -11,6 +11,7 @@ local auxUi = require('openmw_aux.ui')
 local storage = require('openmw.storage')
 
 local settings = storage.playerSection('TPA_AlchemyRedone:AlchemyWindow')
+local config = require('scripts.TPABOBAP.AlchemyRedone.config')
 
 local l10n = core.l10n('TPA_AlchemyRedone')
 local I = require("openmw.interfaces")
@@ -69,7 +70,7 @@ function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
     self.isPoison = false
-    self.showFullEffects = true --TODO: add setting to control this
+    self.showFullEffects = config.main.b_ShowFullEffectInfo
 
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
@@ -1015,6 +1016,20 @@ parts.resultingEffects = function(self)
                     matching = potion.effects
                     known = k
                     full = true
+                elseif code == A.PotionErrors.FAIL then
+                    if matching and #matching > 0 then
+                        effects.content:add(
+                            {
+                                template = T.Base.textParagraph,
+                                props = {
+                                    text = l10n('All_Effects_Neutralized'),
+                                    textAlignH = ui.ALIGNMENT.Center,
+                                    size = v2(BLOCK_WIDTH, 0),
+                                }
+                            }
+                        )
+                    end
+                    matching = nil
                 end
             end
             if matching then

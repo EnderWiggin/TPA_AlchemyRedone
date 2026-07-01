@@ -10,3 +10,15 @@ AlchemyWindow_Type_Poison_Tooltip: |-
 
 Label_Potion: Potion
 Label_Poison: Poison
+
+All_Effects_Neutralized: All matching effects were neutralized by Alembic
+
+# -------------- Settings --------------
+PageName: Alchemy Redone
+PageDesc: Version 0.2
+
+# -------------- Main Block --------------
+MainSettingsName: Main Settings
+
+SettingShowFullEffectInfo: Show full effect info
+SettingShowFullEffectInfoDesc: Created Effects block will show effect info with magnitudes and durations as affected by your skills and tools.

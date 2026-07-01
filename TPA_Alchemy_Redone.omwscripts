@@ -1,2 +1,3 @@
+MENU: scripts/TPABOBAP/AlchemyRedone/settings.lua
 GLOBAL: scripts/TPABOBAP/AlchemyRedone/global.lua
 PLAYER: scripts/TPABOBAP/AlchemyRedone/player.lua
