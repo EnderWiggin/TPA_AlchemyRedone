@@ -12,7 +12,6 @@ local H = require('scripts.TPABOBAP.UIToolkit.helpers')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
-local IngredientWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.ingredient_window')
 local Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
 
 ---@return AlchemyData
@@ -28,8 +27,6 @@ end
 local m = {
     ---@type AlchemyWindow?
     wndAlchemy = nil,
-    ---@type IngredientWindow?
-    wndIngredient = nil,
 }
 
 ---@class AlchemyData
@@ -64,7 +61,6 @@ m.onOpenAlchemy = function(data)
     ctx.data.apparatus = data.apparatus
     ctx.data.sources = data.sources
     m.updateIngredients()
-    if m.wndIngredient then m.wndIngredient:updateData() end
     if m.wndAlchemy then m.wndAlchemy:updateData() end
     if I.UI.getMode() ~= I.UI.MODE.Alchemy then
         I.UI.addMode(I.UI.MODE.Alchemy, { windows = { I.UI.WINDOW.Alchemy } })
@@ -74,25 +70,18 @@ end
 m.openWindow = function()
     m.closeWindow()
     m.wndAlchemy = AlchemyWindow:new()
-    --m.wndIngredient = IngredientWindow:new()
 
     if #ctx.data.sources <= 0 then
         core.sendGlobalEvent('TPA_AlchemyRedone_CollectInfo', { actor = player })
     end
 
-    m.wndAlchemy:init(ctx, 'single')
-    --m.wndIngredient:init(ctx)
+    m.wndAlchemy:init(ctx)
 end
 
 m.closeWindow = function()
     if m.wndAlchemy then
         m.wndAlchemy:destroy()
         m.wndAlchemy = nil
-    end
-
-    if m.wndIngredient then
-        m.wndIngredient:destroy()
-        m.wndIngredient = nil
     end
 
     if ctx.activeTooltip then
@@ -130,7 +119,6 @@ m.selectIngredient = function(info)
         if m.wndAlchemy then
             m.wndAlchemy:onIngredientSelectionChanged()
         end
-        m.updateWnd(m.wndIngredient, true)
     end
 end
 
@@ -141,7 +129,6 @@ m.clearIngredient = function(n)
             if m.wndAlchemy then
                 m.wndAlchemy:onIngredientSelectionChanged()
             end
-            m.updateWnd(m.wndIngredient, true)
         end
     end
 end

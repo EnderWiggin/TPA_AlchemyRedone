@@ -45,12 +45,9 @@ end
 local parts = {}
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
-local MIN_SIZE_TWO = v2(730, 405)    --TODO: update with font sizes?
-local MIN_SIZE_SINGLE = v2(800, 695) --TODO: update with font sizes?
-local MIN_SIZE = MIN_SIZE_TWO
+local MIN_SIZE = v2(800, 695) --TODO: update with font sizes?
 
 local BLOCK_WIDTH = 350
-local EFFECTS_WIDTH = 300
 local ICON_SZ
 local GAP_END
 local GAP_MID
@@ -67,18 +64,9 @@ end
 updateSizes()
 
 ---@param ctx AlchemyContext
-function AlchemyWindow:init(ctx, mode)
-    self.mode = mode
+function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
-
-    if mode == 'single' then
-        MIN_SIZE = MIN_SIZE_SINGLE
-        EFFECTS_WIDTH = BLOCK_WIDTH
-    else
-        MIN_SIZE = MIN_SIZE_TWO
-        EFFECTS_WIDTH = 300
-    end
 
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
@@ -117,17 +105,13 @@ function AlchemyWindow:init(ctx, mode)
     local counting
     counting, self.counting = parts.countBlock()
 
-    local content
-    if mode == 'single' then
-        self.itemTable = T.Ingredients.makeTable(self)
-        self.itemTable.layout.userData.setFilter('default', function(row) return self:filterIngredient(row) end)
-        local filter
-        filter, self.filter = parts.filterInput(function(value) self:onFilterChanged(value) end)
-        content = self:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel,
-            self.itemTable, filter)
-    else
-        content = self:makeTwoPaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
-    end
+    self.itemTable = T.Ingredients.makeTable(self)
+    self.itemTable.layout.userData.setFilter('default', function(row) return self:filterIngredient(row) end)
+    local filter
+    filter, self.filter = parts.filterInput(function(value) self:onFilterChanged(value) end)
+
+    local content = self:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel,
+        self.itemTable, filter)
 
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
         noResize = false,
@@ -166,15 +150,9 @@ function AlchemyWindow:updateSize()
     content.props.size = inner
 
     local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel', 'right' })
-    if self.mode == 'single' then
-        right.props.size = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
-    else
-        right.props.size = v2(BLOCK_WIDTH, inner.y)
-    end
+    right.props.size = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
 
-    if self.itemTable then
-        self.itemTable.layout.userData.resize(right.props.size - v2(35, 140))
-    end
+    self.itemTable.layout.userData.resize(right.props.size - v2(35, 140))
 end
 
 function AlchemyWindow:update(deep)
@@ -186,10 +164,7 @@ function AlchemyWindow:update(deep)
         self.tools.update()
         self.selected.update()
         self.resultingEffects.update()
-
-        if self.itemTable then
-            self.itemTable.layout.userData.redrawColumns()
-        end
+        self.itemTable.layout.userData.redrawColumns()
     end
 
     Window.update(self, deep)
@@ -198,9 +173,7 @@ end
 function AlchemyWindow:updateData()
     if not self.element then return end
     parts.setInteractiveState(self.btnCreate, false, false)
-    if self.itemTable then
-        self.itemTable.layout.userData.updateData(self.ctx.getAllIngredients())
-    end
+    self.itemTable.layout.userData.updateData(self.ctx.getAllIngredients())
     self:update(true)
 end
 
@@ -266,9 +239,7 @@ function AlchemyWindow:onIngredientSelectionChanged()
     self:updateMatchingEffects()
     self.selected.update()
     self.resultingEffects.update()
-    if self.itemTable then
-        self.itemTable.layout.userData.refresh()
-    end
+    self.itemTable.layout.userData.refresh()
 end
 
 ---returns the amount of selected ingredient that's smallest - this is our limit for brewing batch size
@@ -304,9 +275,7 @@ function AlchemyWindow:updateMatchingEffects()
         self.naming.setText(defaultPotionName)
         self.lastDefaultPotionName = defaultPotionName
     end
-    if self.itemTable then
-        self.itemTable.layout.userData.redrawColumns()
-    end
+    self.itemTable.layout.userData.redrawColumns()
 end
 
 local function handleModError(...)
@@ -406,87 +375,6 @@ function AlchemyWindow:destroy()
     Window.destroy(self)
 end
 
---- Creates two-pane UI
----@param naming openmw.ui.Element|openmw.ui.Layout
----@param tools openmw.ui.Element|openmw.ui.Layout
----@param selected openmw.ui.Element|openmw.ui.Layout
----@param resultingEffects openmw.ui.Element|openmw.ui.Layout
----@param counting openmw.ui.Element|openmw.ui.Layout
----@param btnCancel openmw.ui.Element|openmw.ui.Layout
----@return openmw.ui.Content
-function AlchemyWindow:makeTwoPaneContent(naming, tools, selected, resultingEffects, counting, btnCancel)
-    return ui.content {
-        {
-            name = 'content',
-            type = ui.TYPE.Widget,
-            props = {},
-            content = ui.content {
-                {
-                    name = 'main',
-                    type = ui.TYPE.Flex,
-                    props = {
-                        horizontal = false,
-                        position = v2(10, 10)
-                    },
-                    content = ui.content {
-                        naming,
-                        T.Base.intervalV(15),
-                        {
-                            name = 'panel',
-                            type = ui.TYPE.Flex,
-                            props = {
-                                horizontal = true,
-                            },
-                            content = ui.content {
-                                {
-                                    name = 'left',
-                                    type = ui.TYPE.Flex,
-                                    props = {},
-                                    content = ui.content {
-                                        tools,
-                                        T.Base.intervalV(15),
-                                        selected,
-                                    }
-                                },
-                                T.Base.intervalH(15),
-                                {
-                                    name = 'right',
-                                    type = ui.TYPE.Flex,
-                                    props = {
-                                        autoSize = false,
-                                        size = v2(200, 300)
-                                    },
-                                    content = ui.content {
-                                        resultingEffects,
-                                    }
-                                },
-                            }
-                        },
-                    },
-                },
-                {
-                    type = ui.TYPE.Flex,
-                    props = {
-                        horizontal = true,
-                        anchor = v2(1, 1),
-                        relativePosition = v2(1, 1),
-                        position = v2(-10, -10),
-                        arrange = ui.ALIGNMENT.Center,
-                    },
-                    content = ui.content {
-                        counting,
-                        T.Base.intervalH(15),
-                        self.btnCreate,
-                        T.Base.intervalH(30),
-                        btnCancel,
-                    },
-                },
-            },
-        }
-    }
-end
-
---- Creates single-pane UI
 ---@param naming openmw.ui.Element|openmw.ui.Layout
 ---@param tools openmw.ui.Element|openmw.ui.Layout
 ---@param selected openmw.ui.Element|openmw.ui.Layout
@@ -496,8 +384,8 @@ end
 ---@param ingredientsTable openmw.ui.Element|openmw.ui.Layout
 ---@param filter openmw.ui.Element|openmw.ui.Layout
 ---@return openmw.ui.Content
-function AlchemyWindow:makeSinglePaneContent(naming, tools, selected, resultingEffects, counting, btnCancel,
-                                             ingredientsTable, filter)
+function AlchemyWindow:makeContent(naming, tools, selected, resultingEffects, counting, btnCancel,
+                                   ingredientsTable, filter)
     return ui.content {
         {
             name = 'content',
@@ -1159,7 +1047,7 @@ parts.resultingEffects = function(self)
                     }
                 })
             end
-            effects.props.size = v2(EFFECTS_WIDTH, T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1))
+            effects.props.size = v2(BLOCK_WIDTH, T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1))
 
             auxUi.deepUpdate(element)
         end,
