@@ -6,6 +6,7 @@ local storage = require('openmw.storage')
 ---@class MainSettings
 ---@field b_ShowFullEffectInfo boolean
 ---@field b_AllowOwnedContainerIngredients boolean
+---@field b_AllowCorpseIngredients boolean
 
 local main = storage.globalSection('TPA_AlchemyRedone/MainSettings')
 

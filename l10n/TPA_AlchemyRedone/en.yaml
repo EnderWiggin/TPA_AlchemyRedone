@@ -25,3 +25,6 @@ SettingShowFullEffectInfoDesc: Created Effects block will show effect info with 
 
 SettingAllowOwnedContainerIngredients: Allow ingredients from owned containers
 SettingAllowOwnedContainerIngredientsDesc: If set to true, you will be able to use ingredients from containers that are owned by others.
+
+SettingAllowCorpseIngredients: Allow ingredients from dead bodies
+SettingAllowCorpseIngredientsDesc: If set to true, you will be able to use ingredients from dead bodies.

@@ -26,5 +26,12 @@ I.Settings.registerGroup {
             description = 'SettingAllowOwnedContainerIngredientsDesc',
             default = false,
         },
+        {
+            key = 'b_AllowCorpseIngredients',
+            renderer = 'checkbox',
+            name = 'SettingAllowCorpseIngredients',
+            description = 'SettingAllowCorpseIngredientsDesc',
+            default = false,
+        },
     },
 }

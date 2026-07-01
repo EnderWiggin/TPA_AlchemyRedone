@@ -67,13 +67,14 @@ m.collectApparatus = function(...)
 end
 
 ---@param containers openmw.ObjectList<openmw.GObject>
+---@param filter fun(container:openmw.GObject):boolean
 ---@return GObject[]
-m.filterContainers = function(containers)
+m.filterContainers = function(containers, filter)
     local result = {}
     for i = 1, #containers do
         ---@type openmw.GObject
         local container = containers[i]
-        if m.isAllowedIngredientContainer(container) then
+        if filter(container) then
             table.insert(result, container)
         end
     end
@@ -100,7 +101,20 @@ m.collectAlchemyInfo = function(actor)
         actor.cell:getAll(T.Apparatus),
         inventory:getAll(T.Apparatus)
     )
-    local sources = m.filterContainers(actor.cell:getAll(T.Container))
+    local sources = m.filterContainers(actor.cell:getAll(T.Container), m.isAllowedIngredientContainer)
+
+    if config.main.b_AllowCorpseIngredients then
+        local corpses = m.filterContainers(actor.cell:getAll(T.NPC), m.isAllowedCorpseContainer)
+        for i = 1, #corpses do
+            table.insert(sources, corpses[i])
+        end
+
+        corpses = m.filterContainers(actor.cell:getAll(T.Creature), m.isAllowedCorpseContainer)
+        for i = 1, #corpses do
+            table.insert(sources, corpses[i])
+        end
+    end
+
     table.insert(sources, actor)
     return { apparatus = apparatus, sources = sources }
 end
@@ -202,6 +216,11 @@ end
 m.isAllowedIngredientContainer = function(object)
     return config.main.b_AllowOwnedContainerIngredients or not m.isOwned(object)
 end
+
+m.isAllowedCorpseContainer = function(object)
+    return (object.type == T.Creature or object.type == T.NPC) and T.Actor.stats.dynamic.health(object).current == 0
+end
+
 
 local function printError(data)
     if #data > 0 then
