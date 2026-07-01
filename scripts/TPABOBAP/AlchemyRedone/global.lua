@@ -115,6 +115,22 @@ m.collectAlchemyInfo = function(actor)
         end
     end
 
+    if I.CCC_cont then
+        local carried
+        if I.CCC_cont.getContainersCarriedByPlayer then
+            carried = I.CCC_cont.getContainersCarriedByPlayer()
+            for i = 1, #carried do
+                table.insert(sources, carried[i])
+            end
+        end
+        if I.CCC_cont.getContainersNearbyPlayer then
+            carried = I.CCC_cont.getContainersNearbyPlayer()
+            for i = 1, #carried do
+                table.insert(sources, carried[i])
+            end
+        end
+    end
+
     table.insert(sources, actor)
     return { apparatus = apparatus, sources = sources }
 end
