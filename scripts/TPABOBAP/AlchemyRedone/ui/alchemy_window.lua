@@ -8,6 +8,9 @@ local async = require('openmw.async')
 local player = require('openmw.self')
 local ambient = require('openmw.ambient')
 local auxUi = require('openmw_aux.ui')
+local storage = require('openmw.storage')
+
+local settings = storage.playerSection('TPA_AlchemyRedone:AlchemyWindow')
 
 local I = require("openmw.interfaces")
 local T = {
@@ -131,11 +134,26 @@ function AlchemyWindow:init(ctx, mode)
         draggable = true,
         onDrag = function() self:updateSize() end,
     })
+
+    self:loadState()
+    self:updateSize()
+end
+
+function AlchemyWindow:loadState()
     self.element.layout.userData.minWidth = MIN_SIZE.x
     self.element.layout.userData.minHeight = MIN_SIZE.y
-    self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
-    self:setSize(MIN_SIZE)
-    self:updateSize()
+    local dims = settings:get('dimensions')
+    if not dims then
+        self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
+        self:setSize(MIN_SIZE)
+    else
+        self:setDimensions(dims)
+    end
+end
+
+function AlchemyWindow:saveState()
+    local dims = self:getDimensions()
+    settings:set('dimensions', dims)
 end
 
 function AlchemyWindow:updateSize()

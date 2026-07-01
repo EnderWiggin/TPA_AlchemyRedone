@@ -113,6 +113,7 @@ function Window:saveState() end
 function Window:loadState() end
 
 function Window:destroy()
+    self:saveState()
     auxUi.deepDestroy(self.element)
     self.element = nil
     self.ctx = nil
