@@ -1188,6 +1188,17 @@ if isPlayer then
         return string
     end
 
+    Helpers.getMagicEffectDescription = function(effectParams)
+        local effect = core.magic.effects.records[effectParams.id]
+        if not effect then
+            effect = I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectParams.id)
+            if not effect then
+                return effectParams.id
+            end
+        end
+        return effect.description
+    end
+
     local function getKnownAlchemyEffectCount(item)
         if not self or not self.type or not self.type.stats or not self.type.stats.skills or not self.type.stats.skills.alchemy then
             return 0

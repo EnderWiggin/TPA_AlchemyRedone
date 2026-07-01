@@ -233,15 +233,15 @@ Templates.tooltip = function(padding, content, name)
     }
 end
 
-Templates.lineTooltip = function(text, name)
+Templates.lineTooltip = function(text, name, props)
     return Templates.tooltip(4, ui.content {
         {
             template = BASE.textNormal,
-            props = {
+            props = helpers.mergeTables({
                 text = text or '',
                 autoSize = true,
                 multiline = true,
-            }
+            }, props or {})
         }
     }, name)
 end

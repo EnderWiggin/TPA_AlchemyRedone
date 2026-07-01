@@ -1021,12 +1021,13 @@ parts.resultingEffects = function(self)
                         content:add(T.Special.effectIcon(effect.id))
                         content:add(T.Base.intervalH(4))
                         local effectText = H.getMagicEffectString(effect) or '?'
-                        content:add({ name = 'effect_' .. i, template = T.Base.textNormal, props = { text = effectText } })
+                        content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = effectText } })
                     else
-                        content:add({ name = 'effect_' .. i, template = T.Base.textNormal, props = { text = '?' } })
+                        content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = '?' } })
                     end
 
                     local effectLayout = {
+                        name = 'effect_' .. i,
                         type = ui.TYPE.Flex,
                         props = {
                             horizontal = true,
@@ -1038,7 +1039,22 @@ parts.resultingEffects = function(self)
                     if i ~= 1 then
                         table.insert(effectLayouts, T.Base.intervalV(GAP_EFFECT))
                     end
-                    table.insert(effectLayouts, effectLayout)
+                    local description = H.getMagicEffectDescription(effect)
+                    table.insert(effectLayouts, T.Special.interactive({
+                        name = 'effect_' .. i,
+                        tooltipFn = function()
+                            return T.Special.tooltip(4, ui.content {
+                                {
+                                    template = T.Base.textParagraph,
+                                    props = {
+                                        text = description,
+                                        textAlignH = ui.ALIGNMENT.Center,
+                                        size = v2(BLOCK_WIDTH, 0),
+                                    }
+                                },
+                            }, effect.id)
+                        end,
+                    }, effectLayout, self.ctx))
                 end
 
 
