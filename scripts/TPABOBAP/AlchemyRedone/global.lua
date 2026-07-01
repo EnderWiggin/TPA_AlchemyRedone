@@ -213,12 +213,25 @@ m.isAllowedApparatus = function(object)
     return not m.isOwned(object)
 end
 
-m.isAllowedIngredientContainer = function(object)
-    return config.main.b_AllowOwnedContainerIngredients or not m.isOwned(object)
+---@param object openmw.GObject
+---@return boolean
+m.isResolved = function(object)
+    local inv = object.type.inventory and object.type.inventory(object)
+    return inv and inv.isResolved and inv:isResolved()
 end
 
+---@param object openmw.GObject
+---@return boolean
+m.isAllowedIngredientContainer = function(object)
+    return (config.main.b_AllowOwnedContainerIngredients or not m.isOwned(object)) and m.isResolved(object)
+end
+
+---@param object openmw.GObject
+---@return boolean
 m.isAllowedCorpseContainer = function(object)
-    return (object.type == T.Creature or object.type == T.NPC) and T.Actor.stats.dynamic.health(object).current == 0
+    return (object.type == T.Creature or object.type == T.NPC)
+        and T.Actor.stats.dynamic.health(object).current == 0
+        and m.isResolved(object)
 end
 
 
