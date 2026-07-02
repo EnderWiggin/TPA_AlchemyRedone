@@ -20,6 +20,13 @@ I.Settings.registerGroup {
             default = false,
         },
         {
+            key = 'b_ReplacePotionKnowledge',
+            renderer = 'checkbox',
+            name = 'SettingReplacePotionKnowledge',
+            description = 'SettingReplacePotionKnowledgeDesc',
+            default = false,
+        },
+        {
             key = 'b_AllowOwnedContainerIngredients',
             renderer = 'checkbox',
             name = 'SettingAllowOwnedContainerIngredients',

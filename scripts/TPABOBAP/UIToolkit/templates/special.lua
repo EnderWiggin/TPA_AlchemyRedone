@@ -287,7 +287,7 @@ Templates.ingredientTooltip = function(id, actor)
         local effectLayouts = {}
         for i, effectData in ipairs(effectsToShow) do
             local effect = effectData.effect
-            local isVisible = effectData.visible ~= false
+            local isVisible = effectData.visible
             local content = ui.content {}
 
             if isVisible then

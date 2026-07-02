@@ -147,5 +147,48 @@ m.getSearchText = function(recordOrId, actor)
     return table.concat(searchParts, '\n'):lower()
 end
 
+local function textNormal(name, text)
+    return { name = name, template = T.Base.textNormal, props = { text = text } }
+end
+
+m.getIEMagicEffectsContent = function(item, actor)
+    local effectsToShow = H.getTooltipMagicEffectEntries(item, actor)
+
+    -- Build effect layouts if we have any effects
+    if #effectsToShow > 0 then
+        local effectLayouts = {}
+        for i, effectData in ipairs(effectsToShow) do
+            local effect = effectData.effect
+            local isVisible = effectData.visible
+            local content = ui.content {}
+
+            if isVisible then
+                content:add(T.Special.effectIcon(effect.id))
+                content:add(T.Base.intervalH(4))
+                local effectText = effectData.text or '?'
+                content:add(textNormal('effect_' .. i, effectText))
+            else
+                content:add(textNormal('effect_' .. i, '?'))
+            end
+
+            local effectLayout = {
+                type = ui.TYPE.Flex,
+                props = {
+                    horizontal = true,
+                    arrange = ui.ALIGNMENT.Center,
+                },
+                content = content,
+            }
+
+            if i ~= 1 then
+                table.insert(effectLayouts, T.Base.intervalV(8))
+            end
+            table.insert(effectLayouts, effectLayout)
+        end
+
+        return ui.content { table.unpack(effectLayouts) }
+    end
+    return ui.content {}
+end
 
 return m

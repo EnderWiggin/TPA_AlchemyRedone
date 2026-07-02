@@ -264,21 +264,42 @@ end
 function AlchemyWindow:getDefaultPotionName()
     ---@type MagicEffectWithParams[]
     local matching = self.data.matching
+    local knowledge = self.data.matchingKnowledge
     if matching and #matching > 0 then
-        return H.getMagicEffectString(matching[1])
+        if config.main.b_ReplacePotionKnowledge then
+            local m, code, k = self:getTempPotionStats()
+            if code == A.PotionErrors.OK or code == A.PotionErrors.FAIL then
+                matching = m.effects
+                knowledge = k
+            end
+        end
+        for i = 1, #matching do
+            if knowledge and knowledge[i] then
+                return H.getMagicEffectString(matching[i])
+            end
+        end
+        return l10n('Potion_Name_Unknown')
     end
     return ''
+end
+
+function AlchemyWindow:updateDefaultName()
+    local defaultPotionName = self:getDefaultPotionName()
+    if self.lastDefaultPotionName ~= defaultPotionName then
+        self.naming.setText(defaultPotionName)
+        self.lastDefaultPotionName = defaultPotionName
+    end
+end
+
+function AlchemyWindow:getTempPotionStats()
+    return A.getPotionStats('temp', self.data.selected, self.data.apparatus, player, { isPoison = self.isPoison })
 end
 
 function AlchemyWindow:updateMatchingEffects()
     local ingredients = self:getSelectedIngredientList()
     self.data.matching, self.data.matchingKnowledge = A.getMatchingEffects(ingredients, player)
     self.data.nonMatching, self.data.nonMatchingKnowledge = A.getNonMatchingEffects(ingredients, player)
-    local defaultPotionName = self:getDefaultPotionName()
-    if self.lastDefaultPotionName ~= defaultPotionName then
-        self.naming.setText(defaultPotionName)
-        self.lastDefaultPotionName = defaultPotionName
-    end
+    self:updateDefaultName()
     self.itemTable.layout.userData.redrawColumns()
 end
 
@@ -289,7 +310,7 @@ end
 function AlchemyWindow:createPotion()
     local name = self.naming.getText()
     local ingredients = self:getSelectedIngredientList()
-    local draft, errorCode = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player,
+    local draft, errorCode, known = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player,
         { isPoison = self.isPoison })
     local count = math.min(self.counting.getCount(), self:getLeastIngredientAmount(ingredients))
     local brewed = 0
@@ -322,6 +343,33 @@ function AlchemyWindow:createPotion()
         for i = 1, #effects do
             --this field can't be sent with event and it is not required to create new record
             effects[i].effect = nil
+        end
+
+        if config.main.b_ReplacePotionKnowledge then
+            local progress = A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] or 0
+            progress = progress + brewed * config.PROGRESS
+            local records = A.toIngredientRecords(ingredients)
+            for i = 1, #records do
+                local record = records[i]
+                local knowledge = A.knowledge.ingredientKnowledge[record.id] or {}
+                for j = 1, #effects do
+                    local effect = effects[j]
+
+                    if not known[j] and progress >= config.THRESHOLD then
+                        known[j] = true
+                        progress = progress - config.THRESHOLD
+                    end
+
+                    if known[j] then
+                        local k = A.containsEffect(record.effects, effect)
+                        if k then
+                            knowledge[k] = true
+                        end
+                    end
+                end
+                A.knowledge.ingredientKnowledge[record.id] = knowledge
+                A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] = progress
+            end
         end
 
         ---@type CreateAndAddNewPotionData
@@ -1009,13 +1057,12 @@ parts.resultingEffects = function(self)
             local matching = self.data.matching
             local known = self.data.matchingKnowledge
             local full = false
-            if self.showFullEffects then
-                local potion, code, k = A.getPotionStats('temp', self.data.selected, self.data.apparatus, player,
-                    { isPoison = self.isPoison })
+            if self.showFullEffects or config.main.b_ReplacePotionKnowledge then
+                local potion, code, k = self:getTempPotionStats()
                 if code == A.PotionErrors.OK then
                     matching = potion.effects
                     known = k
-                    full = true
+                    full = self.showFullEffects
                 elseif code == A.PotionErrors.FAIL then
                     if matching and #matching > 0 then
                         effects.content:add(
@@ -1037,9 +1084,8 @@ parts.resultingEffects = function(self)
                 local effectLayouts = {}
                 for i = 1, #matching do
                     local effect = matching[i]
-                    local isVisible = (known and known[i]) ~= false
+                    local isVisible = not known or known[i]
                     local content = ui.content {}
-
                     if isVisible then
                         content:add(T.Special.effectIcon(effect.id))
                         content:add(T.Base.intervalH(4))
@@ -1291,9 +1337,8 @@ parts.typeSelector = function(wnd)
         H.setInteractiveColor(poison)
         poison:update()
 
-        if wnd.showFullEffects then
-            wnd.resultingEffects.update()
-        end
+        wnd.resultingEffects.update()
+        wnd:updateDefaultName()
     end
 
     local wdg = {

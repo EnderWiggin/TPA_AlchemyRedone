@@ -146,6 +146,12 @@ end
 ---@field draft openmw.types.PotionRecord
 ---@field ingredients string[]
 
+---@class CreatedPotionData
+---@field batch integer
+---@field brewed integer
+---@field potion string
+---@field ingredients string[]
+
 ---@param data CreateAndAddNewPotionData
 m.createAndAddNewPotion = function(data)
     local potion = A.findPotion(data.draft, { ignore = { icon = true, model = true }, generated = true })
@@ -156,12 +162,14 @@ m.createAndAddNewPotion = function(data)
 
     m.addObject(data.actor, potion.id, data.brewed)
 
-    data.actor:sendEvent('TPA_AlchemyRedone_UseSkill', {
+    ---@type CreatedPotionData
+    local evt = {
         batch = data.batch,
         brewed = data.brewed,
         potion = potion.id,
         ingredients = data.ingredients,
-    })
+    }
+    data.actor:sendEvent('TPA_AlchemyRedone_UseSkill', evt)
 end
 
 m.deductIngredients = function(data)

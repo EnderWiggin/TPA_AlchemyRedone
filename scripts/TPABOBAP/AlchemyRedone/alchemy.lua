@@ -5,8 +5,53 @@ local util = require("openmw.util")
 local types = require("openmw.types")
 local I = require("openmw.interfaces")
 
+local config = require("scripts.TPABOBAP.AlchemyRedone.config")
 
-local Alchemy = {}
+---@param id string
+---@return boolean
+local function isGeneratedId(id)
+    return id:lower():sub(1, 12) == "generated:0x"
+end
+
+---@class AlchemyKnowledge
+---@field potionKnowledge table<string, boolean|boolean[]>
+---@field ingredientKnowledge table<string, boolean[]>
+---@field recipeProgress table<string, number>
+
+local Alchemy = {
+    ---@type AlchemyKnowledge
+    knowledge = {
+        potionKnowledge = {},
+        ingredientKnowledge = {},
+        recipeProgress = {},
+    },
+}
+
+Alchemy.deepPrint = function(tbl, indent)
+    if type(tbl) ~= 'table' then return tostring(tbl) end
+    indent = indent or 0
+    local toprint = string.rep(" ", indent) .. "{\n"
+    indent = indent + 2
+    for k, v in pairs(tbl) do
+        toprint = toprint .. string.rep(" ", indent)
+        if (type(k) == "number") then
+            toprint = toprint .. "[" .. k .. "] = "
+        elseif (type(k) == "string") then
+            toprint = toprint .. k .. " = "
+        end
+        if (type(v) == "number") then
+            toprint = toprint .. v .. ",\n"
+        elseif (type(v) == "string") then
+            toprint = toprint .. "\"" .. v .. "\",\n"
+        elseif (type(v) == "table") then
+            toprint = toprint .. Alchemy.deepPrint(v, indent + 2) .. ",\n"
+        else
+            toprint = toprint .. "\"" .. tostring(v) .. "\",\n"
+        end
+    end
+    toprint = toprint .. string.rep(" ", indent - 2) .. "}"
+    return toprint
+end
 
 ---@enum AlchemyPotionErrors
 Alchemy.PotionErrors = {
@@ -16,6 +61,21 @@ Alchemy.PotionErrors = {
     NO_NAME = 'sNotifyMessage37',             --- Potion can't be created - it needs a name
     TOO_FEW_INGREDIENTS = 'sNotifyMessage6a', --- Potion can't be created - needs more ingredients
 }
+
+---@param item openmw.Object
+Alchemy.onItemConsumed = function(item)
+    if not config.main.b_ReplacePotionKnowledge then return end
+    if types.Potion.objectIsInstance(item) then
+        Alchemy.knowledge.potionKnowledge[item.recordId] = true
+    end
+end
+
+---@param effectId string
+---@return openmw.core.MagicEffect?
+Alchemy.getEffectRecord = function(effectId)
+    return core.magic.effects.records[effectId] or
+        (I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectId))
+end
 
 ---@param list? openmw.core.MagicEffectWithParams[]
 ---@param effect openmw.core.MagicEffectWithParams
@@ -39,6 +99,16 @@ end
 Alchemy.toIngredientRecord = function(recordOrId)
     if type(recordOrId) == "string" then
         return types.Ingredient.record(recordOrId)
+    end
+    return recordOrId
+end
+
+---@param recordOrId string|openmw.types.PotionRecord|nil
+---@return openmw.types.PotionRecord?
+Alchemy.toPotionRecord = function(recordOrId)
+    if not recordOrId then return nil end
+    if type(recordOrId) == "string" then
+        return types.Potion.record(recordOrId)
     end
     return recordOrId
 end
@@ -69,6 +139,12 @@ Alchemy.getPotionWeight = function(recordsOrIds)
     return weight / #recordsOrIds
 end
 
+---@param ingredients string[]
+---@return string
+Alchemy.getIngredientsKey = function(ingredients)
+    return table.concat(ingredients, ':')
+end
+
 ---@param recordsOrIds string[]|openmw.types.IngredientRecord[] ordered list of ingredient ids
 ---@param actor openmw.LObject|openmw.GObject|nil actor to test the effect knowledge for - omit to assume full knowledge
 ---@return openmw.core.MagicEffectWithParams[] effects, table<integer, boolean> knowledge ordered list of matching effect ids and map of which effects are known
@@ -80,21 +156,26 @@ Alchemy.getMatchingEffects = function(recordsOrIds, actor)
     local knownCount = Alchemy.getKnownAlchemyEffectCount(actor, true)
     for i = 1, #recordsOrIds do
         local ingredient = Alchemy.toIngredientRecord(recordsOrIds[i])
-        --local known = Alchemy.getKnownEffectFlagsForIngredient(ingredient, actor)
+        local known = Alchemy.getKnownEffectFlagsForIngredient(ingredient, actor)
 
         if ingredient then
             for j = i + 1, #recordsOrIds do
                 local ingredient2 = Alchemy.toIngredientRecord(recordsOrIds[j])
-                --local known2 = Alchemy.getKnownEffectFlagsForIngredient(ingredient2, actor)
+                local known2 = Alchemy.getKnownEffectFlagsForIngredient(ingredient2, actor)
                 if ingredient2 then
                     for k = 1, #ingredient.effects do
                         local effect = ingredient.effects[k]
-                        if not Alchemy.containsEffect(effects, effect)
-                            and Alchemy.containsEffect(ingredient2.effects, effect)
-                        then
+                        local e = Alchemy.containsEffect(effects, effect)
+                        local m = not e and Alchemy.containsEffect(ingredient2.effects, effect)
+                        if e then
+                            knowledge[e] = knowledge[e] or known[k]
+                        elseif m ~= nil then
                             table.insert(effects, effect)
-                            table.insert(knowledge, knownCount >= #effects) -- OpenMW shows known matching effect as if this was ready potion
-                            -- table.insert(knowledge, known[i] and known2[j]) --TODO:add option for alternate matching knowledge?
+                            if config.main.b_ReplacePotionKnowledge then
+                                table.insert(knowledge, known[k] or known2[m])
+                            else
+                                table.insert(knowledge, knownCount >= #effects) -- OpenMW shows known matching effect as if this was ready potion
+                            end
                         end
                     end
                 end
@@ -282,7 +363,7 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
     if not name or #name <= 0 then return stats, Alchemy.PotionErrors.NO_NAME, known end
 
     local ingredients = Alchemy.toIngredientRecords(ingredientIds)
-    local matching = Alchemy.getMatchingEffects(ingredients)
+    local matching, matchingKnowledge = Alchemy.getMatchingEffects(ingredients, actor)
     if #matching <= 0 then return stats, Alchemy.PotionErrors.FAIL, known end
     factor = factor * mortar.quality
     factor = factor * core.getGMST('fPotionStrengthMult')
@@ -305,8 +386,7 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
     for i = 1, #matching do
         local effect = matching[i]
         ---@type openmw.core.MagicEffect?
-        local effectRecord = core.magic.effects.records[effect.id] or
-            (I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effect.id))
+        local effectRecord = Alchemy.getEffectRecord(effect.id)
 
         if not effectRecord or effectRecord.baseCost <= 0 then
             error("invalid base cost for magic effect '" .. effect.id .. "'")
@@ -352,7 +432,11 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
             }
             idx = idx + 1
             table.insert(effects, newEffect)
-            table.insert(known, #effects <= knownCount)
+            if config.main.b_ReplacePotionKnowledge then
+                table.insert(known, matchingKnowledge[i])
+            else
+                table.insert(known, #effects <= knownCount)
+            end
         end
     end
 
@@ -421,7 +505,7 @@ Alchemy.findPotion = function(record, opts)
     for i = 1, #types.Potion.records do
         ---@type openmw.types.PotionRecord
         local potion = types.Potion.records[i]
-        if not generated or potion.id:lower():sub(1, 9) == "generated" then
+        if not generated or isGeneratedId(potion.id) then
             if potionRecordsEqual(record, potion, opts) then return potion end
         end
     end
@@ -452,10 +536,50 @@ Alchemy.getKnownEffectFlagsForIngredient = function(ingredient, actor)
     ingredient = Alchemy.toIngredientRecord(ingredient)
     if not ingredient then return {} end
     local known = Alchemy.getKnownAlchemyEffectCount(actor, false)
+    local knowledge = Alchemy.knowledge.ingredientKnowledge[ingredient.id]
     local result = {}
     for i = 1, #ingredient.effects do
-        --TODO: implement custom logic for knowing effects
         result[i] = i <= known
+        if config.main.b_ReplacePotionKnowledge and knowledge then
+            result[i] = result[i] or knowledge[i]
+        end
+    end
+    return result
+end
+
+---Returns map of effect index to whether actor knows this effect. If actor is omitted - assume we know all effects.
+---@param potion string|openmw.types.PotionRecord|nil
+---@param actor openmw.LObject|openmw.GObject|nil
+---@return table<integer, boolean>
+Alchemy.getKnownEffectFlagsForPotion = function(potion, actor)
+    potion = Alchemy.toPotionRecord(potion)
+    if not potion then return {} end
+    local known = Alchemy.getKnownAlchemyEffectCount(actor, true)
+    local knowledge = Alchemy.knowledge.potionKnowledge[potion.id]
+    local wasDrank = knowledge == true
+    local result = {}
+
+    local hasHarmful = false
+    local hasGood = false
+    for i = 1, #potion.effects do
+        local effect = potion.effects[i]
+        hasHarmful = hasHarmful or effect.effect.harmful
+        hasGood = hasGood or not effect.effect.harmful
+    end
+    for i = 1, #potion.effects do
+        local effect = potion.effects[i]
+        if not config.main.b_ReplacePotionKnowledge then
+            result[i] = i <= known
+        else
+            if wasDrank then
+                result[i] = wasDrank
+            elseif isGeneratedId(potion.id) then
+                result[i] = type(knowledge) == "table" and knowledge[i]
+            else
+                local effectRecord = effect.effect or Alchemy.getEffectRecord(effect.id)
+                result[i] = effectRecord and (not effectRecord.harmful or not hasGood)
+            end
+        end
     end
     return result
 end

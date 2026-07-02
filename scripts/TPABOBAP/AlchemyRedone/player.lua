@@ -13,6 +13,9 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
 local Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
+local config = require("scripts.TPABOBAP.AlchemyRedone.config")
+
+local needsInitialization = true
 
 ---@return AlchemyData
 local function defaultData()
@@ -219,6 +222,27 @@ m.unregisterPotionModifier = function(modId)
     end
 end
 
+---@param item GameObject
+---@param layout openmw.ui.Layout
+---@return openmw.ui.Layout?
+m.modifyTooltip = function(item, layout)
+    if not config.main.b_ReplacePotionKnowledge then return end
+    if item.type == types.Potion or item.type == types.Ingredient then
+        local effects = H.findLayoutByPathSafe(layout, { 'padding', 'tooltip', 'effects' })
+        if not effects then return end
+        effects.content = Ingredients.getIEMagicEffectsContent(item, player)
+    end
+end
+
+m.getKnownEffectFlagsForItem = function(item)
+    if item.type == types.Potion then
+        return A.getKnownEffectFlagsForPotion(A.toPotionRecord(item.recordId), player)
+    elseif item.type == types.Ingredient then
+        return A.getKnownEffectFlagsForIngredient(A.toIngredientRecord(item.recordId), player)
+    end
+    return {}
+end
+
 ---@param evt openmw.input.KeyboardEvent
 local function onKeyRelease(evt)
     if evt.code == input.KEY.Escape then
@@ -235,7 +259,26 @@ local function closeWindow()
     m.closeWindow()
 end
 
+---@param data CreatedPotionData
 m.useSkill = function(data)
+    --updating known effects of brewed potion
+    local potion = A.toPotionRecord(data.potion)
+    if potion and A.knowledge.potionKnowledge[data.potion] ~= true then
+        local effects, known = A.getMatchingEffects(data.ingredients, player)
+        local all = true
+        local knowledge = {}
+        for i = 1, #effects do
+            local k = A.containsEffect(potion.effects, effects[i])
+            if k then
+                knowledge[k] = known[i]
+                if not known[i] then
+                    all = false
+                end
+            end
+        end
+        A.knowledge.potionKnowledge[data.potion] = all or knowledge
+    end
+
     I.SkillProgression.skillUsed('alchemy', {
         useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
         scale = data.brewed,
@@ -264,11 +307,49 @@ local function onFrame()
     ctx.updateQueue = {}
 end
 
+local function onUpdate()
+    if needsInitialization then
+        needsInitialization = false
+
+        if I.InventoryExtender then
+            I.InventoryExtender.registerTooltipModifier('alchemy-redone', m.modifyTooltip)
+        end
+    end
+end
+
+local function onConsume(item)
+    A.onItemConsumed(item)
+end
+
+---@class AlchemySaveData
+---@field version integer
+---@field knowledge AlchemyKnowledge?
+
+---@param loadData AlchemySaveData
+local function onLoad(loadData)
+    local knowledge = loadData and loadData.knowledge
+    if knowledge then
+        A.knowledge.potionKnowledge = knowledge.potionKnowledge or {}
+        A.knowledge.ingredientKnowledge = knowledge.ingredientKnowledge or {}
+        A.knowledge.recipeProgress = knowledge.recipeProgress or {}
+    end
+end
+
+---@return AlchemySaveData
+local function onSave()
+    return {
+        version = 1,
+        knowledge = A.knowledge,
+    }
+end
+
 ---@type openmw.interfaces.TPA_AlchemyRedone
 local Interface = {
     apiVersion = 1,
     registerPotionModifier = m.registerPotionModifier,
     unregisterPotionModifier = m.unregisterPotionModifier,
+    --knowledge = knowledge, --Not sure if this is needed to be exported
+    getKnownEffectFlagsForItem = m.getKnownEffectFlagsForItem,
 }
 
 I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
@@ -280,6 +361,10 @@ return {
         onKeyRelease = onKeyRelease,
         onMouseWheel = onMouseWheel,
         onFrame = onFrame,
+        onUpdate = onUpdate,
+        onConsume = onConsume,
+        onLoad = onLoad,
+        onSave = onSave,
     },
     eventHandlers = {
         TPA_AlchemyRedone_Open = m.onOpenAlchemy,

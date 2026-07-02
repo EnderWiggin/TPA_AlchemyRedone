@@ -188,7 +188,7 @@ end
 
 ---@param layoutOrElement openmw.ui.Element|openmw.ui.Layout|nil
 ---@param path string[]|integer[]
----@return openmw.ui.Layout
+---@return openmw.ui.Layout layout the requested layout, otherwise throws error
 Helpers.findLayoutByPath = function(layoutOrElement, path)
     if not layoutOrElement then error('empty layoutOrElement') end
     local layout = Helpers.toLayout(layoutOrElement)
@@ -211,6 +211,14 @@ Helpers.findLayoutByPath = function(layoutOrElement, path)
         end
     end
     return layout or error('empty layout for path: "' .. table.concat(path, '/') .. '"')
+end
+
+---@param layoutOrElement openmw.ui.Element|openmw.ui.Layout|nil
+---@param path string[]|integer[]
+---@return openmw.ui.Layout? layout requested layout or nil if not found
+Helpers.findLayoutByPathSafe = function(layoutOrElement, path)
+    local ok, layout = pcall(Helpers.findLayoutByPath, layoutOrElement, path)
+    return ok and layout or nil
 end
 
 -- Checks if two tables contain the same elements (ignoring order)
@@ -1213,7 +1221,7 @@ if isPlayer then
         return visibleEffectCount
     end
 
-    Helpers.getTooltipMagicEffectEntries = function(item)
+    Helpers.getTooltipMagicEffectEntries = function(item, actor)
         local itemRecord = item.type.record(item)
         local effectsToShow = {}
         local enchantment
@@ -1233,12 +1241,18 @@ if isPlayer then
                 })
             end
         elseif types.Potion.objectIsInstance(item) or types.Ingredient.objectIsInstance(item) then
-            local visibleEffectCount = getKnownAlchemyEffectCount(item)
+            local isPotion = types.Potion.objectIsInstance(item)
+            local known
+            if isPotion then
+                known = A.getKnownEffectFlagsForPotion(item.recordId, actor)
+            else
+                known = A.getKnownEffectFlagsForIngredient(item.recordId, actor)
+            end
             for i, effect in ipairs(itemRecord.effects) do
-                local isVisible = i <= visibleEffectCount
+                local isVisible = known[i]
                 local effectText = nil
                 if isVisible then
-                    if types.Potion.objectIsInstance(item) then
+                    if isPotion then
                         effectText = Helpers.createSpellEffectString(effect, false, true)
                     else
                         effectText = Helpers.getMagicEffectString(effect)
