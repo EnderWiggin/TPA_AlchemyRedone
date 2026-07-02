@@ -1108,22 +1108,26 @@ parts.resultingEffects = function(self)
                     if i ~= 1 then
                         table.insert(effectLayouts, T.Base.intervalV(GAP_EFFECT))
                     end
-                    local description = H.getMagicEffectDescription(effect)
-                    table.insert(effectLayouts, T.Special.interactive({
-                        name = 'effect_' .. i,
-                        tooltipFn = function()
-                            return T.Special.tooltip(4, ui.content {
-                                {
-                                    template = T.Base.textParagraph,
-                                    props = {
-                                        text = description,
-                                        textAlignH = ui.ALIGNMENT.Center,
-                                        size = v2(BLOCK_WIDTH, 0),
-                                    }
-                                },
-                            }, effect.id)
-                        end,
-                    }, effectLayout, self.ctx))
+                    if isVisible then
+                        local description = H.getMagicEffectDescription(effect)
+                        table.insert(effectLayouts, T.Special.interactive({
+                            name = 'effect_' .. i,
+                            tooltipFn = function()
+                                return T.Special.tooltip(4, ui.content {
+                                    {
+                                        template = T.Base.textParagraph,
+                                        props = {
+                                            text = description,
+                                            textAlignH = ui.ALIGNMENT.Center,
+                                            size = v2(BLOCK_WIDTH, 0),
+                                        }
+                                    },
+                                }, effect.id)
+                            end,
+                        }, effectLayout, self.ctx))
+                    else
+                        table.insert(effectLayouts, effectLayout)
+                    end
                 end
 
 
