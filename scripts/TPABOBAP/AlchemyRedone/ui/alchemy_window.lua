@@ -1060,6 +1060,70 @@ end
 parts.resultingEffects = function(self)
     local element
     local path = { 'result-box', 'padding', 'effect-list' }
+    local info = ui.create {
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = true,
+            arrange = ui.ALIGNMENT.Center,
+        },
+        content = ui.content {
+        },
+    }
+
+    ---@param potion openmw.types.PotionRecord
+    local function updateInfo(potion)
+        local value = potion.value
+        local weight = H.roundToPlaces(potion.weight, 2)
+
+        local content = ui.content {
+            T.Base.intervalH(5),
+        }
+
+        if value > 0 then
+            content:add {
+                name = 'value-icon',
+                type = ui.TYPE.Image,
+                props = {
+                    size = v2(16, 16),
+                    resource = T.Base.createTexture('icons/gold.dds'),
+                }
+            }
+            content:add {
+                name = 'value-text',
+                template = T.Base.textNormal,
+                props = {
+                    text = ' ' .. H.addSeparators(value),
+                    anchor = v2(0.5, 0),
+                    relativePosition = v2(0.5, 0),
+                }
+            }
+            content:add(T.Base.intervalH(15))
+        end
+
+        if weight > 0 then
+            content:add {
+                name = 'weight-icon',
+                type = ui.TYPE.Image,
+                props = {
+                    size = v2(16, 16),
+                    resource = T.Base.createTexture('icons/weight.dds'),
+                }
+            }
+            content:add {
+                name = 'weight-text',
+                template = T.Base.textNormal,
+                props = {
+                    text = ' ' .. weight,
+                    anchor = v2(0.5, 0),
+                    relativePosition = v2(0.5, 0),
+                }
+            }
+        end
+
+        info.layout.content = content
+        info:update()
+    end
+
     local wdg = {
         update = function()
             local effects = H.findLayoutByPath(element, path)
@@ -1072,27 +1136,28 @@ parts.resultingEffects = function(self)
             local matching = self.data.matching
             local known = self.data.matchingKnowledge
             local full = false
-            if self.showFullEffects or config.main.b_ReplacePotionKnowledge then
-                local potion, code, k = self:getTempPotionStats()
-                if code == A.PotionErrors.OK then
-                    matching = potion.effects
-                    known = k
-                    full = self.showFullEffects
-                elseif code == A.PotionErrors.FAIL then
-                    if matching and #matching > 0 then
-                        effects.content:add(
-                            {
-                                template = T.Base.textParagraph,
-                                props = {
-                                    text = l10n('All_Effects_Neutralized'),
-                                    textAlignH = ui.ALIGNMENT.Center,
-                                    size = v2(BLOCK_WIDTH, 0),
-                                }
+            local potion, code, k = self:getTempPotionStats()
+
+            updateInfo(potion)
+
+            if code == A.PotionErrors.OK then
+                matching = potion.effects
+                known = k
+                full = self.showFullEffects
+            elseif code == A.PotionErrors.FAIL then
+                if matching and #matching > 0 then
+                    effects.content:add(
+                        {
+                            template = T.Base.textParagraph,
+                            props = {
+                                text = l10n('All_Effects_Neutralized'),
+                                textAlignH = ui.ALIGNMENT.Center,
+                                size = v2(BLOCK_WIDTH, 0),
                             }
-                        )
-                    end
-                    matching = nil
+                        }
+                    )
                 end
+                matching = nil
             end
             if matching then
                 effectCount = math.max(effectCount, #matching)
@@ -1203,6 +1268,8 @@ parts.resultingEffects = function(self)
             },
             T.Base.intervalV(3),
             box,
+            T.Base.intervalV(5),
+            info
         }
     }
 
