@@ -279,4 +279,11 @@ C.TypeToService = {
     Miscellaneous = "Misc",
 }
 
+---@enum InterfaceReimaginedMode
+C.InterfaceReimaginedMode = {
+    Auto = 'InterfaceReimaginedMode_Auto',
+    ON = 'InterfaceReimaginedMode_On',
+    OFF = 'InterfaceReimaginedMode_Off',
+}
+
 return C

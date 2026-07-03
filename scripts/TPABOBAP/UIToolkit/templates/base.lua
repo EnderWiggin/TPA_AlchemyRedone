@@ -12,8 +12,9 @@ local omwConstants = require('scripts.omw.mwui.constants')
 
 local helpers = require('scripts.TPABOBAP.UIToolkit.helpers')
 local constants = require('scripts.TPABOBAP.UIToolkit.constants')
+local storage = require('openmw.storage')
 
---local configPlayer = require('scripts.InventoryExtender.config.player')
+local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 
 --detects Interface Reimagined by existence of a file it adds
 local hasRe = vfs.fileExists('textures/menu_thin_border_top2.dds')
@@ -26,6 +27,28 @@ local BORDER_THICKNESS = omwConstants.border
 local BORDER_THICKNESS_THICK = omwConstants.thickBorder
 
 local Templates = {}
+
+local function updateConfig()
+    local mode = cfgPlayer.ui.s_intReMode
+    print('updateConfig', mode, hasRe)
+    if mode == constants.InterfaceReimaginedMode.Auto then
+        intRe = hasRe
+    elseif mode == constants.InterfaceReimaginedMode.OFF then
+        intRe = false
+    elseif mode == constants.InterfaceReimaginedMode.ON then
+        intRe = true
+    end
+
+    --[[
+    Templates.TEXT_SIZE = configPlayer.window.i_TextSizeOverride > 0 and configPlayer.window.i_TextSizeOverride or
+    omwConstants.textNormalSize
+    Templates.textNormal.props.textSize = Templates.TEXT_SIZE
+    Templates.textHeader.props.textSize = Templates.TEXT_SIZE
+    Templates.textParagraph.props.textSize = Templates.TEXT_SIZE
+    Templates.textEditLine.props.textSize = Templates.TEXT_SIZE
+    ]]
+end
+storage.playerSection('TPA_AlchemyRedone/InterfaceSettings'):subscribe(async:callback(updateConfig))
 
 --Templates.TEXT_SIZE = configPlayer.window.i_TextSizeOverride > 0 and configPlayer.window.i_TextSizeOverride or omwConstants.textNormalSize
 Templates.TEXT_SIZE = omwConstants.textNormalSize
@@ -1360,15 +1383,6 @@ Templates.wrapper = {
     content = ui.content {}
 }
 
---[[
-configPlayer.onUpdate(function()
-    intRe = configPlayer.modIntegration.b_InterfaceReimagined
-    Templates.TEXT_SIZE = configPlayer.window.i_TextSizeOverride > 0 and configPlayer.window.i_TextSizeOverride or omwConstants.textNormalSize
-    Templates.textNormal.props.textSize = Templates.TEXT_SIZE
-    Templates.textHeader.props.textSize = Templates.TEXT_SIZE
-    Templates.textParagraph.props.textSize = Templates.TEXT_SIZE
-    Templates.textEditLine.props.textSize = Templates.TEXT_SIZE
-end)
-]]
+updateConfig()
 
 return Templates

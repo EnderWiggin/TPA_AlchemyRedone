@@ -49,6 +49,15 @@ ReworkSettingsDesc: "Changes:\n
   - Ingredients also reveal all known effects from brewed potion\n
   \n
   Makes sense only if you have Inventory Extender installed - otherwise tooltips will show effects in vanilla way."
-                    
+
 SettingReworkEnabled: Enable
 SettingSettingReworkEnabledDesc: Enables reworked effect discovery.
+
+# -------------- Interface Block --------------
+InterfaceSettingsName: Interface
+
+SettingIntReMode: Interface Reimagined Support
+
+InterfaceReimaginedMode_Auto: "Auto"
+InterfaceReimaginedMode_On: " On "
+InterfaceReimaginedMode_Off: "Off "
