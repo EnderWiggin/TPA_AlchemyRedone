@@ -15,7 +15,8 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
 local Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
-local config = require("scripts.TPABOBAP.AlchemyRedone.config")
+local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
+local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 
 
 local function updatePermissions()
@@ -23,9 +24,9 @@ local function updatePermissions()
     local data = {
         actor = player,
         permissions = {
-            enabled = config.main.b_Enabled,
-            allowCorpses = config.main.b_AllowCorpseIngredients,
-            allowOwned = config.main.b_AllowOwnedContainerIngredients,
+            enabled = cfgPlayer.main.b_Enabled,
+            allowCorpses = cfgPlayer.main.b_AllowCorpseIngredients,
+            allowOwned = cfgPlayer.main.b_AllowOwnedContainerIngredients,
         }
     }
     core.sendGlobalEvent('TPA_AlchemyRedone_UpdatePermissions', data)
@@ -257,7 +258,7 @@ end
 ---@param layout openmw.ui.Layout
 ---@return openmw.ui.Layout?
 m.modifyTooltip = function(item, layout)
-    if not config.rework.b_Enabled or not config.main.b_Enabled then return end
+    if not cfgGlobal.rework.b_Enabled or not cfgPlayer.main.b_Enabled then return end
     if item.type == types.Potion or item.type == types.Ingredient then
         local effects = H.findLayoutByPathSafe(layout, { 'padding', 'tooltip', 'effects' })
         if not effects then return end
@@ -276,7 +277,7 @@ end
 
 ---@param evt openmw.input.KeyboardEvent
 local function onKeyRelease(evt)
-    if not config.main.b_Enabled then return end
+    if not cfgPlayer.main.b_Enabled then return end
     if evt.code == input.KEY.Escape then
         m.closeWindow()
         return
@@ -303,7 +304,7 @@ m.useSkill = function(data)
 end
 
 local function onMouseWheel(v)
-    if not config.main.b_Enabled then return end
+    if not cfgPlayer.main.b_Enabled then return end
 
     if ctx.focusedScrollable and ctx.focusedScrollable.layout then
         local layout = ctx.focusedScrollable.layout
@@ -317,7 +318,7 @@ local function onMouseWheel(v)
 end
 
 local function onFrame()
-    if not config.main.b_Enabled then return end
+    if not cfgPlayer.main.b_Enabled then return end
     if I.UI.getMode() ~= I.UI.MODE.Alchemy then return end
 
     for element in pairs(ctx.updateQueue) do
@@ -327,7 +328,7 @@ local function onFrame()
 end
 
 local function onUpdate()
-    if not config.main.b_Enabled then return end
+    if not cfgPlayer.main.b_Enabled then return end
     if needsInitialization then
         needsInitialization = false
 
@@ -340,7 +341,7 @@ local function onUpdate()
 end
 
 local function onConsume(item)
-    if not config.main.b_Enabled then return end
+    if not cfgPlayer.main.b_Enabled then return end
     A.onItemConsumed(item)
 end
 
@@ -369,7 +370,7 @@ end
 ---@type openmw.interfaces.TPA_AlchemyRedone
 local Interface = {
     apiVersion = 1,
-    isEnabled = function() return config.main.b_Enabled end,
+    isEnabled = function() return cfgPlayer.main.b_Enabled end,
     registerPotionModifier = m.registerPotionModifier,
     unregisterPotionModifier = m.unregisterPotionModifier,
     --knowledge = knowledge, --Not sure if this is needed to be exported
@@ -377,7 +378,7 @@ local Interface = {
 }
 
 --- Requires both lua reload and save load to toggle.
-if config.main.b_Enabled then
+if cfgPlayer.main.b_Enabled then
     I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
 end
 

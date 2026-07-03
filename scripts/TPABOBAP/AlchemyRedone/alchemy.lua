@@ -5,7 +5,7 @@ local util = require("openmw.util")
 local types = require("openmw.types")
 local I = require("openmw.interfaces")
 
-local config = require("scripts.TPABOBAP.AlchemyRedone.config")
+local cfgGlobal = require("scripts.TPABOBAP.AlchemyRedone.config.global")
 
 ---@param id string
 ---@return boolean
@@ -38,7 +38,7 @@ Alchemy.PotionErrors = {
 
 ---@param item openmw.Object
 Alchemy.onItemConsumed = function(item)
-    if not config.rework.b_Enabled then return end
+    if not cfgGlobal.rework.b_Enabled then return end
     if types.Potion.objectIsInstance(item) then
         Alchemy.knowledge.potionKnowledge[item.recordId] = true
     end
@@ -168,7 +168,7 @@ Alchemy.getMatchingEffects = function(recordsOrIds, actor)
                             knowledge[e] = knowledge[e] or known[k]
                         elseif m ~= nil then
                             table.insert(effects, effect)
-                            if config.rework.b_Enabled then
+                            if cfgGlobal.rework.b_Enabled then
                                 table.insert(knowledge, known[k] or known2[m])
                             else
                                 table.insert(knowledge, knownCount >= #effects) -- OpenMW shows known matching effect as if this was ready potion
@@ -429,7 +429,7 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
             }
             idx = idx + 1
             table.insert(effects, newEffect)
-            if config.rework.b_Enabled then
+            if cfgGlobal.rework.b_Enabled then
                 table.insert(known, matchingKnowledge[i])
             else
                 table.insert(known, #effects <= knownCount)
@@ -537,7 +537,7 @@ Alchemy.getKnownEffectFlagsForIngredient = function(ingredient, actor)
     local result = {}
     for i = 1, #ingredient.effects do
         result[i] = i <= known
-        if config.rework.b_Enabled and knowledge then
+        if cfgGlobal.rework.b_Enabled and knowledge then
             result[i] = result[i] or knowledge[i]
         end
     end
@@ -565,7 +565,7 @@ Alchemy.getKnownEffectFlagsForPotion = function(potion, actor)
     end
     for i = 1, #potion.effects do
         local effect = potion.effects[i]
-        if not config.rework.b_Enabled then
+        if not cfgGlobal.rework.b_Enabled then
             result[i] = i <= known
         else
             if wasDrank then

@@ -11,7 +11,8 @@ local auxUi = require('openmw_aux.ui')
 local storage = require('openmw.storage')
 
 local settings = storage.playerSection('TPA_AlchemyRedone:AlchemyWindow')
-local config = require('scripts.TPABOBAP.AlchemyRedone.config')
+local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
+local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 
 local l10n = core.l10n('TPA_AlchemyRedone')
 local I = require("openmw.interfaces")
@@ -70,7 +71,7 @@ function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
     self.isPoison = false
-    self.showFullEffects = config.main.b_ShowFullEffectInfo
+    self.showFullEffects = cfgPlayer.main.b_ShowFullEffectInfo
 
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
@@ -266,7 +267,7 @@ function AlchemyWindow:getDefaultPotionName()
     local matching = self.data.matching
     local knowledge = self.data.matchingKnowledge
     if matching and #matching > 0 then
-        if config.rework.b_Enabled then
+        if cfgGlobal.rework.b_Enabled then
             local m, code, k = self:getTempPotionStats()
             if code == A.PotionErrors.OK or code == A.PotionErrors.FAIL then
                 matching = m.effects
@@ -359,9 +360,9 @@ function AlchemyWindow:createPotion()
             effects[i].effect = nil
         end
 
-        if config.rework.b_Enabled then
+        if cfgGlobal.rework.b_Enabled then
             local progress = A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] or 0
-            progress = progress + brewed * config.PROGRESS
+            progress = progress + brewed * cfgGlobal.PROGRESS
             local records = A.toIngredientRecords(ingredients)
             for i = 1, #records do
                 local record = records[i]
@@ -369,9 +370,9 @@ function AlchemyWindow:createPotion()
                 for j = 1, #effects do
                     local effect = effects[j]
 
-                    if not known[j] and progress >= config.THRESHOLD then
+                    if not known[j] and progress >= cfgGlobal.THRESHOLD then
                         known[j] = true
-                        progress = progress - config.THRESHOLD
+                        progress = progress - cfgGlobal.THRESHOLD
                     end
 
                     if known[j] then
