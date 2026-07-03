@@ -20,6 +20,13 @@ I.Settings.registerGroup {
     permanentStorage = true,
     settings = {
         {
+            key = 'b_Enabled',
+            renderer = 'checkbox',
+            name = 'SettingModEnabled',
+            description = 'SettingModEnabledDesc',
+            default = true,
+        },
+        {
             key = 'b_ShowFullEffectInfo',
             renderer = 'checkbox',
             name = 'SettingShowFullEffectInfo',

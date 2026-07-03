@@ -24,6 +24,7 @@ end
 ---@param actor openmw.GObject
 m.activateApparatus = function(_, actor)
     if actor.type == T.Player then
+        if not m.getConfig(actor).enabled then return true end
         actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(actor))
         return false
     end

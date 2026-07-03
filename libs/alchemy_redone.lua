@@ -5,6 +5,7 @@
 
 ---@class openmw.interfaces.TPA_AlchemyRedone
 ---@field apiVersion integer
+---@field isEnabled fun():boolean
 ---@field registerPotionModifier fun(modId: string, mod:TPA_AlchemyRedone.PotionModifier) `mod` should either return new draft record, or modify passed one
 ---@field unregisterPotionModifier fun(modId: string) removes potion modifier
 ---@field getKnownEffectFlagsForItem fun(item: openmw.Object): boolean[]

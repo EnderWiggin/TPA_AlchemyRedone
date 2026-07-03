@@ -8,6 +8,7 @@ local async = require('openmw.async')
 ---@field rework ReworkSettings
 
 ---@class MainSettings
+---@field b_Enabled boolean?
 ---@field b_ShowFullEffectInfo boolean?
 ---@field b_AllowOwnedContainerIngredients boolean?
 ---@field b_AllowCorpseIngredients boolean?

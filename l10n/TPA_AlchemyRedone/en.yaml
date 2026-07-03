@@ -22,6 +22,11 @@ PageDesc: Version 0.4
 # -------------- Main Block --------------
 MainSettingsName: Main Settings
 
+SettingModEnabled: Enable Mod
+SettingModEnabledDesc: |-
+  Enable or disable the mod.
+  Need to load a save for changes to take effect.
+
 SettingShowFullEffectInfo: Show full effect info
 SettingShowFullEffectInfoDesc: Created Effects block will show effect info with magnitudes and durations as affected by your skills and tools.
 
