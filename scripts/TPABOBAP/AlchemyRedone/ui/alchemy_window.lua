@@ -370,9 +370,10 @@ function AlchemyWindow:createPotion()
                 for j = 1, #effects do
                     local effect = effects[j]
 
-                    if not known[j] and progress >= cfgGlobal.THRESHOLD then
+                    local threshold = cfgGlobal.rework.n_PotionKnowledgeThreshold or cfgGlobal.THRESHOLD
+                    if not known[j] and progress >= threshold then
                         known[j] = true
-                        progress = progress - cfgGlobal.THRESHOLD
+                        progress = progress - threshold
                     end
 
                     if known[j] then

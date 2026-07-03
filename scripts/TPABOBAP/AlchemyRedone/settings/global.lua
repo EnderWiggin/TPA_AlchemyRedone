@@ -20,5 +20,16 @@ I.Settings.registerGroup {
             description = 'SettingSettingReworkEnabledDesc',
             default = false,
         },
+        {
+            key = 'n_PotionKnowledgeThreshold',
+            renderer = 'number',
+            name = 'SettingPotionKnowledgeThreshold',
+            description = 'SettingPotionKnowledgeThresholdDesc',
+            default = 5,
+            argument = {
+                min = 1,
+                max = 20,
+            }
+        },
     },
 }
