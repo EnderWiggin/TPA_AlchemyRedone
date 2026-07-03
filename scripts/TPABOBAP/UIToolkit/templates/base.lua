@@ -30,7 +30,6 @@ local Templates = {}
 
 local function updateConfig()
     local mode = cfgPlayer.ui.s_intReMode
-    print('updateConfig', mode, hasRe)
     if mode == constants.InterfaceReimaginedMode.Auto then
         intRe = hasRe
     elseif mode == constants.InterfaceReimaginedMode.OFF then
