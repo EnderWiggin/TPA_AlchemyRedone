@@ -197,6 +197,14 @@ end
 ---@param modId string
 ---@param mod TPA_AlchemyRedone.PotionModifier
 m.registerPotionModifier = function(modId, mod)
+    if type(modId) ~= 'string' or type(mod) ~= 'function' then
+        core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', {
+            'Error while registering potion modifier:',
+            'TPA_AlchemyRedone.registerPotionModifier accepts 2 arguments: modId (string) and mod (function)!',
+            'Got modId as "' .. type(modId) .. '" and mod as "' .. type(mod) .. '"'
+        })
+        return
+    end
     for i = 1, #ctx.potionModifiers do
         local existingModifier = ctx.potionModifiers[i]
         if existingModifier.id:lower() == modId:lower() then
