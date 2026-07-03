@@ -1207,20 +1207,6 @@ if isPlayer then
         return effect.description
     end
 
-    local function getKnownAlchemyEffectCount(item)
-        if not self or not self.type or not self.type.stats or not self.type.stats.skills or not self.type.stats.skills.alchemy then
-            return 0
-        end
-
-        local alchemy = self.type.stats.skills.alchemy(self).base
-        local threshold = core.getGMST('fWortChanceValue')
-        local visibleEffectCount = math.floor(alchemy / threshold)
-        if types.Potion.objectIsInstance(item) then
-            visibleEffectCount = visibleEffectCount * 2
-        end
-        return visibleEffectCount
-    end
-
     Helpers.getTooltipMagicEffectEntries = function(item, actor)
         local itemRecord = item.type.record(item)
         local effectsToShow = {}
