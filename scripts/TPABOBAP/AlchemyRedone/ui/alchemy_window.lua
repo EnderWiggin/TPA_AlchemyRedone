@@ -294,13 +294,13 @@ end
 
 function AlchemyWindow:getTempPotionStats()
     local ingredients = self:getSelectedIngredientList()
-    local draft, errorCode = A.getPotionStats('temp', ingredients, self.data.apparatus, player,
+    local draft, errorCode, knowledge = A.getPotionStats('temp', ingredients, self.data.apparatus, player,
         { isPoison = self.isPoison })
 
     if errorCode == A.PotionErrors.OK then
         draft = self:applyMods(draft, ingredients)
     end
-    return draft
+    return draft, errorCode, knowledge
 end
 
 function AlchemyWindow:updateMatchingEffects()
