@@ -292,7 +292,14 @@ function AlchemyWindow:updateDefaultName()
 end
 
 function AlchemyWindow:getTempPotionStats()
-    return A.getPotionStats('temp', self.data.selected, self.data.apparatus, player, { isPoison = self.isPoison })
+    local ingredients = self:getSelectedIngredientList()
+    local draft, errorCode = A.getPotionStats('temp', ingredients, self.data.apparatus, player,
+        { isPoison = self.isPoison })
+
+    if errorCode == A.PotionErrors.OK then
+        draft = self:applyMods(draft, ingredients)
+    end
+    return draft
 end
 
 function AlchemyWindow:updateMatchingEffects()
@@ -305,6 +312,21 @@ end
 
 local function handleModError(...)
     core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { ... })
+end
+
+---@param draft openmw.types.PotionRecord
+---@param ingredients string[]
+function AlchemyWindow:applyMods(draft, ingredients)
+    for i = 1, #self.ctx.potionModifiers do
+        local modData = self.ctx.potionModifiers[i]
+        local ok, result = xpcall(modData.mod, function(err)
+            handleModError(('ERROR in potion modifier [%s]'):format(modData.id), err)
+        end, draft, ingredients)
+        if ok then
+            draft = result or draft
+        end
+    end
+    return draft
 end
 
 function AlchemyWindow:createPotion()
@@ -329,15 +351,7 @@ function AlchemyWindow:createPotion()
     end
 
     if errorCode == A.PotionErrors.OK then --Brewing succeeded
-        for i = 1, #self.ctx.potionModifiers do
-            local modData = self.ctx.potionModifiers[i]
-            local ok, result = xpcall(modData.mod, function(err)
-                handleModError(('ERROR in potion modifier [%s]'):format(modData.id), err)
-            end, draft, ingredients)
-            if ok then
-                draft = result or draft
-            end
-        end
+        draft = self:applyMods(draft, ingredients)
 
         local effects = draft.effects
         for i = 1, #effects do
