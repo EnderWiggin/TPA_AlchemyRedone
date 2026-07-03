@@ -145,12 +145,14 @@ end
 ---@field brewed integer
 ---@field draft openmw.types.PotionRecord
 ---@field ingredients string[]
+---@field isPoison boolean
 
 ---@class CreatedPotionData
 ---@field batch integer
 ---@field brewed integer
 ---@field potion string
 ---@field ingredients string[]
+---@field isPoison boolean
 
 ---@param data CreateAndAddNewPotionData
 m.createAndAddNewPotion = function(data)
@@ -168,6 +170,7 @@ m.createAndAddNewPotion = function(data)
         brewed = data.brewed,
         potion = potion.id,
         ingredients = data.ingredients,
+        isPoison = data.isPoison,
     }
     data.actor:sendEvent('TPA_AlchemyRedone_UseSkill', evt)
 end

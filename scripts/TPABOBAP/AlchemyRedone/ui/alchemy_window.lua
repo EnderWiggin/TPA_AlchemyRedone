@@ -379,6 +379,7 @@ function AlchemyWindow:createPotion()
             brewed = brewed,
             draft = draft,
             ingredients = ingredients,
+            isPoison = self.isPoison,
         }
         core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', data)
 
