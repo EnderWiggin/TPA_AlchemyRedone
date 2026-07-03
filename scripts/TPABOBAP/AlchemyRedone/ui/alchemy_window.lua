@@ -1,6 +1,7 @@
 ---@omw-context player
 
 local core = require("openmw.core")
+local input = require("openmw.input")
 local ui = require("openmw.ui")
 local util = require("openmw.util")
 local types = require("openmw.types")
@@ -308,7 +309,7 @@ function AlchemyWindow:updateMatchingEffects()
     self.data.matching, self.data.matchingKnowledge = A.getMatchingEffects(ingredients, player)
     self.data.nonMatching, self.data.nonMatchingKnowledge = A.getNonMatchingEffects(ingredients, player)
     self:updateDefaultName()
-    self.itemTable.layout.userData.redrawColumns()
+    self.itemTable.layout.userData.refresh()
 end
 
 local function handleModError(...)
@@ -570,6 +571,42 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel,
             },
         }
     }
+end
+
+function AlchemyWindow:onControllerButtonPress(id)
+    if not self.element then return end
+    --TODO: allow rebinding the buttons
+
+    if id == input.CONTROLLER_BUTTON.LeftShoulder then
+
+    elseif id == input.CONTROLLER_BUTTON.RightShoulder then
+
+    elseif id == input.CONTROLLER_BUTTON.DPadUp then
+        --TODO: select next ingredient in the list
+    elseif id == input.CONTROLLER_BUTTON.DPadDown then
+        --TODO: select previous ingredient in the list
+    elseif id == input.CONTROLLER_BUTTON.DPadRight then
+        self.counting.setValue(self.counting.getCount() + 1)
+    elseif id == input.CONTROLLER_BUTTON.DPadLeft then
+        self.counting.setValue(self.counting.getCount() - 1)
+    elseif id == input.CONTROLLER_BUTTON.X then
+        self:createPotion()
+    elseif id == input.CONTROLLER_BUTTON.A then
+        if self.ctx.focusedInteractive and self.ctx.focusedInteractive.layout then
+            local userData = self.ctx.focusedInteractive.layout.userData
+            if userData.onKBMRowUse then
+                userData.onKBMRowUse()
+                return
+            end
+            if userData.onRowUse then
+                userData.onRowUse()
+                return
+            end
+        end
+    elseif id == input.CONTROLLER_BUTTON.Y then
+        self.isPoison = not self.isPoison
+        self.potionTypeSelector.update()
+    end
 end
 
 ---@param defaultText fun():string
@@ -1438,6 +1475,7 @@ parts.typeSelector = function(wnd)
             wnd.isPoison = true
             update()
         end,
+        update = update,
     }
 
     potion = T.Special.interactive({

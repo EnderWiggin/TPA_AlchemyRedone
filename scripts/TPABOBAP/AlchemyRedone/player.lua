@@ -284,6 +284,12 @@ local function onKeyRelease(evt)
     end
 end
 
+local function onControllerButtonPress(id)
+    if m.wndAlchemy then
+        m.wndAlchemy:onControllerButtonPress(id)
+    end
+end
+
 local function openWindow()
     m.openWindow()
 end
@@ -321,10 +327,79 @@ local function onFrame()
     if not cfgPlayer.main.b_Enabled then return end
     if I.UI.getMode() ~= I.UI.MODE.Alchemy then return end
 
+    if ctx.focusedInteractiveDelayed ~= nil then
+        if ctx.focusedInteractiveDelayed == false then
+            ctx.focusedInteractive = nil
+        else
+            ctx.focusedInteractive = ctx.focusedInteractiveDelayed
+        end
+        ctx.focusedInteractiveDelayed = nil
+    end
+
     for element in pairs(ctx.updateQueue) do
         element:update()
     end
     ctx.updateQueue = {}
+
+    local dt = core.getRealFrameDuration()
+    local mouseMoved
+    if I.UI.getMode() ~= nil then
+        if input.getMouseMoveX() ~= 0 or input.getMouseMoveY() ~= 0 then
+            mouseMoved = true
+        end
+    end
+
+    local windows = { m.wndAlchemy }
+    for _, window in ipairs(windows) do
+        -- Clear stale hovered row pos if mouse moved NOT over the element's item table
+        if mouseMoved then
+            if window and window.itemTable and window.itemTable.layout and window.itemTable.layout.userData.getState then
+                local state = window.itemTable.layout.userData.getState()
+                local hadMouseMoveThisFrame = state.hadMouseMoveThisFrame
+                state.hadMouseMoveThisFrame = false
+
+                if not hadMouseMoveThisFrame and state.lastPointerRowPos then
+                    state.lastPointerRowPos = nil
+                    state.isPointerOverContent = false
+                end
+            end
+
+            if window.element and not window.element.layout.userData.hadMouseMoveThisFrame then
+                window:setFocused(false)
+            end
+            window.element.layout.userData.hadMouseMoveThisFrame = false
+        end
+
+        if window and window.element and window.element.layout.userData then
+            local userData = window.element.layout.userData
+            local focusDelayed = userData.focusDelayed
+            if focusDelayed ~= nil then
+                if not focusDelayed then
+                    if ctx.cursorAttachedIcon then
+                        ctx.cursorAttachedIcon.layout.props.visible = false
+                        ctx.updateQueue[ctx.cursorAttachedIcon] = true
+                    end
+                end
+                if focusDelayed ~= userData.focused then
+                    userData.focused = focusDelayed
+                end
+                userData.focusDelayed = nil
+            end
+        end
+    end
+
+    if ctx.focusedScrollable and ctx.focusedScrollable.layout then
+        local rightStick = input.getAxisValue(input.CONTROLLER_AXIS.RightY)
+        if math.abs(rightStick) > 0.2 then
+            local layout = ctx.focusedScrollable.layout
+            local pos = layout.content[1].props.position
+            layout.content[1].props.position = util.vector2(
+                pos.x,
+                util.clamp(pos.y - rightStick * layout.userData.scrollStep / 4 * dt * 60, -layout.userData.scrollLimit, 0)
+            )
+            layout.userData.onScroll()
+        end
+    end
 end
 
 local function onUpdate()
@@ -393,6 +468,7 @@ return {
         onConsume = onConsume,
         onLoad = onLoad,
         onSave = onSave,
+        onControllerButtonPress = onControllerButtonPress,
     },
     eventHandlers = {
         TPA_AlchemyRedone_Open = m.onOpenAlchemy,

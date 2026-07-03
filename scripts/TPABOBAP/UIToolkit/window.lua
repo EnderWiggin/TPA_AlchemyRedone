@@ -11,6 +11,8 @@ local v2 = util.vector2
 
 ---@class WindowContext
 ---@field updateQueue table<openmw.ui.Element, boolean>
+---@field focusedInteractiveDelayed openmw.ui.Element?
+---@field focusedInteractive openmw.ui.Element?
 ---@field focusedScrollable openmw.ui.Element?
 ---@field activeTooltip openmw.ui.Element?
 
@@ -111,6 +113,8 @@ end
 function Window:saveState() end
 
 function Window:loadState() end
+
+function Window:onControllerButtonPress(id) end
 
 function Window:destroy()
     self:saveState()
