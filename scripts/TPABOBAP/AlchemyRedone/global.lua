@@ -5,10 +5,21 @@ local T = require("openmw.types")
 local I = require("openmw.interfaces")
 local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
-local config = require('scripts.TPABOBAP.AlchemyRedone.config')
+
+---@alias AlchemyPermissionCfg {enabled: boolean?, allowCorpses: boolean?, allowOwned: boolean?}
+---@alias AlchemyPermissionUpdateEvent {actor: openmw.Object, permissions: AlchemyPermissionCfg}
+
+---@type table<string, AlchemyPermissionCfg>
+local config = {}
 
 
 local m = {}
+
+---@param actor openmw.GObject
+---@return AlchemyPermissionCfg
+m.getConfig = function(actor)
+    return config[actor.id] or {}
+end
 
 ---@param actor openmw.GObject
 m.activateApparatus = function(_, actor)
@@ -101,9 +112,12 @@ m.collectAlchemyInfo = function(actor)
         actor.cell:getAll(T.Apparatus),
         inventory:getAll(T.Apparatus)
     )
-    local sources = m.filterContainers(actor.cell:getAll(T.Container), m.isAllowedIngredientContainer)
+    local cfg = m.getConfig(actor)
+    local sources = m.filterContainers(actor.cell:getAll(T.Container), function(container)
+        return m.isAllowedIngredientContainer(container, cfg.allowOwned)
+    end)
 
-    if config.main.b_AllowCorpseIngredients then
+    if cfg.allowCorpses then
         local corpses = m.filterContainers(actor.cell:getAll(T.NPC), m.isAllowedCorpseContainer)
         for i = 1, #corpses do
             table.insert(sources, corpses[i])
@@ -248,9 +262,10 @@ m.isResolved = function(object)
 end
 
 ---@param object openmw.GObject
+---@param allowOwned boolean
 ---@return boolean
-m.isAllowedIngredientContainer = function(object)
-    return (config.main.b_AllowOwnedContainerIngredients or not m.isOwned(object)) and m.isResolved(object)
+m.isAllowedIngredientContainer = function(object, allowOwned)
+    return (allowOwned or not m.isOwned(object)) and m.isResolved(object)
 end
 
 ---@param object openmw.GObject
@@ -261,6 +276,10 @@ m.isAllowedCorpseContainer = function(object)
         and m.isResolved(object)
 end
 
+---@param data AlchemyPermissionUpdateEvent
+local function onUpdatePermissions(data)
+    config[data.actor.id] = data.permissions
+end
 
 local function printError(data)
     if #data > 0 then
@@ -284,6 +303,7 @@ return {
         TPA_AlchemyRedone_CreateAndAddNewPotion = m.createAndAddNewPotion,
         TPA_AlchemyRedone_AddItem = function(data) m.addObject(data.actor, data.recordId, data.count) end,
         TPA_AlchemyRedone_DeductIngredients = m.deductIngredients,
+        TPA_AlchemyRedone_UpdatePermissions = onUpdatePermissions,
         TPA_AlchemyRedone_PrintError = printError,
     },
 }

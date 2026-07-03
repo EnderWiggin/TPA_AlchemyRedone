@@ -1,6 +1,8 @@
 ---@omw-context player
 
 local core = require('openmw.core')
+local async = require('openmw.async')
+local storage = require('openmw.storage')
 local types = require("openmw.types")
 local input = require('openmw.input')
 local util = require('openmw.util')
@@ -14,6 +16,22 @@ local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
 local Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
 local config = require("scripts.TPABOBAP.AlchemyRedone.config")
+
+
+local function updatePermissions()
+    ---@type AlchemyPermissionUpdateEvent
+    local data = {
+        actor = player,
+        permissions = {
+            enabled = true, --TODO: get from config
+            allowCorpses = config.main.b_AllowCorpseIngredients,
+            allowOwned = config.main.b_AllowOwnedContainerIngredients,
+        }
+    }
+    core.sendGlobalEvent('TPA_AlchemyRedone_UpdatePermissions', data)
+end
+
+storage.playerSection('TPA_AlchemyRedone/MainSettings'):subscribe(async:callback(updatePermissions))
 
 local needsInitialization = true
 
@@ -234,7 +252,7 @@ end
 ---@param layout openmw.ui.Layout
 ---@return openmw.ui.Layout?
 m.modifyTooltip = function(item, layout)
-    if not config.main.b_ReplacePotionKnowledge then return end
+    if not config.rework.b_Enabled then return end
     if item.type == types.Potion or item.type == types.Ingredient then
         local effects = H.findLayoutByPathSafe(layout, { 'padding', 'tooltip', 'effects' })
         if not effects then return end
@@ -306,6 +324,8 @@ local function onUpdate()
         if I.InventoryExtender then
             I.InventoryExtender.registerTooltipModifier('alchemy-redone', m.modifyTooltip)
         end
+
+        updatePermissions()
     end
 end
 

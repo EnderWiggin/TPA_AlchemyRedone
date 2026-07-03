@@ -25,21 +25,25 @@ MainSettingsName: Main Settings
 SettingShowFullEffectInfo: Show full effect info
 SettingShowFullEffectInfoDesc: Created Effects block will show effect info with magnitudes and durations as affected by your skills and tools.
 
-SettingReplacePotionKnowledge: Reworked effect discovery
-SettingReplacePotionKnowledgeDesc: "Enables reworked potion and ingredient effect discovery:\n
-  - Alchemy skill has no bearing on potion effect knowledge\n
+SettingAllowOwnedContainerIngredients: Allow ingredients from owned containers
+SettingAllowOwnedContainerIngredientsDesc: If set to true, you will be able to use ingredients from containers that are owned by others.
+
+SettingAllowCorpseIngredients: Allow ingredients from dead bodies
+SettingAllowCorpseIngredientsDesc: If set to true, you will be able to use ingredients from dead bodies.
+
+# -------------- Rework Block --------------
+ReworkSettingsName: Reworked Effect Discovery
+ReworkSettingsDesc: "Changes:\n
+  - Alchemy skill does not grant potion effect knowledge\n
   - Drinking any potion reveals all of its effects\n
   - Store-bought potions with positive effects will show all positive effects\n
-  - Store-bough potions without positive effects will display all effects\n
+  - Store-bough potions without positive effects will show all effects\n
   - Self-brewed potions will show effects that are known from at least 1 ingredient\n
   - Every 5 successfully brewed potions with same ingredents will reveal next unknown effect\n
   - Ingredients still reveal effects with Alchemy skill levels\n
   - Ingredients also reveal all known effects from brewed potion\n
   \n
   Makes sense only if you have Inventory Extender installed - otherwise tooltips will show effects in vanilla way."
-
-SettingAllowOwnedContainerIngredients: Allow ingredients from owned containers
-SettingAllowOwnedContainerIngredientsDesc: If set to true, you will be able to use ingredients from containers that are owned by others.
-
-SettingAllowCorpseIngredients: Allow ingredients from dead bodies
-SettingAllowCorpseIngredientsDesc: If set to true, you will be able to use ingredients from dead bodies.
+                    
+SettingReworkEnabled: Enable
+SettingSettingReworkEnabledDesc: Enables reworked effect discovery.

@@ -266,7 +266,7 @@ function AlchemyWindow:getDefaultPotionName()
     local matching = self.data.matching
     local knowledge = self.data.matchingKnowledge
     if matching and #matching > 0 then
-        if config.main.b_ReplacePotionKnowledge then
+        if config.rework.b_Enabled then
             local m, code, k = self:getTempPotionStats()
             if code == A.PotionErrors.OK or code == A.PotionErrors.FAIL then
                 matching = m.effects
@@ -359,7 +359,7 @@ function AlchemyWindow:createPotion()
             effects[i].effect = nil
         end
 
-        if config.main.b_ReplacePotionKnowledge then
+        if config.rework.b_Enabled then
             local progress = A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] or 0
             progress = progress + brewed * config.PROGRESS
             local records = A.toIngredientRecords(ingredients)
