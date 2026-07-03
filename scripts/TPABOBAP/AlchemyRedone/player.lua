@@ -261,23 +261,7 @@ end
 
 ---@param data CreatedPotionData
 m.useSkill = function(data)
-    --updating known effects of brewed potion
-    local potion = A.toPotionRecord(data.potion)
-    if potion and A.knowledge.potionKnowledge[data.potion] ~= true then
-        local effects, known = A.getMatchingEffects(data.ingredients, player)
-        local all = true
-        local knowledge = {}
-        for i = 1, #effects do
-            local k = A.containsEffect(potion.effects, effects[i])
-            if k then
-                knowledge[k] = known[i]
-                if not known[i] then
-                    all = false
-                end
-            end
-        end
-        A.knowledge.potionKnowledge[data.potion] = all or knowledge
-    end
+    A.updateBrewedPotionKnowledge(data.potion, data.ingredients, player)
 
     I.SkillProgression.skillUsed('alchemy', {
         useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,

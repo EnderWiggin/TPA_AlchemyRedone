@@ -70,6 +70,29 @@ Alchemy.onItemConsumed = function(item)
     end
 end
 
+--- Updates known effects of brewed potion
+---@param potion string
+---@param ingredients string[]
+---@param actor openmw.GObject|openmw.LObject|nil
+Alchemy.updateBrewedPotionKnowledge = function(potion, ingredients, actor)
+    local record = Alchemy.toPotionRecord(potion)
+    if record and Alchemy.knowledge.potionKnowledge[potion] ~= true then
+        local effects, known = Alchemy.getMatchingEffects(ingredients, actor)
+        local all = true
+        local knowledge = {}
+        for i = 1, #effects do
+            local k = Alchemy.containsEffect(record.effects, effects[i])
+            if k then
+                knowledge[k] = known[i]
+                if not known[i] then
+                    all = false
+                end
+            end
+        end
+        Alchemy.knowledge.potionKnowledge[potion] = all or knowledge
+    end
+end
+
 ---@param effectId string
 ---@return openmw.core.MagicEffect?
 Alchemy.getEffectRecord = function(effectId)
