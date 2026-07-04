@@ -18,6 +18,7 @@ local v2 = util.vector2
 ---@field focusedScrollable openmw.ui.Element?
 ---@field activeTooltip openmw.ui.Element?
 ---@field setTooltip fun(id:string, tip:TipFn, props: TipPositioning?)
+---@field setHovered fun(element:openmw.ui.Element?)
 
 ---@class Window
 ---@field protected element openmw.ui.Element?

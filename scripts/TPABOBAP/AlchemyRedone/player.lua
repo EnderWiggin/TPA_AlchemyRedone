@@ -84,7 +84,8 @@ local ctx = {
     selectIngredient = function(info) m.selectIngredient(info) end,
     clearIngredient = function(n) m.clearIngredient(n) end,
     getAllIngredients = function() return m.getAllIngredients() end,
-    setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end
+    setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end,
+    setHovered = function(element) return m.setHovered(element) end,
 }
 
 m.onOpenAlchemy = function(data)
@@ -150,6 +151,32 @@ m.setTooltip = function(id, tooltipFn, props)
 
     ctx.activeTooltip:update()
     return ctx.activeTooltip
+end
+
+---@param element openmw.ui.Element?
+m.setHovered = function(element)
+    if ctx.focusedInteractive and ctx.focusedInteractive.layout then
+        ctx.focusedInteractive.layout.userData.hovering = false
+        H.setInteractiveColor(ctx.focusedInteractive.layout)
+        ctx.updateQueue[ctx.focusedInteractive] = true
+    end
+
+    if element and element.layout then
+        element.layout.userData.hovering = true
+        H.setInteractiveColor(element.layout)
+        ctx.updateQueue[element] = true
+    end
+
+    m.setFocused(element)
+end
+
+---@param element openmw.ui.Element?
+m.setFocused = function(element)
+    if element and element.layout then
+        ctx.focusedInteractiveDelayed = element
+    else
+        ctx.focusedInteractiveDelayed = false
+    end
 end
 
 m.selectIngredient = function(info)

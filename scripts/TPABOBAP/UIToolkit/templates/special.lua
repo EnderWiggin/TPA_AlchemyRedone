@@ -32,7 +32,7 @@ Templates.TEX = {
 
 ---@param props InteractiveProps
 ---@param element openmw.ui.Element|openmw.ui.Layout
----@param ctx any
+---@param ctx WindowContext
 ---@return any
 Templates.interactive = function(props, element, ctx)
     local function absToRel(absPos)
@@ -63,6 +63,8 @@ Templates.interactive = function(props, element, ctx)
     end
 
     element = element.layout and element or ui.create(element)
+    ---@cast element openmw.ui.Element
+
     if props.name then
         element.layout.name = props.name
     end
@@ -117,8 +119,6 @@ Templates.interactive = function(props, element, ctx)
         return false
     end)
     element.layout.events.focusLoss = async:callback(function()
-        ctx.focusedInteractiveDelayed = false
-        element.layout.userData.hovering = false
         if props.tooltipFn then
             if ctx.activeTooltip and ctx.activeTooltip.layout then
                 ctx.activeTooltip.layout.props.visible = false
@@ -127,8 +127,7 @@ Templates.interactive = function(props, element, ctx)
         end
 
         if props.onClick then
-            helpers.setInteractiveColor(element.layout)
-            ctx.updateQueue[element] = true
+            ctx.setHovered(nil)
 
             if props.parent then
                 ctx.updateQueue[props.parent] = true
@@ -137,10 +136,9 @@ Templates.interactive = function(props, element, ctx)
         return true
     end)
     element.layout.events.focusGain = async:callback(function()
-        ctx.focusedInteractiveDelayed = element
         if props.onClick then
-            helpers.setInteractiveColor(element.layout)
-            ctx.updateQueue[element] = true
+            ctx.focusedInteractiveDelayed = element
+            ctx.setHovered(element)
 
             if props.parent then
                 ctx.updateQueue[props.parent] = true
@@ -152,7 +150,7 @@ Templates.interactive = function(props, element, ctx)
         if props.onMouseMove then
             props.onMouseMove(e, tgt, element)
         end
-        element.layout.userData.hovering = true
+        ctx.setHovered(element)
         if props.tooltipFn then
             if not ctx.activeTooltip or not ctx.activeTooltip.layout then
                 ctx.activeTooltip = createTooltip()
