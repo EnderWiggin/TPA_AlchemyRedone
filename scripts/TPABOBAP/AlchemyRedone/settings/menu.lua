@@ -139,6 +139,35 @@ I.Settings.registerGroup {
             description = 'SettingController_SelectPrevDesc',
             default = input.CONTROLLER_BUTTON.DPadUp,
         },
+        {
+            key = 'b_RepeatingButtons',
+            renderer = 'checkbox',
+            name = 'SettingRepeatingButtons',
+            description = 'SettingRepeatingButtonsDesc',
+            default = true,
+        },
+        {
+            key = 'n_RepeatingButtonsThreshold',
+            renderer = 'number',
+            name = 'SettingRepeatingButtonsThreshold',
+            description = 'SettingRepeatingButtonsThresholdDesc',
+            default = 0.5,
+            argument = {
+                min = 0.2,
+                max = 1,
+            }
+        },
+        {
+            key = 'n_RepeatingButtonsStep',
+            renderer = 'number',
+            name = 'SettingRepeatingButtonsStep',
+            description = 'SettingRepeatingButtonsStepDesc',
+            default = 0.125,
+            argument = {
+                min = 0.05,
+                max = 0.5,
+            }
+        },
     },
 }
 

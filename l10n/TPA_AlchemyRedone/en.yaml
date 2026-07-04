@@ -105,3 +105,18 @@ SettingController_SelectPrevDesc: |-
   Selects previous ingredient up the list. If at the top - loops to the bottom.
   If LT is held - skip by 5 ingredients backward.
   If RT is held - skip full page backward.
+
+SettingRepeatingButtons: Repeating Buttons
+SettingRepeatingButtonsDesc: Allows to repeatedly trigger potion count and ingredient selection buttons while held.
+
+SettingRepeatingButtonsThreshold: Repeat Threshold
+SettingRepeatingButtonsThresholdDesc: |-
+  How long (in seconds) to hold the button until repetition starts.
+  Should not be lower than Repeat Interval.
+  Range is [0.2-1], default is 0.5 seconds.
+
+SettingRepeatingButtonsStep: Repeat Interval
+SettingRepeatingButtonsStepDesc: |-
+  How often (in seconds) button actions repeat.
+  Should not be higher than Repeat Threshold.
+  Range is [0.05-0.5], default is 0.125 seconds.

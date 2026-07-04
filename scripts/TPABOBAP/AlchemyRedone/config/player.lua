@@ -27,6 +27,9 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 ---@field n_CountLess number?
 ---@field n_SelectNext number?
 ---@field n_SelectPrev number?
+---@field b_RepeatingButtons boolean?
+---@field n_RepeatingButtonsThreshold number?
+---@field n_RepeatingButtonsStep number?
 
 ---@type ConfigDataPlayer
 local config = {

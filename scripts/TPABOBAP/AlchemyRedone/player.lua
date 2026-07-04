@@ -47,9 +47,6 @@ local function defaultData()
     }
 end
 
---TODO: adds settings for these?
-local buttonRepeatThreshold = 0.5
-local buttonRepeatStep = 0.2
 local buttonPressDuration = {}
 local hasData = false
 
@@ -455,13 +452,15 @@ local function onFrame()
             end
         end
 
-        for id, held in pairs(buttonPressDuration) do
-            held = held + dt
-            if held > buttonRepeatThreshold then
-                held = held - buttonRepeatStep
-                window:onControllerButtonRepeat(id)
+        if cfgPlayer.controls.b_RepeatingButtons then
+            for id, held in pairs(buttonPressDuration) do
+                held = held + dt
+                if held > cfgPlayer.controls.n_RepeatingButtonsThreshold then
+                    held = held - cfgPlayer.controls.n_RepeatingButtonsStep
+                    window:onControllerButtonRepeat(id)
+                end
+                buttonPressDuration[id] = held
             end
-            buttonPressDuration[id] = held
         end
     end
 
