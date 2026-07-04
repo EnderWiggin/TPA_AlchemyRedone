@@ -238,7 +238,9 @@ IngredientTable.create = function(ctx, opts)
         local restoredFocus = false
         local hoveredViewportPos = nil
         local scrollPos = scrollable.layout.userData.getScrollPos() or 0
-        if state.parentWindow:isFocused() and not scrollable.layout.userData.isDraggingScrollBar then
+        --local focused = state.parentWindow:isFocused()
+        local focused = true --we have only 1 active window
+        if focused and not scrollable.layout.userData.isDraggingScrollBar then
             hoveredViewportPos = state.isPointerOverContent and state.lastPointerRowPos or nil
             if state.lastUsedRowPos then
                 pendingFocusRestorePos = state.lastUsedRowPos
@@ -732,6 +734,13 @@ IngredientTable.create = function(ctx, opts)
                     relativePosition = v2(0.95, 0.5),
                 }
             end
+
+            local currentScrollPos = scrollable.layout.userData.getScrollPos() or 0
+            state.isPointerOverContent = true
+            state.lastPointerRowPos = util.vector2(
+                element.layout.props.position.x,
+                element.layout.props.position.y - currentScrollPos
+            )
 
             local tip = ctx.setTooltip(layout.name, function() return tooltipFn(layout.userData.row) end, props)
             tip:update()
