@@ -116,6 +116,7 @@ function Window:saveState() end
 function Window:loadState() end
 
 function Window:onControllerButtonPress(id) end
+function Window:onFrame(dt) end
 
 function Window:destroy()
     self:saveState()

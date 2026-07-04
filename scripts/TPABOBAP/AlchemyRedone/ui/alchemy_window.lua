@@ -73,6 +73,7 @@ function AlchemyWindow:init(ctx)
     self.data = ctx.data
     self.isPoison = false
     self.showFullEffects = cfgPlayer.main.b_ShowFullEffectInfo
+    self.buttonPressDuration = {}
 
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
@@ -607,6 +608,33 @@ function AlchemyWindow:onControllerButtonPress(id)
         self.isPoison = not self.isPoison
         self.potionTypeSelector.update()
     end
+end
+
+function AlchemyWindow:onFrame(dt)
+    if not self.element then return end
+
+    --TODO: instead of hard-coding use bindings for prev-next ingredient and more-less potions
+    self:checkControllerButtonRepeat(input.CONTROLLER_BUTTON.DPadUp, dt)
+    self:checkControllerButtonRepeat(input.CONTROLLER_BUTTON.DPadDown, dt)
+    self:checkControllerButtonRepeat(input.CONTROLLER_BUTTON.DPadLeft, dt)
+    self:checkControllerButtonRepeat(input.CONTROLLER_BUTTON.DPadRight, dt)
+end
+
+---Check for repeated button presses for navigation
+---@param button number
+---@param dt number
+function AlchemyWindow:checkControllerButtonRepeat(button, dt)
+    if not input.isControllerButtonPressed(button) then
+        self.buttonPressDuration[button] = 0
+        return
+    end
+
+    local held = (self.buttonPressDuration[button] or 0) + dt
+    if held >= 0.2 then
+        held = 0
+        self:onControllerButtonPress(button)
+    end
+    self.buttonPressDuration[button] = held
 end
 
 ---@param defaultText fun():string

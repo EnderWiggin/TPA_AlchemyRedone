@@ -406,6 +406,10 @@ local function onFrame()
                 userData.focusDelayed = nil
             end
         end
+    
+        if window then
+            window:onFrame(dt)
+        end
     end
 
     if ctx.focusedScrollable and ctx.focusedScrollable.layout then
