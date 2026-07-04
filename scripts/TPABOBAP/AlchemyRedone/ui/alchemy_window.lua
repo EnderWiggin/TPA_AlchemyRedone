@@ -581,19 +581,39 @@ end
 function AlchemyWindow:onControllerButtonPress(id)
     if not self.element then return end
     --TODO: allow rebinding the buttons
+    local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.35
+    local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.35
 
     if id == CButton.LeftShoulder then
 
     elseif id == CButton.RightShoulder then
 
     elseif id == CButton.DPadUp then
-        self.itemTable.layout.userData.highlightPrevItem()
+        local delta = LT and 5 or not RT and 1 or nil
+        self.itemTable.layout.userData.highlightPrevItem(delta)
     elseif id == CButton.DPadDown then
-        self.itemTable.layout.userData.highlightNextItem()
+        local delta = LT and 5 or not RT and 1 or nil
+        self.itemTable.layout.userData.highlightNextItem(delta)
     elseif id == CButton.DPadRight then
-        self.counting.setValue(self.counting.getCount() + 1)
+        local count = self.counting.getCount()
+        if LT then
+            count = count + 5
+        elseif RT then
+            count = 100
+        else
+            count = count + 1
+        end
+        self.counting.setValue(count)
     elseif id == CButton.DPadLeft then
-        self.counting.setValue(self.counting.getCount() - 1)
+        local count = self.counting.getCount()
+        if LT then
+            count = count - 5
+        elseif RT then
+            count = 1
+        else
+            count = count - 1
+        end
+        self.counting.setValue(count)
     elseif id == CButton.X then
         self:createPotion()
     elseif id == CButton.A then

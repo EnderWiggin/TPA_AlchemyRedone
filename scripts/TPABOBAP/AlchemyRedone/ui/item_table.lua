@@ -738,11 +738,21 @@ IngredientTable.create = function(ctx, opts)
         end
     end
 
-    local function highlightNextItem()
+    ---@param d integer?
+    local function highlightNextItem(d)
         local rows = state.sortedRows
+        d = d or math.floor(state.currentSize.y / rowHeight)
         local id, rIdx, cIdx = findHoveredRowIndices()
         local from, to = getVisibleIndexRange()
-        local tIdx = not rIdx and from or rIdx == #rows and 1 or rIdx + 1
+        local tIdx = from
+        if rIdx then
+            if rIdx == #rows then
+                tIdx = 1
+            else
+                tIdx = rIdx + d
+            end
+        end
+        tIdx = util.clamp(tIdx, 1, #rows)
         local tId = rows[tIdx].id
 
         if tIdx < from or tIdx >= to - buffer then
@@ -755,12 +765,21 @@ IngredientTable.create = function(ctx, opts)
         end
     end
 
-    local function highlightPrevItem()
+    local function highlightPrevItem(d)
         local rows = state.sortedRows
+        d = d or math.floor(state.currentSize.y / rowHeight)
         local id, rIdx, cIdx = findHoveredRowIndices()
         local from, to = getVisibleIndexRange()
 
-        local tIdx = not rIdx and to - buffer or rIdx == 1 and #rows or rIdx - 1
+        local tIdx = to - buffer
+        if rIdx then
+            if rIdx == 1 then
+                tIdx = #rows
+            else
+                tIdx = rIdx - d
+            end
+        end
+        tIdx = util.clamp(tIdx, 1, #rows)
         local tId = rows[tIdx].id
 
         if tIdx < from + buffer or tIdx >= to - buffer then
