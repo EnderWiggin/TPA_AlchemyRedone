@@ -617,8 +617,9 @@ function AlchemyWindow:onControllerButtonPress(id)
     elseif id == CButton.X then
         self:createPotion()
     elseif id == CButton.A then
-        if self.ctx.focusedInteractive and self.ctx.focusedInteractive.layout then
-            local userData = self.ctx.focusedInteractive.layout.userData
+        local highlighted = self.itemTable.layout.userData.getHighlightedRow()
+        if highlighted then
+            local userData = highlighted.layout.userData
             if userData.onKBMRowUse then
                 userData.onKBMRowUse()
                 return

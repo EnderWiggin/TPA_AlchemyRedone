@@ -795,6 +795,15 @@ IngredientTable.create = function(ctx, opts)
     wrapper.layout.userData.highlightNextItem = highlightNextItem
     wrapper.layout.userData.highlightPrevItem = highlightPrevItem
 
+    ---@return openmw.ui.Element?
+    wrapper.layout.userData.getHighlightedRow = function()
+        local _, _, cIdx = findHoveredRowIndices()
+        local content = scrollable.layout.content[1].content
+
+        if cIdx then return content[cIdx] end
+        return nil
+    end
+
     return wrapper
 end
 
