@@ -47,6 +47,10 @@ local function defaultData()
     }
 end
 
+--TODO: adds settings for these?
+local buttonRepeatThreshold = 0.5
+local buttonRepeatStep = 0.2
+local buttonPressDuration = {}
 local hasData = false
 
 local m = {
@@ -304,10 +308,17 @@ local function onKeyRelease(evt)
     end
 end
 
+---@param id number
 local function onControllerButtonPress(id)
     if m.wndAlchemy then
         m.wndAlchemy:onControllerButtonPress(id)
     end
+    buttonPressDuration[id] = 0
+end
+
+---@param id number
+local function onControllerButtonRelease(id)
+    buttonPressDuration[id] = nil
 end
 
 local function openWindow()
@@ -369,8 +380,8 @@ local function onFrame()
         end
     end
 
-    local windows = { m.wndAlchemy }
-    for _, window in ipairs(windows) do
+    local window = m.wndAlchemy
+    if window then
         -- Clear stale hovered row pos if mouse moved NOT over the element's item table
         if mouseMoved then
             if window and window.itemTable and window.itemTable.layout and window.itemTable.layout.userData.getState then
@@ -390,7 +401,7 @@ local function onFrame()
             window.element.layout.userData.hadMouseMoveThisFrame = false
         end
 
-        if window and window.element and window.element.layout.userData then
+        if window.element and window.element.layout.userData then
             local userData = window.element.layout.userData
             local focusDelayed = userData.focusDelayed
             if focusDelayed ~= nil then
@@ -406,9 +417,14 @@ local function onFrame()
                 userData.focusDelayed = nil
             end
         end
-    
-        if window then
-            window:onFrame(dt)
+
+        for id, held in pairs(buttonPressDuration) do
+            held = held + dt
+            if held > buttonRepeatThreshold then
+                held = held - buttonRepeatStep
+                window:onControllerButtonRepeat(id)
+            end
+            buttonPressDuration[id] = held
         end
     end
 
@@ -493,6 +509,7 @@ return {
         onLoad = onLoad,
         onSave = onSave,
         onControllerButtonPress = onControllerButtonPress,
+        onControllerButtonRelease = onControllerButtonRelease,
     },
     eventHandlers = {
         TPA_AlchemyRedone_Open = m.onOpenAlchemy,

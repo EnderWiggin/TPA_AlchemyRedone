@@ -30,6 +30,7 @@ local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local Window = require("scripts.TPABOBAP.UIToolkit.window")
 
 local v2 = util.vector2
+local CButton = input.CONTROLLER_BUTTON
 local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'
 
 local ApparatusTypes = types.Apparatus.TYPE
@@ -578,21 +579,21 @@ function AlchemyWindow:onControllerButtonPress(id)
     if not self.element then return end
     --TODO: allow rebinding the buttons
 
-    if id == input.CONTROLLER_BUTTON.LeftShoulder then
+    if id == CButton.LeftShoulder then
 
-    elseif id == input.CONTROLLER_BUTTON.RightShoulder then
+    elseif id == CButton.RightShoulder then
 
-    elseif id == input.CONTROLLER_BUTTON.DPadUp then
+    elseif id == CButton.DPadUp then
         self.itemTable.layout.userData.highlightPrevItem()
-    elseif id == input.CONTROLLER_BUTTON.DPadDown then
+    elseif id == CButton.DPadDown then
         self.itemTable.layout.userData.highlightNextItem()
-    elseif id == input.CONTROLLER_BUTTON.DPadRight then
+    elseif id == CButton.DPadRight then
         self.counting.setValue(self.counting.getCount() + 1)
-    elseif id == input.CONTROLLER_BUTTON.DPadLeft then
+    elseif id == CButton.DPadLeft then
         self.counting.setValue(self.counting.getCount() - 1)
-    elseif id == input.CONTROLLER_BUTTON.X then
+    elseif id == CButton.X then
         self:createPotion()
-    elseif id == input.CONTROLLER_BUTTON.A then
+    elseif id == CButton.A then
         if self.ctx.focusedInteractive and self.ctx.focusedInteractive.layout then
             local userData = self.ctx.focusedInteractive.layout.userData
             if userData.onKBMRowUse then
@@ -604,20 +605,20 @@ function AlchemyWindow:onControllerButtonPress(id)
                 return
             end
         end
-    elseif id == input.CONTROLLER_BUTTON.Y then
+    elseif id == CButton.Y then
         self.isPoison = not self.isPoison
         self.potionTypeSelector.update()
     end
 end
 
-function AlchemyWindow:onFrame(dt)
+function AlchemyWindow:onControllerButtonRepeat(id)
     if not self.element then return end
 
-    --TODO: instead of hard-coding use bindings for prev-next ingredient and more-less potions
-    self:checkControllerButtonRepeat(input.CONTROLLER_BUTTON.DPadUp, dt)
-    self:checkControllerButtonRepeat(input.CONTROLLER_BUTTON.DPadDown, dt)
-    self:checkControllerButtonRepeat(input.CONTROLLER_BUTTON.DPadLeft, dt)
-    self:checkControllerButtonRepeat(input.CONTROLLER_BUTTON.DPadRight, dt)
+    if id == CButton.DPadDown or id == CButton.DPadUp        -- TODO: use bindings for next-prev ingredient
+        or id == CButton.DPadRight or id == CButton.DPadLeft -- TODO: use bindings for more-less potions
+    then
+        self:onControllerButtonPress(id)
+    end
 end
 
 ---Check for repeated button presses for navigation
