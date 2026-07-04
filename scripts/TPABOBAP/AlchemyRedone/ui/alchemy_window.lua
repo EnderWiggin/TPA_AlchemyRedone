@@ -582,9 +582,9 @@ function AlchemyWindow:onControllerButtonPress(id)
     elseif id == input.CONTROLLER_BUTTON.RightShoulder then
 
     elseif id == input.CONTROLLER_BUTTON.DPadUp then
-        --TODO: select next ingredient in the list
+        self.itemTable.layout.userData.highlightPrevItem()
     elseif id == input.CONTROLLER_BUTTON.DPadDown then
-        --TODO: select previous ingredient in the list
+        self.itemTable.layout.userData.highlightNextItem()
     elseif id == input.CONTROLLER_BUTTON.DPadRight then
         self.counting.setValue(self.counting.getCount() + 1)
     elseif id == input.CONTROLLER_BUTTON.DPadLeft then

@@ -23,6 +23,8 @@ local IngredientTable = {}
 
 local scrollbarWidth = 24
 local scrollStep = 2 --TODO: add config?
+-- Add buffer to render slightly outside viewport for smoothness
+local buffer = 1
 
 local function getScrollbarWidth(scrollable)
     if not scrollable then
@@ -74,7 +76,7 @@ end
 
 ---@alias IngredientTableOpts {columns: Column[]?, data: IngredientInfo[]?, size: openmw.util.Vector2?, rowHeight: number?, parentWindow: table?, comparator?: fun(a:any, b:any):boolean}
 
----@param ctx table
+---@param ctx WindowContext
 ---@param opts IngredientTableOpts
 IngredientTable.create = function(ctx, opts)
     ---@type Column[]
@@ -190,19 +192,10 @@ IngredientTable.create = function(ctx, opts)
         return cells
     end
 
-    local function renderVisibleRows(forceRedraw)
-        if not scrollable then return end
-
-        local contentLayer = scrollable.layout.content[1]
-        contentLayer.type = ui.TYPE.Widget
-        contentLayer.props.autoSize = nil
-        local viewHeight = state.currentSize.y
-        local contentWidth = getContentWidth()
-
-        local itemsPerRow = 1
+    local function getVisibleIndexRange()
         local effectiveRowHeight = rowHeight
-
-        scrollable.layout.userData.setScrollStep(rowHeight * scrollStep)
+        local viewHeight = state.currentSize.y
+        local contentLayer = scrollable.layout.content[1]
 
         -- Virtualization mathematics
         -- contentLayer.props.position.y is negative when scrolled down
@@ -210,11 +203,36 @@ IngredientTable.create = function(ctx, opts)
         local startRowIndex = math.floor(scrollY / effectiveRowHeight)
         local visibleRowCount = math.ceil(viewHeight / effectiveRowHeight)
 
-        -- Add buffer to render slightly outside viewport for smoothness
-        local buffer = 1
         -- Calculate index range
         local indexFrom = math.max(1, startRowIndex + 1 - buffer)
         local indexTo = math.min(#state.sortedRows, startRowIndex + visibleRowCount + buffer)
+
+        return indexFrom, indexTo
+    end
+
+    local function getScrollYToFocusRow(row, bottom)
+        local effectiveRowHeight = rowHeight
+        local y
+        if bottom then
+            local viewHeight = state.currentSize.y
+            local visibleRowCount = math.floor(viewHeight / effectiveRowHeight)
+            y = -effectiveRowHeight * (row - visibleRowCount)
+        else
+            y = -effectiveRowHeight * (row - 1)
+        end
+        return util.clamp(y, -scrollable.layout.userData.scrollLimit, 0)
+    end
+
+    local function renderVisibleRows(forceRedraw)
+        if not scrollable then return end
+
+        local contentLayer = scrollable.layout.content[1]
+        contentLayer.type = ui.TYPE.Widget
+        contentLayer.props.autoSize = nil
+        local contentWidth = getContentWidth()
+        scrollable.layout.userData.setScrollStep(rowHeight * scrollStep)
+
+        local indexFrom, indexTo = getVisibleIndexRange()
 
         local pendingFocusRestorePos = nil
         local restoredFocus = false
@@ -634,6 +652,114 @@ IngredientTable.create = function(ctx, opts)
         updateRows(true)
         wrapper:update()
     end
+
+    local function scrollTo(row, bottom)
+        if not scrollable or not scrollable.layout then return end
+        local layout = scrollable.layout
+        local pos = layout.content[1].props.position
+        local y = getScrollYToFocusRow(row, bottom)
+        layout.content[1].props.position = util.vector2(pos.x, y)
+        layout.userData.onScroll()
+    end
+
+    local function findHoveredRowIndices()
+        local id = nil
+        local cIdx = nil
+        local content = scrollable.layout.content[1].content
+        for i = 1, #content do
+            local element = content[i]
+            if ctx.focusedInteractive == element then
+                cIdx = i
+                id = element.layout.userData.row.id
+                break
+            end
+        end
+
+        if not id or not cIdx then return nil, nil end
+
+        local rIdx
+        for i = 1, #state.sortedRows do
+            if state.sortedRows[i].id == id then
+                rIdx = i
+                break
+            end
+        end
+
+        return id, rIdx, cIdx
+    end
+
+    local function findContendIdxById(id)
+        local content = scrollable.layout.content[1].content
+        for i = 1, #content do
+            local layout = H.toLayout(content[i])
+            if layout and layout.userData and layout.userData.row.id == id then
+                return i
+            end
+        end
+        return nil
+    end
+
+    local function setHoveredRow(n)
+        local content = scrollable.layout.content[1].content
+        ---@type openmw.ui.Element
+        local element = content[n]
+        ctx.focusedInteractiveDelayed = false
+
+        if ctx.focusedInteractive and ctx.focusedInteractive.layout then
+            ctx.focusedInteractive.layout.userData.hovering = false
+            H.setInteractiveColor(ctx.focusedInteractive)
+            ctx.updateQueue[ctx.focusedInteractive] = true
+        end
+
+        if element and element.layout then
+            local layout = H.toLayout(element)
+            ctx.focusedInteractiveDelayed = element
+            layout.userData.hovering = true
+            H.setInteractiveColor(element)
+            ctx.updateQueue[element] = true
+
+            local tip = ctx.setTooltip(layout.name, function() return tooltipFn(layout.userData.row) end)
+            tip:update()
+        end
+    end
+
+    local function highlightNextItem()
+        local rows = state.sortedRows
+        local id, rIdx, cIdx = findHoveredRowIndices()
+        local from, to = getVisibleIndexRange()
+        local tIdx = not rIdx and from or rIdx == #rows and 0 or rIdx + 1
+        local tId = rows[tIdx].id
+
+        if tIdx < from or tIdx >= to - buffer then
+            scrollTo(tIdx)
+        end
+        local n = findContendIdxById(tId)
+
+        if n then
+            setHoveredRow(n)
+        end
+    end
+
+    local function highlightPrevItem()
+        local rows = state.sortedRows
+        local id, rIdx, cIdx = findHoveredRowIndices()
+        local from, to = getVisibleIndexRange()
+
+        local tIdx = not rIdx and to - buffer or rIdx == 1 and #rows or rIdx - 1
+        local tId = rows[tIdx].id
+
+        if tIdx < from + buffer or tIdx >= to - buffer then
+            scrollTo(tIdx, true)
+        end
+        local n = findContendIdxById(tId)
+
+        if n then
+            setHoveredRow(n)
+        end
+    end
+
+    wrapper.layout.userData.highlightNextItem = highlightNextItem
+    wrapper.layout.userData.highlightPrevItem = highlightPrevItem
 
     return wrapper
 end

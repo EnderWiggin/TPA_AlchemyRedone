@@ -11,10 +11,11 @@ local v2 = util.vector2
 
 ---@class WindowContext
 ---@field updateQueue table<openmw.ui.Element, boolean>
----@field focusedInteractiveDelayed openmw.ui.Element?
+---@field focusedInteractiveDelayed false|openmw.ui.Element?
 ---@field focusedInteractive openmw.ui.Element?
 ---@field focusedScrollable openmw.ui.Element?
 ---@field activeTooltip openmw.ui.Element?
+---@field setTooltip fun(id:string, tip:fun():openmw.ui.Layout)
 
 ---@class Window
 ---@field protected element openmw.ui.Element?

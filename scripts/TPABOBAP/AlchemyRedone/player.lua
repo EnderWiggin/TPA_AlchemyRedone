@@ -5,6 +5,7 @@ local async = require('openmw.async')
 local storage = require('openmw.storage')
 local types = require("openmw.types")
 local input = require('openmw.input')
+local ui = require('openmw.ui')
 local util = require('openmw.util')
 local player = require('openmw.self')
 local auxUi = require('openmw_aux.ui')
@@ -79,6 +80,7 @@ local ctx = {
     selectIngredient = function(info) m.selectIngredient(info) end,
     clearIngredient = function(n) m.clearIngredient(n) end,
     getAllIngredients = function() return m.getAllIngredients() end,
+    setTooltip = function(id, tipFn) return m.setTooltip(id, tipFn) end
 }
 
 m.onOpenAlchemy = function(data)
@@ -116,6 +118,24 @@ m.closeWindow = function()
 
     ctx.data = defaultData()
     hasData = false
+end
+
+m.setTooltip = function(id, tooltipFn)
+    if ctx.activeTooltip and ctx.activeTooltip.layout then
+        if ctx.activeTooltip.layout.name ~= id then
+            auxUi.deepDestroy(ctx.activeTooltip)
+            ctx.activeTooltip = nil
+        else
+            return ctx.activeTooltip
+        end
+    end
+    local tip = tooltipFn and tooltipFn()
+    if not tip then return end
+    ctx.activeTooltip = ui.create(tip)
+    ctx.activeTooltip.layout.name = id
+
+    ctx.activeTooltip:update()
+    return ctx.activeTooltip
 end
 
 m.selectIngredient = function(info)
