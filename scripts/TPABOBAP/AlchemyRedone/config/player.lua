@@ -7,6 +7,8 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 
 ---@class ConfigDataPlayer
 ---@field main MainSettings
+---@field ui InterfaceSettings
+---@field controls ControllerSettings
 
 ---@class MainSettings
 ---@field b_Enabled boolean?
@@ -17,14 +19,22 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 ---@class InterfaceSettings
 ---@field s_intReMode InterfaceReimaginedMode
 
+---@class ControllerSettings
+---@field n_Activate number?
+---@field n_Brew number?
+---@field n_ToggleType number?
+---@field n_CountMore number?
+---@field n_CountLess number?
+---@field n_SelectNext number?
+---@field n_SelectPrev number?
+
 ---@type ConfigDataPlayer
 local config = {
-    ---@type MainSettings
     main = {},
-    ---@type InterfaceSettings
     ui = {
         s_intReMode = C.InterfaceReimaginedMode.Auto,
     },
+    controls = {},
 }
 
 ---@param section openmw.storage.StorageSection
@@ -38,5 +48,9 @@ subscribe(main, 'main')
 
 local ui = storage.playerSection('TPA_AlchemyRedone/InterfaceSettings')
 subscribe(ui, 'ui')
+
+
+local controls = storage.playerSection('TPA_AlchemyRedone/ControllerSettings')
+subscribe(controls, 'controls')
 
 return config

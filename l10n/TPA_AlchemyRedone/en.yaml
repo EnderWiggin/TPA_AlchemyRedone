@@ -64,3 +64,44 @@ InterfaceReimaginedMode_Off: "Off "
 
 SettingPotionKnowledgeThreshold: New effect discovery threshold
 SettingPotionKnowledgeThresholdDesc: "How many potions you need to brew to learn new effect.\nRange [1-20], default is 5."
+
+# -------------- Controller Block --------------
+ControllerSettingsName: Controller Settings
+ControllerSettingsDesc: |-
+  Click on a binding to change it.
+  Backspace to clear binding.
+
+SettingController_Activate: Activate
+SettingController_ActivateDesc: |-
+  Selects currently highlighted ingredient.
+  Should be bound to same key as 'click-imitating' input.
+
+SettingController_Brew: Brew Potion
+SettingController_BrewDesc: Brew potion from currently selected ingredients.
+
+SettingController_ToggleType: Toggle Potion Type
+SettingController_ToggleTypeDesc: Toggle between brewing Potions and Poisons.
+
+SettingController_CountMore: Increase Potion Count
+SettingController_CountMoreDesc: |-
+  Increases potion count by 1.
+  If LT is held - increases by 5.
+  If RT is held - sets count to 100.
+
+SettingController_CountLess: Decrease Potion Count
+SettingController_CountLessDesc: |-
+  Decreases potion count by 1.
+  If LT is held - decreases by 5.
+  If RT is held - sets count to 1.
+
+SettingController_SelectNext: Select Next Ingredient
+SettingController_SelectNextDesc: |-
+  Selects next ingredient down the list. If at the bottom - loops to the start.
+  If LT is held - skip by 5 ingredients forward.
+  If RT is held - skip full page forward.
+
+SettingController_SelectPrev: Select Previous Ingredient
+SettingController_SelectPrevDesc: |-
+  Selects previous ingredient up the list. If at the top - loops to the bottom.
+  If LT is held - skip by 5 ingredients backward.
+  If RT is held - skip full page backward.

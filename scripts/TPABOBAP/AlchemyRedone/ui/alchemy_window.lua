@@ -30,7 +30,6 @@ local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local Window = require("scripts.TPABOBAP.UIToolkit.window")
 
 local v2 = util.vector2
-local CButton = input.CONTROLLER_BUTTON
 local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'
 
 local ApparatusTypes = types.Apparatus.TYPE
@@ -580,21 +579,17 @@ end
 
 function AlchemyWindow:onControllerButtonPress(id)
     if not self.element then return end
-    --TODO: allow rebinding the buttons
+    local bind = cfgPlayer.controls
     local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.35
     local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.35
 
-    if id == CButton.LeftShoulder then
-
-    elseif id == CButton.RightShoulder then
-
-    elseif id == CButton.DPadUp then
+    if id == bind.n_SelectPrev then
         local delta = LT and 5 or not RT and 1 or nil
         self.itemTable.layout.userData.highlightPrevItem(delta)
-    elseif id == CButton.DPadDown then
+    elseif id == bind.n_SelectNext then
         local delta = LT and 5 or not RT and 1 or nil
         self.itemTable.layout.userData.highlightNextItem(delta)
-    elseif id == CButton.DPadRight then
+    elseif id == bind.n_CountMore then
         local count = self.counting.getCount()
         if LT then
             count = count + 5
@@ -604,7 +599,7 @@ function AlchemyWindow:onControllerButtonPress(id)
             count = count + 1
         end
         self.counting.setValue(count)
-    elseif id == CButton.DPadLeft then
+    elseif id == bind.n_CountLess then
         local count = self.counting.getCount()
         if LT then
             count = count - 5
@@ -614,9 +609,9 @@ function AlchemyWindow:onControllerButtonPress(id)
             count = count - 1
         end
         self.counting.setValue(count)
-    elseif id == CButton.X then
+    elseif id == bind.n_Brew then
         self:createPotion()
-    elseif id == CButton.A then
+    elseif id == bind.n_Activate then
         local highlighted = self.itemTable.layout.userData.getHighlightedRow()
         if highlighted then
             local userData = highlighted.layout.userData
@@ -629,7 +624,7 @@ function AlchemyWindow:onControllerButtonPress(id)
                 return
             end
         end
-    elseif id == CButton.Y then
+    elseif id == bind.n_ToggleType then
         self.isPoison = not self.isPoison
         self.potionTypeSelector.update()
     end
@@ -637,9 +632,9 @@ end
 
 function AlchemyWindow:onControllerButtonRepeat(id)
     if not self.element then return end
-
-    if id == CButton.DPadDown or id == CButton.DPadUp        -- TODO: use bindings for next-prev ingredient
-        or id == CButton.DPadRight or id == CButton.DPadLeft -- TODO: use bindings for more-less potions
+    local bind = cfgPlayer.controls
+    if id == bind.n_SelectNext or id == bind.n_SelectPrev
+        or id == bind.n_CountMore or id == bind.n_CountLess
     then
         self:onControllerButtonPress(id)
     end
