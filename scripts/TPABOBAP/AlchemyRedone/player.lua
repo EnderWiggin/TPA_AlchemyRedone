@@ -84,7 +84,7 @@ local ctx = {
     selectIngredient = function(info) m.selectIngredient(info) end,
     clearIngredient = function(n) m.clearIngredient(n) end,
     getAllIngredients = function() return m.getAllIngredients() end,
-    setTooltip = function(id, tipFn) return m.setTooltip(id, tipFn) end
+    setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end
 }
 
 m.onOpenAlchemy = function(data)
@@ -124,7 +124,10 @@ m.closeWindow = function()
     hasData = false
 end
 
-m.setTooltip = function(id, tooltipFn)
+---@param id string
+---@param tooltipFn TipFn
+---@param props {position:openmw.util.Vector2?, anchor: openmw.util.Vector2?, relativePosition:openmw.util.Vector2?}
+m.setTooltip = function(id, tooltipFn, props)
     if ctx.activeTooltip and ctx.activeTooltip.layout then
         if ctx.activeTooltip.layout.name ~= id then
             auxUi.deepDestroy(ctx.activeTooltip)
@@ -137,6 +140,13 @@ m.setTooltip = function(id, tooltipFn)
     if not tip then return end
     ctx.activeTooltip = ui.create(tip)
     ctx.activeTooltip.layout.name = id
+
+    if props then
+        local p = ctx.activeTooltip.layout.props or {}
+        if props.position then p.position = props.position end
+        if props.anchor then p.anchor = props.anchor end
+        if props.relativePosition then p.relativePosition = props.relativePosition end
+    end
 
     ctx.activeTooltip:update()
     return ctx.activeTooltip

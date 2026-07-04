@@ -718,7 +718,22 @@ IngredientTable.create = function(ctx, opts)
             H.setInteractiveColor(element)
             ctx.updateQueue[element] = true
 
-            local tip = ctx.setTooltip(layout.name, function() return tooltipFn(layout.userData.row) end)
+            ---@type TipPositioning
+            local props
+            local pos = wrapper.layout.userData.controllerTooltipPos
+            if wrapper.layout.userData.controllerTooltipPos then
+                props = {
+                    position = pos,
+                    anchor = v2(0, 0.5),
+                }
+            else
+                props = {
+                    anchor = v2(1, 0.5),
+                    relativePosition = v2(0.95, 0.5),
+                }
+            end
+
+            local tip = ctx.setTooltip(layout.name, function() return tooltipFn(layout.userData.row) end, props)
             tip:update()
         end
     end
@@ -727,7 +742,7 @@ IngredientTable.create = function(ctx, opts)
         local rows = state.sortedRows
         local id, rIdx, cIdx = findHoveredRowIndices()
         local from, to = getVisibleIndexRange()
-        local tIdx = not rIdx and from or rIdx == #rows and 0 or rIdx + 1
+        local tIdx = not rIdx and from or rIdx == #rows and 1 or rIdx + 1
         local tId = rows[tIdx].id
 
         if tIdx < from or tIdx >= to - buffer then

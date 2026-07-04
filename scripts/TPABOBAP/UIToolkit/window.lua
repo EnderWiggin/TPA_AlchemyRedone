@@ -8,6 +8,8 @@ local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 
 local v2 = util.vector2
 
+---@alias TipFn fun():openmw.ui.Layout
+---@alias TipPositioning {position:openmw.util.Vector2?, anchor: openmw.util.Vector2?, relativePosition:openmw.util.Vector2?}
 
 ---@class WindowContext
 ---@field updateQueue table<openmw.ui.Element, boolean>
@@ -15,7 +17,7 @@ local v2 = util.vector2
 ---@field focusedInteractive openmw.ui.Element?
 ---@field focusedScrollable openmw.ui.Element?
 ---@field activeTooltip openmw.ui.Element?
----@field setTooltip fun(id:string, tip:fun():openmw.ui.Layout)
+---@field setTooltip fun(id:string, tip:TipFn, props: TipPositioning?)
 
 ---@class Window
 ---@field protected element openmw.ui.Element?
@@ -116,6 +118,7 @@ function Window:saveState() end
 function Window:loadState() end
 
 function Window:onControllerButtonPress(id) end
+
 function Window:onControllerButtonRepeat(id) end
 
 function Window:destroy()

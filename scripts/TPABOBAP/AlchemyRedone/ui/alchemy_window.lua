@@ -149,8 +149,11 @@ function AlchemyWindow:saveState()
 end
 
 function AlchemyWindow:updateSize()
-    if not self.element then return end
+    if not self.element or not self.element.layout then return end
     local inner = self.element.layout.userData.getInnerSize()
+    local c = self.element.layout.props.position
+    local sz = self.element.layout.props.size
+    self.itemTable.layout.userData.controllerTooltipPos = c + v2(sz.x + 10, sz.y / 2)
     if self.lastSz and self.lastSz == inner then return end
     self.lastSz = inner
 
