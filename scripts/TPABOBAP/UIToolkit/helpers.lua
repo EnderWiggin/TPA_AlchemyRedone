@@ -1,14 +1,13 @@
----@omw-context player
+---@omw-context menu
 
 local core = require('openmw.core')
 local util = require('openmw.util')
 local I = require('openmw.interfaces')
-local types = require('openmw.types')
+local context = require('scripts.TPABOBAP.scriptContext')
 
 local isPlayer, self = pcall(require, 'openmw.self')
 local _, debug = pcall(require, 'openmw.debug')
 local _, ui = pcall(require, 'openmw.ui')
-local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local l10n = core.l10n('UIToolkit')
@@ -27,41 +26,6 @@ local function reverseLookup(enumTable)
     end
     return lookup
 end
-
-local weaponTypeNames = reverseLookup(types.Weapon.TYPE)
-local armorTypeNames = reverseLookup(types.Armor.TYPE)
-local clothingTypeNames = reverseLookup(types.Clothing.TYPE)
-local apparatusTypeNames = reverseLookup(types.Apparatus.TYPE)
-
-local armorSlotMap = {
-    [types.Armor.TYPE.Helmet] = { types.Actor.EQUIPMENT_SLOT.Helmet },
-    [types.Armor.TYPE.Cuirass] = { types.Actor.EQUIPMENT_SLOT.Cuirass },
-    [types.Armor.TYPE.Greaves] = { types.Actor.EQUIPMENT_SLOT.Greaves },
-    [types.Armor.TYPE.Boots] = { types.Actor.EQUIPMENT_SLOT.Boots },
-    [types.Armor.TYPE.LPauldron] = { types.Actor.EQUIPMENT_SLOT.LeftPauldron },
-    [types.Armor.TYPE.RPauldron] = { types.Actor.EQUIPMENT_SLOT.RightPauldron },
-    [types.Armor.TYPE.LGauntlet] = { types.Actor.EQUIPMENT_SLOT.LeftGauntlet },
-    [types.Armor.TYPE.RGauntlet] = { types.Actor.EQUIPMENT_SLOT.RightGauntlet },
-    [types.Armor.TYPE.LBracer] = { types.Actor.EQUIPMENT_SLOT.LeftGauntlet },
-    [types.Armor.TYPE.RBracer] = { types.Actor.EQUIPMENT_SLOT.RightGauntlet },
-    [types.Armor.TYPE.Shield] = { types.Actor.EQUIPMENT_SLOT.CarriedLeft },
-}
-
-local clothingSlotMap = {
-    [types.Clothing.TYPE.Shirt] = { types.Actor.EQUIPMENT_SLOT.Shirt },
-    [types.Clothing.TYPE.Pants] = { types.Actor.EQUIPMENT_SLOT.Pants },
-    [types.Clothing.TYPE.Skirt] = { types.Actor.EQUIPMENT_SLOT.Skirt },
-    [types.Clothing.TYPE.Robe] = { types.Actor.EQUIPMENT_SLOT.Robe },
-    [types.Clothing.TYPE.Shoes] = { types.Actor.EQUIPMENT_SLOT.Boots },
-    [types.Clothing.TYPE.Belt] = { types.Actor.EQUIPMENT_SLOT.Belt },
-    [types.Clothing.TYPE.Amulet] = { types.Actor.EQUIPMENT_SLOT.Amulet },
-    [types.Clothing.TYPE.LGlove] = { types.Actor.EQUIPMENT_SLOT.LeftGauntlet },
-    [types.Clothing.TYPE.RGlove] = { types.Actor.EQUIPMENT_SLOT.RightGauntlet },
-    [types.Clothing.TYPE.Ring] = {
-        types.Actor.EQUIPMENT_SLOT.LeftRing,
-        types.Actor.EQUIPMENT_SLOT.RightRing,
-    },
-}
 
 Helpers.shallowCopy = function(tbl)
     if type(tbl) ~= 'table' then return tbl end
@@ -334,7 +298,7 @@ end
 ---@param separator string? defaults to `%s` (space)
 ---@return string[]
 Helpers.splitString = function(str, separator)
-    separator = separator or "%s"     -- Default to whitespace separator
+    separator = separator or "%s" -- Default to whitespace separator
     local result = {}
     for part in string.gmatch(str, "([^" .. separator .. "]+)") do
         table.insert(result, part)
@@ -342,12 +306,61 @@ Helpers.splitString = function(str, separator)
     return result
 end
 
+local ctx = context.get()
+if ctx ~= context.Types.Player
+    and ctx ~= context.Types.Global
+    and ctx ~= context.Types.Local
+then
+    return Helpers
+end
+
+---@omw-context-begin player
+local types = require('openmw.types')
+local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
+
 ---Returns `str` with spaces in front and end trimmed
 ---@param str string
 ---@return string
 Helpers.trim = function(str)
     return str:match("^%s*(.-)%s*$")
 end
+
+if not types then return Helpers end
+
+local weaponTypeNames = reverseLookup(types.Weapon.TYPE)
+local armorTypeNames = reverseLookup(types.Armor.TYPE)
+local clothingTypeNames = reverseLookup(types.Clothing.TYPE)
+local apparatusTypeNames = reverseLookup(types.Apparatus.TYPE)
+
+local armorSlotMap = {
+    [types.Armor.TYPE.Helmet] = { types.Actor.EQUIPMENT_SLOT.Helmet },
+    [types.Armor.TYPE.Cuirass] = { types.Actor.EQUIPMENT_SLOT.Cuirass },
+    [types.Armor.TYPE.Greaves] = { types.Actor.EQUIPMENT_SLOT.Greaves },
+    [types.Armor.TYPE.Boots] = { types.Actor.EQUIPMENT_SLOT.Boots },
+    [types.Armor.TYPE.LPauldron] = { types.Actor.EQUIPMENT_SLOT.LeftPauldron },
+    [types.Armor.TYPE.RPauldron] = { types.Actor.EQUIPMENT_SLOT.RightPauldron },
+    [types.Armor.TYPE.LGauntlet] = { types.Actor.EQUIPMENT_SLOT.LeftGauntlet },
+    [types.Armor.TYPE.RGauntlet] = { types.Actor.EQUIPMENT_SLOT.RightGauntlet },
+    [types.Armor.TYPE.LBracer] = { types.Actor.EQUIPMENT_SLOT.LeftGauntlet },
+    [types.Armor.TYPE.RBracer] = { types.Actor.EQUIPMENT_SLOT.RightGauntlet },
+    [types.Armor.TYPE.Shield] = { types.Actor.EQUIPMENT_SLOT.CarriedLeft },
+}
+
+local clothingSlotMap = {
+    [types.Clothing.TYPE.Shirt] = { types.Actor.EQUIPMENT_SLOT.Shirt },
+    [types.Clothing.TYPE.Pants] = { types.Actor.EQUIPMENT_SLOT.Pants },
+    [types.Clothing.TYPE.Skirt] = { types.Actor.EQUIPMENT_SLOT.Skirt },
+    [types.Clothing.TYPE.Robe] = { types.Actor.EQUIPMENT_SLOT.Robe },
+    [types.Clothing.TYPE.Shoes] = { types.Actor.EQUIPMENT_SLOT.Boots },
+    [types.Clothing.TYPE.Belt] = { types.Actor.EQUIPMENT_SLOT.Belt },
+    [types.Clothing.TYPE.Amulet] = { types.Actor.EQUIPMENT_SLOT.Amulet },
+    [types.Clothing.TYPE.LGlove] = { types.Actor.EQUIPMENT_SLOT.LeftGauntlet },
+    [types.Clothing.TYPE.RGlove] = { types.Actor.EQUIPMENT_SLOT.RightGauntlet },
+    [types.Clothing.TYPE.Ring] = {
+        types.Actor.EQUIPMENT_SLOT.LeftRing,
+        types.Actor.EQUIPMENT_SLOT.RightRing,
+    },
+}
 
 Helpers.getEquippedName = function(actor)
     local name = C.Strings.HAND_TO_HAND
@@ -1508,5 +1521,5 @@ if isPlayer then
         end)
     end
 end
-
+---@omw-context-end player
 return Helpers

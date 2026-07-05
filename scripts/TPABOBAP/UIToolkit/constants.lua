@@ -64,7 +64,6 @@ local function toHex(color)
         util.round(255 * color.g),
         util.round(255 * color.b)
     ):lower()
-    print(str, color)
     return str
 end
 
