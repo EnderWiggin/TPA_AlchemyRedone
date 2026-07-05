@@ -773,8 +773,13 @@ function AlchemyWindow:onControllerButtonPress(id)
         self.isPoison = not self.isPoison
         self.potionTypeSelector.update()
     elseif id == bind.n_ToggleTable then
-        self.showEffects = not self.showEffects
-        self.tableSelector.update()
+        if LT then
+            self.toggleFilterMatching.onToggleClick()
+        elseif RT then
+        else
+            self.showEffects = not self.showEffects
+            self.tableSelector.update()
+        end
     end
 end
 

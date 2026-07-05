@@ -110,7 +110,9 @@ SettingController_ToggleType: Toggle Potion Type
 SettingController_ToggleTypeDesc: Toggle between brewing Potions and Poisons.
 
 SettingController_ToggleTable: Toggle Between Ingredients and Effects
-SettingController_ToggleTableDesc: Toggle between showing ingredient list and effect list.
+SettingController_ToggleTableDesc: |-
+  Toggle between showing ingredient list and effect list.
+  If LT is held - toggle Matching filter.
 
 SettingController_CountMore: Increase Potion Count
 SettingController_CountMoreDesc: |-
