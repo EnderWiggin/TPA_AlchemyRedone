@@ -71,8 +71,9 @@ updateSizes()
 function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
-    self.isPoison = false    --Are we making potion or poison?
-    self.showEffects = false --Show effects or ingredients?
+    self.isPoison = false                 --Are we making potion or poison?
+    self.showEffects = false              --Show effects or ingredients?
+    self.filterToShowMatchingOnly = false --Show only ingredients that have effects present in selected ingredients but not matched yet
     self.showFullEffects = cfgPlayer.main.b_ShowFullEffectInfo
     ---@type {id:string, text: string}[]
     self.selectedEffects = {}
@@ -115,6 +116,7 @@ function AlchemyWindow:init(ctx)
 
     self.itemTable = T.Alchemy.makeIngredientTable(self)
     self.itemTable.layout.userData.setFilter('default', function(row) return self:filterIngredient(row) end)
+    self.itemTable.layout.userData.setFilter('effect', function(row) return self:filterIngredientByEffects(row) end)
 
     local filter
     filter, self.filter = parts.filterInput(self)
@@ -122,6 +124,8 @@ function AlchemyWindow:init(ctx)
     self.effectTable = T.Alchemy.makeEffectTable(self)
 
     self.tableSelector = parts.tableSelector(self)
+
+    self.toggleFilterMatching = parts.filterMatchingToggle(self)
 
     self.potionTypeSelector = parts.typeSelector(self)
 
@@ -517,6 +521,37 @@ function AlchemyWindow:filterIngredient(row)
     return false
 end
 
+---@param row IngredientItemData
+function AlchemyWindow:filterIngredientByEffects(row)
+    if not self.filterToShowMatchingOnly then return true end
+
+    -- always allow selected ingredient
+    local selected = self:getSelectedIngredientList()
+    for i = 1, #selected do
+        if selected[i] == row.id then return true end
+    end
+
+    local data = self.data
+    local record = types.Ingredient.record(row.id)
+    local effects = record and record.effects or {}
+    local known = A.getKnownEffectFlagsForIngredient(record, player)
+    local nonMatching = data.nonMatching
+    for i = 1, 4 do
+        if #effects >= i then
+            local effect = effects[i]
+            local bright = known[i]
+            if bright and nonMatching and #nonMatching > 0 then
+                local idx = A.containsEffect(nonMatching, effect)
+                bright = idx ~= nil and data.nonMatchingKnowledge[idx]
+            end
+            if bright then return true end
+        else
+            break
+        end
+    end
+    return false
+end
+
 function AlchemyWindow:destroy()
     self.data = nil
     Window.destroy(self)
@@ -578,7 +613,17 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel,
                                         grow = 1,
                                     },
                                     content = ui.content {
-                                        self.tableSelector.element,
+                                        {
+                                            type = ui.TYPE.Widget,
+                                            props = {
+                                                relativeSize = v2(1, 0),
+                                                size = v2(0, T.Base.TEXT_SIZE),
+                                            },
+                                            content = ui.content {
+                                                self.tableSelector.element,
+                                                self.toggleFilterMatching.element,
+                                            },
+                                        },
                                         T.Base.intervalV(3),
                                         {
                                             name = 'ingredients-box',
@@ -1705,11 +1750,10 @@ parts.tableSelector = function(wnd)
         type = ui.TYPE.Flex,
         props = {
             horizontal = true,
-            anchor = v2(0.5, 1),
-            relativePosition = v2(0.5, 1),
+            anchor = v2(0, 1),
+            relativePosition = v2(0, 1),
             align = ui.ALIGNMENT.Center,
             arrange = ui.ALIGNMENT.Center,
-            position = v2(0, -3)
         },
         content = ui.content {
             ingredients,
@@ -1722,6 +1766,63 @@ parts.tableSelector = function(wnd)
             },
             T.Base.intervalH(5),
             effects,
+        }
+    }
+    wdg.element = element
+    update()
+
+    return wdg
+end
+
+---@param wnd AlchemyWindow
+parts.filterMatchingToggle = function(wnd)
+    local element, toggle
+
+    local function update()
+        toggle.layout.userData.active = wnd.filterToShowMatchingOnly
+        H.setInteractiveColor(toggle)
+        toggle:update()
+        wnd:onFilterChanged()
+    end
+
+    local wdg = {
+        onToggleClick = function()
+            wnd.filterToShowMatchingOnly = not wnd.filterToShowMatchingOnly
+            update()
+        end,
+        update = update,
+    }
+
+    toggle = T.Special.interactive({
+        name = 'toggle-filter-types-matching-toggle',
+        onClick = wdg.onToggleClick,
+        tooltipFn = function()
+            return T.Special.paragraphTooltip(l10n('AlchemyWindow_Toggle_Matching_Filter_Tooltip', C.TextColorParams),
+                'toggle-filter-types-matching-toggle', { size = v2(200, 0) })
+        end,
+    }, {
+        template = T.Base.textNormal,
+        props = {
+            text = l10n('Label_Matching'),
+        },
+        userData = {
+            colorable = true,
+        }
+    }, wnd.ctx)
+
+    element = ui.create {
+        name = 'toggle-filter-type-matching',
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = true,
+            anchor = v2(1, 1),
+            relativePosition = v2(1, 1),
+            align = ui.ALIGNMENT.End,
+            arrange = ui.ALIGNMENT.Center,
+            position = v2(-25, 0)
+        },
+        content = ui.content {
+            toggle,
         }
     }
     wdg.element = element

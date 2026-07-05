@@ -14,6 +14,7 @@ AlchemyWindow_Type_Poison_Tooltip: |-
 
 Label_Potion: Potion
 Label_Poison: Poison
+Label_Matching: Matching
 
 AlchemyWindow_Type_Ingredient_Tooltip: |-
   List of available ingredients.
@@ -23,6 +24,9 @@ AlchemyWindow_Type_Effect_Tooltip: |-
   List of available effects.
   Click on an effect to set it as a filter.
   Hold {color_header}SHIFT{color_normal} or {color_header}LT{color_normal} to select multiple effects.
+
+AlchemyWindow_Toggle_Matching_Filter_Tooltip: |-
+  If enabled then only ingredients that have effects that are present in selected ingredients, but not yet matched will be shown.
 
 All_Effects_Neutralized: All matching effects were neutralized by Alembic
 
