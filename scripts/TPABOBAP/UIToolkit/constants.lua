@@ -39,6 +39,7 @@ C.Colors = {
     BAR_FATIGUE = colorFromGMST('fontcolor_color_fatigue'),
     POSITIVE = colorFromGMST('fontcolor_color_positive'),
     DAMAGED = colorFromGMST('fontcolor_color_negative'),
+    HEADER = colorFromGMST('fontcolor_color_header'),
     BACKGROUND = colorFromGMST('fontcolor_color_background'),
     -- Generic colors
     WHITE = util.color.rgb(1, 1, 1),
@@ -53,6 +54,26 @@ C.Colors = {
     DARK_RED_DESAT = util.color.rgb(0.3, 0.05, 0.05),
     GREEN = util.color.rgb(0, 1, 0),
     GOLD = util.color.rgb(255 / 255, 205 / 255, 0),
+}
+
+---@param color openmw.util.Color
+---@return string
+local function toHex(color)
+    local str = string.format("#%02X%02X%02X",
+        util.round(255 * color.r),
+        util.round(255 * color.g),
+        util.round(255 * color.b)
+    ):lower()
+    print(str, color)
+    return str
+end
+
+---To be used in l10n files for text coloring
+C.TextColorParams = {
+    color_normal = toHex(C.Colors.DEFAULT),
+    color_header = toHex(C.Colors.HEADER),
+    color_positive = toHex(C.Colors.POSITIVE),
+    color_negative = toHex(C.Colors.DAMAGED),
 }
 
 C.Strings = {

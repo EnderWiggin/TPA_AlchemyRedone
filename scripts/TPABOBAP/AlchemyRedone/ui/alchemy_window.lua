@@ -1574,7 +1574,8 @@ parts.typeSelector = function(wnd)
         name = 'type-selector-potion',
         onClick = wdg.onPotionClick,
         tooltipFn = function()
-            return T.Special.lineTooltip(l10n('AlchemyWindow_Type_Potion_Tooltip'))
+            return T.Special.paragraphTooltip(l10n('AlchemyWindow_Type_Potion_Tooltip', C.TextColorParams),
+                'type-selector-potion', { size = v2(200, 0) })
         end,
     }, {
         template = T.Base.textNormal,
@@ -1590,7 +1591,8 @@ parts.typeSelector = function(wnd)
         name = 'type-selector-poison',
         onClick = wdg.onPoisonClick,
         tooltipFn = function()
-            return T.Special.lineTooltip(l10n('AlchemyWindow_Type_Poison_Tooltip'))
+            return T.Special.paragraphTooltip(l10n('AlchemyWindow_Type_Poison_Tooltip', C.TextColorParams),
+                'type-selector-poison', { size = v2(200, 0) })
         end,
     }, {
         template = T.Base.textNormal,
@@ -1668,7 +1670,8 @@ parts.tableSelector = function(wnd)
         name = 'type-selector-ingredients',
         onClick = wdg.onIngredientClick,
         tooltipFn = function()
-            return T.Special.lineTooltip(l10n('AlchemyWindow_Type_Potion_Tooltip'))
+            return T.Special.paragraphTooltip(l10n('AlchemyWindow_Type_Ingredient_Tooltip', C.TextColorParams),
+                'type-selector-ingredients', { size = v2(200, 0) })
         end,
     }, {
         template = T.Base.textNormal,
@@ -1684,7 +1687,8 @@ parts.tableSelector = function(wnd)
         name = 'type-selector-effects',
         onClick = wdg.onEffectClick,
         tooltipFn = function()
-            return T.Special.lineTooltip(l10n('AlchemyWindow_Type_Poison_Tooltip'))
+            return T.Special.paragraphTooltip(l10n('AlchemyWindow_Type_Effect_Tooltip', C.TextColorParams),
+                'type-selector-effects', { size = v2(200, 0) })
         end,
     }, {
         template = T.Base.textNormal,

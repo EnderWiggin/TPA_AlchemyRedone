@@ -244,6 +244,23 @@ Templates.lineTooltip = function(text, name, props)
     }, name)
 end
 
+---@param text string
+---@param name string?
+---@param props table?
+---@return openmw.ui.Layout
+Templates.paragraphTooltip = function(text, name, props)
+    return Templates.tooltip(4, ui.content {
+        {
+            template = BASE.textParagraph,
+            props = helpers.mergeTables({
+                text = text,
+                textAlignH = ui.ALIGNMENT.Start,
+                size = v2(300, 0),
+            }, props or {})
+        },
+    }, name)
+end
+
 ---@param id string
 ---@param actor openmw.GObject|openmw.LObject|nil
 Templates.ingredientTooltip = function(id, actor)
@@ -347,16 +364,7 @@ end
 ---@param id string
 ---@return openmw.ui.Layout
 Templates.magicEffectTooltip = function(id)
-    return Templates.tooltip(4, ui.content {
-        {
-            template = BASE.textParagraph,
-            props = {
-                text = helpers.getMagicEffectDescription(id),
-                textAlignH = ui.ALIGNMENT.Center,
-                size = v2(300, 0),
-            }
-        },
-    }, id)
+    return Templates.paragraphTooltip(helpers.getMagicEffectDescription(id), id, { textAlignH = ui.ALIGNMENT.Center })
 end
 
 Templates.effectIcon = function(effectId)

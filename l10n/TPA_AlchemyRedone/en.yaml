@@ -1,15 +1,28 @@
 AlchemyWindow_Type_Potion_Tooltip: |-
-  Make a potion:
-  Alembic reduces the strength and duration of all negative effects
-  Retort increases the strength and duration of all positive effects.
+  Positive effects:
+  {color_header}Retort{color_normal} {color_positive}increases{color_normal} strength and duration.
+  
+  Negative effects:
+  {color_header}Alembic{color_normal} {color_negative}decreases{color_normal} strength and duration.
 
 AlchemyWindow_Type_Poison_Tooltip: |-
-  Make a poison:
-  Alembic reduces the strength and duration of all positive effects.
-  Retort increases the strength and duration of all negative effects
+  Negative effects:
+  {color_header}Retort{color_normal} {color_positive}increases{color_normal} strength and duration.
+  
+  Positive effects:
+  {color_header}Alembic{color_normal} {color_negative}decreases{color_normal} strength and duration.
 
 Label_Potion: Potion
 Label_Poison: Poison
+
+AlchemyWindow_Type_Ingredient_Tooltip: |-
+  List of available ingredients.
+  Click on an ingredient to add to (or remove from) the potion.
+
+AlchemyWindow_Type_Effect_Tooltip: |-
+  List of available effects.
+  Click on an effect to set it as a filter.
+  Hold {color_header}SHIFT{color_normal} or {color_header}LT{color_normal} to select multiple effects.
 
 All_Effects_Neutralized: All matching effects were neutralized by Alembic
 
