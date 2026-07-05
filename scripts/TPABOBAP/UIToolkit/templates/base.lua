@@ -72,8 +72,7 @@ Templates.createTexture = function(path, size, offset)
 end
 
 Templates.effectIconTexture = function(effectId)
-    local effectRecord = core.magic.effects.records[effectId] or
-        (I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectId))
+    local effectRecord = helpers.getMagicEffectRecord(effectId)
     return effectRecord and Templates.createTexture(effectRecord.icon)
 end
 

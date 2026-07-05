@@ -1153,13 +1153,8 @@ if isPlayer then
     end
 
     Helpers.getMagicEffectString = function(effectParams)
-        local effect = core.magic.effects.records[effectParams.id]
-        if not effect then
-            effect = I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectParams.id)
-            if not effect then
-                return ''
-            end
-        end
+        local effect = Helpers.getMagicEffectRecord(effectParams.id)
+        if not effect then return '' end
 
         local affectedSkill = effectParams.affectedSkill
         local affectedAttribute = effectParams.affectedAttribute
@@ -1196,17 +1191,22 @@ if isPlayer then
         return string
     end
 
+    ---@param id string effect id
+    ---@return openmw.core.MagicEffect? record, boolean isCustom
+    Helpers.getMagicEffectRecord = function(id)
+        ---@type openmw.core.MagicEffect?
+        local effect = core.magic.effects.records[id]
+        if effect then return effect, false end
+        effect = I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(id)
+        if effect then return effect, true end
+        return nil, false
+    end
+
     Helpers.getMagicEffectDescription = function(effectOrId)
         local id = type(effectOrId) == "string" and effectOrId or effectOrId.id
         ---@type openmw.core.MagicEffect?
-        local effect = core.magic.effects.records[id]
-        if not effect then
-            effect = I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(id)
-            if not effect then
-                return id
-            end
-        end
-        return effect.description
+        local effect = Helpers.getMagicEffectRecord(id)
+        return effect and effect.description or id
     end
 
     Helpers.getTooltipMagicEffectEntries = function(item, actor)
@@ -1314,15 +1314,8 @@ if isPlayer then
     end
 
     Helpers.createSpellEffectString = function(effectParams, isConstant, isPotion)
-        local effect = core.magic.effects.records[effectParams.id]
-        local isCustom = false
-        if not effect then
-            effect = I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectParams.id)
-            if not effect then
-                return ''
-            end
-            isCustom = true
-        end
+        local effect, isCustom = Helpers.getMagicEffectRecord(effectParams.id)
+        if not effect then return '' end
 
         local string = Helpers.getMagicEffectString(effectParams)
 

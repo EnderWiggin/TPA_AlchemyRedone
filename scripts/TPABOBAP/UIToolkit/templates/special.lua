@@ -360,13 +360,11 @@ Templates.magicEffectTooltip = function(id)
 end
 
 Templates.effectIcon = function(effectId)
-    local effectRecord = core.magic.effects.records[effectId] or
-        (I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectId))
     local layout = {
         type = ui.TYPE.Image,
         props = {
             size = v2(16, 16),
-            resource = BASE.createTexture(effectRecord.icon),
+            resource = BASE.effectIconTexture(effectId),
         },
     }
     return layout
