@@ -71,9 +71,10 @@ updateSizes()
 function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
-    self.isPoison = false                 --Are we making potion or poison?
-    self.showEffects = false              --Show effects or ingredients?
-    self.filterToShowMatchingOnly = false --Show only ingredients that have effects present in selected ingredients but not matched yet
+    self.isPoison = false                        --Are we making potion or poison?
+    self.showEffects = false                     --Show effects or ingredients?
+    self.filterToShowMatchingIngredients = false --Show only ingredients that have effects present in selected ingredients but not matched yet
+    self.filterToShowMatchingEffects = true      --Show only effects that match potion type (negative/positive)
     self.showFullEffects = cfgPlayer.main.b_ShowFullEffectInfo
     ---@type {id:string, text: string}[]
     self.selectedEffects = {}
@@ -122,6 +123,7 @@ function AlchemyWindow:init(ctx)
     filter, self.filter = parts.filterInput(self)
 
     self.effectTable = T.Alchemy.makeEffectTable(self)
+    self.effectTable.layout.userData.setFilter('matching', function(row) return self:filterEffectByPotionType(row) end)
 
     self.tableSelector = parts.tableSelector(self)
 
@@ -290,6 +292,14 @@ function AlchemyWindow:onEffectClicked(effect)
     self.effectTable.layout.userData.refresh()
     self.filter.setText(table.concat(terms, " | "))
     self:onFilterChanged()
+end
+
+function AlchemyWindow:onPotionTypeUpdated()
+    self.resultingEffects.update()
+    self:updateDefaultName()
+    if self.showEffects and self.filterToShowMatchingEffects then
+        self.effectTable.layout.userData.refresh()
+    end
 end
 
 ---@return string[]
@@ -523,7 +533,7 @@ end
 
 ---@param row IngredientItemData
 function AlchemyWindow:filterIngredientByEffects(row)
-    if not self.filterToShowMatchingOnly then return true end
+    if not self.filterToShowMatchingIngredients then return true end
 
     -- always allow selected ingredient
     local selected = self:getSelectedIngredientList()
@@ -550,6 +560,16 @@ function AlchemyWindow:filterIngredientByEffects(row)
         end
     end
     return false
+end
+
+---@param row EffectItemData
+---@return boolean
+function AlchemyWindow:filterEffectByPotionType(row)
+    if not self.filterToShowMatchingEffects then return true end
+    local record = H.getMagicEffectRecord(row.effectId)
+    if not record then return true end
+
+    return not self.isPoison == not record.harmful
 end
 
 function AlchemyWindow:destroy()
@@ -1599,8 +1619,7 @@ parts.typeSelector = function(wnd)
         H.setInteractiveColor(poison)
         poison:update()
 
-        wnd.resultingEffects.update()
-        wnd:updateDefaultName()
+        wnd:onPotionTypeUpdated()
     end
 
     local wdg = {
@@ -1697,6 +1716,9 @@ parts.tableSelector = function(wnd)
 
         wnd.itemTable:update()
         wnd.effectTable:update()
+        if wnd.showEffects then
+            wnd.effectTable.layout.userData.refresh()
+        end
     end
 
     local wdg = {
@@ -1779,7 +1801,7 @@ parts.filterMatchingToggle = function(wnd)
     local element, toggle
 
     local function update()
-        toggle.layout.userData.active = wnd.filterToShowMatchingOnly
+        toggle.layout.userData.active = wnd.filterToShowMatchingIngredients
         H.setInteractiveColor(toggle)
         toggle:update()
         wnd:onFilterChanged()
@@ -1787,7 +1809,7 @@ parts.filterMatchingToggle = function(wnd)
 
     local wdg = {
         onToggleClick = function()
-            wnd.filterToShowMatchingOnly = not wnd.filterToShowMatchingOnly
+            wnd.filterToShowMatchingIngredients = not wnd.filterToShowMatchingIngredients
             update()
         end,
         update = update,
