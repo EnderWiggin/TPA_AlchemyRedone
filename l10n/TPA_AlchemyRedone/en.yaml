@@ -2,11 +2,11 @@ AlchemyWindow_Type_Potion_Tooltip: |-
   Positive effects:
   {color_header}Retort{color_normal} {color_positive}increases{color_normal} strength and duration.
   
-  Negative effects:
+  Harmful effects:
   {color_header}Alembic{color_normal} {color_negative}decreases{color_normal} strength and duration.
 
 AlchemyWindow_Type_Poison_Tooltip: |-
-  Negative effects:
+  Harmful effects:
   {color_header}Retort{color_normal} {color_positive}increases{color_normal} strength and duration.
   
   Positive effects:
@@ -25,8 +25,12 @@ AlchemyWindow_Type_Effect_Tooltip: |-
   Click on an effect to set it as a filter.
   Hold {color_header}SHIFT{color_normal} or {color_header}LT{color_normal} to select multiple effects.
 
-AlchemyWindow_Toggle_Matching_Filter_Tooltip: |-
+AlchemyWindow_Toggle_Matching_Ingredient_Tooltip: |-
   If enabled then only ingredients that have effects that are present in selected ingredients, but not yet matched will be shown.
+
+AlchemyWindow_Toggle_Matching_Effect_Tooltip: |-
+  If enabled then only positive effects are shown when brewing potion.
+  And only harmful effects are shown when brewing poison.
 
 All_Effects_Neutralized: All matching effects were neutralized by Alembic
 

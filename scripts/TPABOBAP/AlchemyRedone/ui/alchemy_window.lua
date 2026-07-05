@@ -1719,6 +1719,10 @@ parts.tableSelector = function(wnd)
         if wnd.showEffects then
             wnd.effectTable.layout.userData.refresh()
         end
+
+        if wnd.toggleFilterMatching then
+            wnd.toggleFilterMatching.update()
+        end
     end
 
     local wdg = {
@@ -1801,7 +1805,11 @@ parts.filterMatchingToggle = function(wnd)
     local element, toggle
 
     local function update()
-        toggle.layout.userData.active = wnd.filterToShowMatchingIngredients
+        if wnd.showEffects then
+            toggle.layout.userData.active = wnd.filterToShowMatchingEffects
+        else
+            toggle.layout.userData.active = wnd.filterToShowMatchingIngredients
+        end
         H.setInteractiveColor(toggle)
         toggle:update()
         wnd:onFilterChanged()
@@ -1809,7 +1817,11 @@ parts.filterMatchingToggle = function(wnd)
 
     local wdg = {
         onToggleClick = function()
-            wnd.filterToShowMatchingIngredients = not wnd.filterToShowMatchingIngredients
+            if wnd.showEffects then
+                wnd.filterToShowMatchingEffects = not wnd.filterToShowMatchingEffects
+            else
+                wnd.filterToShowMatchingIngredients = not wnd.filterToShowMatchingIngredients
+            end
             update()
         end,
         update = update,
@@ -1819,8 +1831,15 @@ parts.filterMatchingToggle = function(wnd)
         name = 'toggle-filter-types-matching-toggle',
         onClick = wdg.onToggleClick,
         tooltipFn = function()
-            return T.Special.paragraphTooltip(l10n('AlchemyWindow_Toggle_Matching_Filter_Tooltip', C.TextColorParams),
-                'toggle-filter-types-matching-toggle', { size = v2(200, 0) })
+            if wnd.showEffects then
+                return T.Special.paragraphTooltip(
+                    l10n('AlchemyWindow_Toggle_Matching_Effect_Tooltip', C.TextColorParams),
+                    'toggle-filter-types-matching-toggle', { size = v2(200, 0) })
+            else
+                return T.Special.paragraphTooltip(
+                    l10n('AlchemyWindow_Toggle_Matching_Ingredient_Tooltip', C.TextColorParams),
+                    'toggle-filter-types-matching-toggle', { size = v2(200, 0) })
+            end
         end,
     }, {
         template = T.Base.textNormal,
