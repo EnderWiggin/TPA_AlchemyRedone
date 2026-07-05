@@ -140,7 +140,7 @@ m.getIngredientSearchText = function(recordOrId, actor)
 
     for i, effectData in ipairs(H.getTooltipIngredientEffectEntries(record, actor)) do
         if effectData.visible and effectData.text and effectData.text ~= '' then
-            table.insert(searchParts, effectData.text)
+            table.insert(searchParts, '"' .. effectData.text .. '"')
         end
     end
 
