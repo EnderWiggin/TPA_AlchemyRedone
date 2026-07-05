@@ -1,15 +1,24 @@
 ---@omw-context global
 
 local I = require('openmw.interfaces')
+local H = require('scripts.TPABOBAP.UIToolkit.helpers')
+local C = require('scripts.TPABOBAP.UIToolkit.constants')
 
 local MODNAME = 'TPA_AlchemyRedone'
+local l10n = require('openmw.core').l10n(MODNAME)
+
+local KnowledgeThreshold = {
+    default = 5,
+    min = 1,
+    max = 20,
+}
 
 I.Settings.registerGroup {
     key = MODNAME .. '/ReworkSettings',
     page = MODNAME,
     l10n = MODNAME,
     name = 'ReworkSettingsName',
-    description = 'ReworkSettingsDesc',
+    description = l10n('ReworkSettingsDesc', C.TextColorParams),
     order = 2,
     permanentStorage = true,
     settings = {
@@ -24,11 +33,12 @@ I.Settings.registerGroup {
             key = 'n_PotionKnowledgeThreshold',
             renderer = 'number',
             name = 'SettingPotionKnowledgeThreshold',
-            description = 'SettingPotionKnowledgeThresholdDesc',
-            default = 5,
+            description = l10n('SettingPotionKnowledgeThresholdDesc', H.mergeTables(C.TextColorParams, KnowledgeThreshold)),
+            default = KnowledgeThreshold.default,
             argument = {
-                min = 1,
-                max = 20,
+                min = KnowledgeThreshold.min,
+                max = KnowledgeThreshold.max,
+                integer = true,
             }
         },
     },

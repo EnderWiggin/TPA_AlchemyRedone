@@ -3,11 +3,25 @@
 local input = require('openmw.input')
 local I = require('openmw.interfaces')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
+local H = require('scripts.TPABOBAP.UIToolkit.helpers')
 
 local MODNAME = 'TPA_AlchemyRedone'
+local l10n = require('openmw.core').l10n(MODNAME)
 
 local controllerInput = require('scripts.TPABOBAP.AlchemyRedone.settings.controllerInputRenderer')
 I.Settings.registerRenderer('TPA_controllerInput', controllerInput.renderer)
+
+local RepeatThreshold = {
+    default = 0.5,
+    min = 0.2,
+    max = 1,
+}
+
+local RepeatStep = {
+    default = 0.125,
+    min = 0.05,
+    max = 0.5,
+}
 
 I.Settings.registerPage {
     key = MODNAME,
@@ -122,42 +136,42 @@ I.Settings.registerGroup {
             key = 'n_ToggleTable',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_ToggleTable',
-            description = 'SettingController_ToggleTableDesc',
+            description = l10n('SettingController_ToggleTableDesc', C.TextColorParams),
             default = input.CONTROLLER_BUTTON.RightShoulder,
         },
         {
             key = 'n_CountMore',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_CountMore',
-            description = 'SettingController_CountMoreDesc',
+            description = l10n('SettingController_CountMoreDesc', C.TextColorParams),
             default = input.CONTROLLER_BUTTON.DPadRight,
         },
         {
             key = 'n_CountLess',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_CountLess',
-            description = 'SettingController_CountLessDesc',
+            description = l10n('SettingController_CountLessDesc', C.TextColorParams),
             default = input.CONTROLLER_BUTTON.DPadLeft,
         },
         {
             key = 'n_SelectNext',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_SelectNext',
-            description = 'SettingController_SelectNextDesc',
+            description = l10n('SettingController_SelectNextDesc', C.TextColorParams),
             default = input.CONTROLLER_BUTTON.DPadDown,
         },
         {
             key = 'n_SelectPrev',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_SelectPrev',
-            description = 'SettingController_SelectPrevDesc',
+            description = l10n('SettingController_SelectPrevDesc', C.TextColorParams),
             default = input.CONTROLLER_BUTTON.DPadUp,
         },
         {
             key = 'b_AllowPrecisionMode',
             renderer = 'checkbox',
             name = 'SettingAllowPrecisionMode',
-            description = 'SettingAllowPrecisionModeDesc',
+            description = l10n('SettingAllowPrecisionModeDesc', C.TextColorParams),
             default = false,
         },
         {
@@ -171,22 +185,22 @@ I.Settings.registerGroup {
             key = 'n_RepeatingButtonsThreshold',
             renderer = 'number',
             name = 'SettingRepeatingButtonsThreshold',
-            description = 'SettingRepeatingButtonsThresholdDesc',
-            default = 0.5,
+            description = l10n('SettingRepeatingButtonsThresholdDesc', H.mergeTables(C.TextColorParams, RepeatThreshold)),
+            default = RepeatThreshold.default,
             argument = {
-                min = 0.2,
-                max = 1,
+                min = RepeatThreshold.min,
+                max = RepeatThreshold.max,
             }
         },
         {
             key = 'n_RepeatingButtonsStep',
             renderer = 'number',
             name = 'SettingRepeatingButtonsStep',
-            description = 'SettingRepeatingButtonsStepDesc',
-            default = 0.125,
+            description = l10n('SettingRepeatingButtonsStepDesc', H.mergeTables(C.TextColorParams, RepeatStep)),
+            default = RepeatStep.default,
             argument = {
-                min = 0.05,
-                max = 0.5,
+                min = RepeatStep.min,
+                max = RepeatStep.max,
             }
         },
     },
