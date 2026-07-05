@@ -18,7 +18,7 @@ local IngredientTable = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 
 local m = {}
 
-local function renderIcon(ingredient, width, height)
+local function renderIngredientIcon(ingredient, width, height)
     local record = types.Ingredient.record(ingredient.id)
     local sz = math.min(width, height)
     return {
@@ -41,7 +41,7 @@ local function renderIcon(ingredient, width, height)
     }
 end
 
-m.makeTable = function(wnd)
+m.makeIngredientTable = function(wnd)
     ---@type AlchemyContext
     local ctx = wnd.ctx
     ---@type AlchemyData
@@ -99,7 +99,7 @@ m.makeTable = function(wnd)
 
     return IngredientTable.create(ctx, {
         columns = {
-            { id = 'icon',    width = rowHeight + 5, renderer = renderIcon },
+            { id = 'icon',    width = rowHeight + 5, renderer = renderIngredientIcon },
             { id = 'name', },
             { id = 'effects', width = effectWidth,   renderer = renderEffects },
         },
@@ -132,7 +132,7 @@ m.makeTable = function(wnd)
     })
 end
 
-m.getSearchText = function(recordOrId, actor)
+m.getIngredientSearchText = function(recordOrId, actor)
     local record = A.toIngredientRecord(recordOrId)
     if not record then return '' end
 

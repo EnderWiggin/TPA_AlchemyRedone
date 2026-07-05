@@ -15,7 +15,9 @@ local H = require('scripts.TPABOBAP.UIToolkit.helpers')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
-local Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients")
+local T = {
+    Alchemy = require("scripts.TPABOBAP.AlchemyRedone.ui.alchemy")
+}
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 
@@ -257,7 +259,7 @@ m.getAllIngredients = function()
             id = id,
             count = count,
             name = name,
-            searchText = Ingredients.getSearchText(record, player),
+            searchText = T.Alchemy.getIngredientSearchText(record, player),
             activeFn = function()
                 if ctx.data and ctx.data.selected then
                     for i = 1, 4 do
@@ -320,7 +322,7 @@ m.modifyTooltip = function(item, layout)
     if item.type == types.Potion or item.type == types.Ingredient then
         local effects = H.findLayoutByPathSafe(layout, { 'padding', 'tooltip', 'effects' })
         if not effects then return end
-        effects.content = Ingredients.getIEMagicEffectsContent(item, player)
+        effects.content = T.Alchemy.getIEMagicEffectsContent(item, player)
     end
 end
 

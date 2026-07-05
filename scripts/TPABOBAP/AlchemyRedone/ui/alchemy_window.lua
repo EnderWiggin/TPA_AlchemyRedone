@@ -18,9 +18,9 @@ local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 local l10n = core.l10n('TPA_AlchemyRedone')
 local I = require("openmw.interfaces")
 local T = {
-    Base        = require("scripts.TPABOBAP.UIToolkit.templates.base"),
-    Special     = require("scripts.TPABOBAP.UIToolkit.templates.special"),
-    Ingredients = require("scripts.TPABOBAP.AlchemyRedone.ui.ingredients"),
+    Base    = require("scripts.TPABOBAP.UIToolkit.templates.base"),
+    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
+    Alchemy = require("scripts.TPABOBAP.AlchemyRedone.ui.alchemy"),
 }
 local S = require("scripts.TPABOBAP.UIToolkit.templates.special")
 local C = require("scripts.TPABOBAP.UIToolkit.constants")
@@ -111,7 +111,7 @@ function AlchemyWindow:init(ctx)
     local counting
     counting, self.counting = parts.countBlock()
 
-    self.itemTable = T.Ingredients.makeTable(self)
+    self.itemTable = T.Alchemy.makeIngredientTable(self)
     self.itemTable.layout.userData.setFilter('default', function(row) return self:filterIngredient(row) end)
     local filter
     filter, self.filter = parts.filterInput(function(value) self:onFilterChanged(value) end)
@@ -441,7 +441,7 @@ end
 
 function AlchemyWindow:filterIngredient(row)
     local filter = self.filter.getText():lower()
-    local haystack = row.searchText or T.Ingredients.getItemSearchText(row.id)
+    local haystack = row.searchText or T.Alchemy.getIngredientSearchText(row.id, player)
     return haystack:find(filter, 1, true) ~= nil
 end
 
