@@ -13,7 +13,7 @@ local T = {
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 
-local IngredientTable = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
+local Table = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 
 
 local m = {}
@@ -97,7 +97,7 @@ m.makeIngredientTable = function(wnd)
         }
     end
 
-    return IngredientTable.create(ctx, {
+    return Table.create(ctx, {
         columns = {
             { id = 'icon',    width = rowHeight + 5, renderer = renderIngredientIcon },
             { id = 'name', },

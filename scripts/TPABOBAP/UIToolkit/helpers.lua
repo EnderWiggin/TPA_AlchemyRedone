@@ -1196,12 +1196,14 @@ if isPlayer then
         return string
     end
 
-    Helpers.getMagicEffectDescription = function(effectParams)
-        local effect = core.magic.effects.records[effectParams.id]
+    Helpers.getMagicEffectDescription = function(effectOrId)
+        local id = type(effectOrId) == "string" and effectOrId or effectOrId.id
+        ---@type openmw.core.MagicEffect?
+        local effect = core.magic.effects.records[id]
         if not effect then
-            effect = I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(effectParams.id)
+            effect = I.MagicWindow and I.MagicWindow.Spells.getCustomEffect(id)
             if not effect then
-                return effectParams.id
+                return id
             end
         end
         return effect.description

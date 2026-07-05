@@ -325,62 +325,6 @@ Templates.ingredientTooltip = function(id, actor)
         })
     end
 
-    --[[
-    if configPlayer.tweaks.b_CondensedWeightValue then
-        if innerContent:indexOf('weight') then
-            innerContent.weight = nil
-        end
-        if innerContent:indexOf('value') then
-            innerContent.value = nil
-        end
-
-        local flexContent = ui.content {}
-
-        if value > 0 and itemRecord.id ~= 'gold_001' then
-            flexContent:add({
-                type = ui.TYPE.Image,
-                props = {
-                    size = v2(16, 16),
-                    resource = BASE.createTexture('icons/gold.dds'),
-                }
-            })
-            flexContent:add(textNormal(nil, ' ' .. helpers.addSeparators(util.round(value))))
-        end
-
-        if itemRecord.weight > 0 then
-            if #flexContent > 0 then
-                flexContent:add(BASE.intervalH(4))
-            end
-            flexContent:add({
-                type = ui.TYPE.Image,
-                props = {
-                    size = v2(16, 16),
-                    resource = BASE.createTexture('icons/weight.dds'),
-                }
-            })
-            flexContent:add(textNormal(nil, ' ' .. helpers.roundToPlaces(itemRecord.weight, 2)))
-        end
-
-        if #flexContent > 0 then
-            local flex = {
-                name = 'weightValue',
-                type = ui.TYPE.Flex,
-                props = {
-                    horizontal = true,
-                    align = ui.ALIGNMENT.End,
-                    arrange = ui.ALIGNMENT.Center,
-                },
-                external = {
-                    stretch = 1,
-                },
-                content = flexContent
-            }
-            innerContent:add(BASE.intervalV(8))
-            innerContent:add(flex)
-        end
-    end
-    ]]
-
     if #innerContent == 2 then
         innerContent[2] = nil -- remove extra interval if no details
     end
@@ -398,6 +342,21 @@ Templates.ingredientTooltip = function(id, actor)
     }, id)
 
     return layout
+end
+
+---@param id string
+---@return openmw.ui.Layout
+Templates.magicEffectTooltip = function(id)
+    return Templates.tooltip(4, ui.content {
+        {
+            template = BASE.textParagraph,
+            props = {
+                text = helpers.getMagicEffectDescription(id),
+                textAlignH = ui.ALIGNMENT.Center,
+                size = v2(300, 0),
+            }
+        },
+    }, id)
 end
 
 Templates.effectIcon = function(effectId)
