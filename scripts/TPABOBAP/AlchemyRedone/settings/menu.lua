@@ -105,11 +105,25 @@ I.Settings.registerGroup {
             default = input.CONTROLLER_BUTTON.X,
         },
         {
+            key = 'n_ClearText',
+            renderer = 'TPA_controllerInput',
+            name = 'SettingController_ClearText',
+            description = 'SettingController_ClearTextDesc',
+            default = input.CONTROLLER_BUTTON.Y,
+        },
+        {
             key = 'n_ToggleType',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_ToggleType',
             description = 'SettingController_ToggleTypeDesc',
             default = input.CONTROLLER_BUTTON.LeftShoulder,
+        },
+        {
+            key = 'n_ToggleTable',
+            renderer = 'TPA_controllerInput',
+            name = 'SettingController_ToggleTable',
+            description = 'SettingController_ToggleTableDesc',
+            default = input.CONTROLLER_BUTTON.RightShoulder,
         },
         {
             key = 'n_CountMore',

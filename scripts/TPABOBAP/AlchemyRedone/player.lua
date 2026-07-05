@@ -70,9 +70,10 @@ local m = {
 ---@class AlchemyContext: WindowContext
 ---@field potionModifiers { id: string, mod: TPA_AlchemyRedone.PotionModifier }[]
 ---@field data AlchemyData
----@field selectIngredient fun(info: IngredientInfo)
+---@field selectIngredient fun(info: IngredientItemData)
 ---@field clearIngredient fun(n:integer)
----@field getAllIngredients fun():table[]
+---@field getAllIngredients fun():IngredientItemData[]
+---@field getAllEffects fun():EffectItemData[]
 
 ---@type AlchemyContext
 local ctx = {
@@ -83,6 +84,7 @@ local ctx = {
     selectIngredient = function(info) m.selectIngredient(info) end,
     clearIngredient = function(n) m.clearIngredient(n) end,
     getAllIngredients = function() return m.getAllIngredients() end,
+    getAllEffects = function() return m.getAllEffects() end,
     setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end,
     setHovered = function(element) return m.setHovered(element) end,
 }
@@ -246,6 +248,7 @@ m.updateIngredients = function()
     end
 end
 
+---@return IngredientItemData[]
 m.getAllIngredients = function()
     if not ctx.data.sources then
         return {}
@@ -266,6 +269,54 @@ m.getAllIngredients = function()
                         local recordId = ctx.data.selected[i]
                         if recordId == id then return true end
                     end
+                end
+                return false
+            end,
+        })
+    end
+    return result
+end
+
+---@return EffectItemData[]
+m.getAllEffects = function()
+    if not ctx.data.sources then
+        return {}
+    end
+
+    ---@type table<string, EffectItemData>
+    local effects = {}
+
+    for id, _ in pairs(ctx.data.ingredients) do
+        local record = types.Ingredient.record(id)
+        if record then
+            for i = 1, #record.effects do
+                local effect = record.effects[i]
+                local key = A.effectKey(effect)
+                if not effects[key] then
+                    effects[key] = {
+                        id = key,
+                        effectId = effect.id,
+                        affectedAttribute = effect.affectedAttribute,
+                        affectedSkill = effect.affectedSkill,
+                    }
+                end
+            end
+        end
+    end
+    local result = {}
+    for _, data in pairs(effects) do
+        local name = H.getMagicEffectString(T.Alchemy.effectDataToEffect(data))
+        table.insert(result, {
+            id = data.id,
+            effectId = data.effectId,
+            affectedSkill = data.affectedSkill,
+            affectedAttribute = data.affectedAttribute,
+            name = name,
+            searchText = '"' .. name .. '"',
+            activeFn = function()
+                if not m.wndAlchemy then return false end
+                for i = 1, #m.wndAlchemy.selectedEffects do
+                    if m.wndAlchemy.selectedEffects[i].id == data.id then return true end
                 end
                 return false
             end,

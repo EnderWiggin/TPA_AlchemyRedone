@@ -14,12 +14,16 @@ local T = {
 }
 local C = require("scripts.TPABOBAP.UIToolkit.constants")
 
----@alias ColumnRenderer fun(item: IngredientInfo, w: number, h:number):openmw.ui.Layout
+---@generic TItemData : BaseItemData
+---@alias ColumnRenderer fun(item: TItemData, w: number, h:number):openmw.ui.Layout
 
----@alias Column {id: string, visible: boolean?, width: number?, textAlignH: any?, renderer: ColumnRenderer?}
----@alias IngredientInfo {id: string, count: number}
+---@generic TItemData : BaseItemData
+---@alias Column {id: string, visible: boolean?, width: number?, textAlignH: any?, renderer: TItemData?}
 
 local IngredientTable = {}
+
+---@class BaseItemData
+---@field id string
 
 local scrollbarWidth = 24
 local scrollStep = 2 --TODO: add config?
@@ -67,21 +71,27 @@ local function setColumnWidths(columns, state)
     state.columnWidths = widths
 end
 
----@param a IngredientInfo
----@param b IngredientInfo
+---@param a BaseItemData
+---@param b BaseItemData
 ---@return boolean
 local function defaultComparator(a, b)
     return a.id < b.id
 end
 
----@alias IngredientTableOpts {columns: Column[]?, data: IngredientInfo[]?, size: openmw.util.Vector2?, rowHeight: number?, parentWindow: table?, comparator?: fun(a:any, b:any):boolean}
+---@class IngredientTableOpts
+---@field columns Column[]?
+---@field data BaseItemData[]?
+---@field size openmw.util.Vector2?
+---@field rowHeight number?
+---@field parentWindow AlchemyWindow
+---@field comparator? fun(a:any, b:any):boolean
 
+---@generic TItemData : BaseItemData
 ---@param ctx WindowContext
----@param opts IngredientTableOpts
+---@param opts IngredientTableOpts<TItemData>
 IngredientTable.create = function(ctx, opts)
     ---@type Column[]
     local columns = opts.columns or {}
-    ---@type IngredientInfo[]
     local dataRows = opts.data or {}
     local size = opts.size or v2(400, 300)
     local rowHeight = opts.rowHeight or 30
@@ -91,7 +101,7 @@ IngredientTable.create = function(ctx, opts)
     local comparator = opts.comparator or defaultComparator
 
     local state = {
-        ---@type IngredientInfo[]
+        ---@type BaseItemData[]
         sortedRows = {}, -- List of items after sorting
         columns = columns,
         columnWidths = {},

@@ -15,6 +15,13 @@ local H = require("scripts.TPABOBAP.UIToolkit.helpers")
 
 local Table = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 
+---@class IngredientItemData : BaseItemData
+---@field count integer
+
+---@class EffectItemData : BaseItemData
+---@field effectId string
+---@field affectedAttribute string?
+---@field affectedSkill string?
 
 local m = {}
 
@@ -32,6 +39,31 @@ local function renderIngredientIcon(ingredient, width, height)
                 type = ui.TYPE.Image,
                 props = {
                     resource = record and T.Base.createTexture(record.icon),
+                    anchor = v2(0.5, 0.5),
+                    relativePosition = v2(0.5, 0.5),
+                    size = v2(sz, sz),
+                }
+            },
+        }
+    }
+end
+
+---@param effect EffectItemData
+---@param width number
+---@param height number
+local function renderEffectIcon(effect, width, height)
+    local sz = math.min(width, height) - 5
+    return {
+        name = 'Icon',
+        props = {
+            size = v2(width, height),
+        },
+        content = ui.content {
+            {
+                name = 'icon',
+                type = ui.TYPE.Image,
+                props = {
+                    resource = T.Base.effectIconTexture(effect.effectId),
                     anchor = v2(0.5, 0.5),
                     relativePosition = v2(0.5, 0.5),
                     size = v2(sz, sz),
@@ -106,6 +138,9 @@ m.makeIngredientTable = function(wnd)
         data = ctx.getAllIngredients(),
         size = v2(600, 400),
         rowHeight = rowHeight,
+        ---@param a IngredientItemData
+        ---@param b IngredientItemData
+        ---@return boolean
         comparator = function(a, b)
             local rA = types.Ingredient.record(a.id)
             local rB = types.Ingredient.record(b.id)
@@ -128,6 +163,50 @@ m.makeIngredientTable = function(wnd)
             return ctx.selectIngredient({ id = row.id, count = row.count })
         end,
         tooltipFn = function(row) return T.Special.ingredientTooltip(row.id, player) end,
+        parentWindow = wnd,
+    })
+end
+
+m.effectDataToEffect = function(data)
+    return {
+        id = data.effectId,
+        affectedAttribute = data.affectedAttribute,
+        affectedSkill = data.affectedSkill,
+    }
+end
+
+---@param wnd AlchemyWindow
+m.makeEffectTable = function(wnd)
+    ---@type AlchemyContext
+    local ctx = wnd.ctx
+    local rowHeight = 1.5 * (T.Base.TEXT_SIZE + 2)
+
+    return Table.create(ctx, {
+        columns = {
+            { id = 'icon', width = rowHeight + 5, renderer = renderEffectIcon },
+            { id = 'name', },
+        },
+        data = ctx.getAllEffects(),
+        size = v2(600, 400),
+        rowHeight = rowHeight,
+        ---@param a EffectItemData
+        ---@param b EffectItemData
+        ---@return boolean
+        comparator = function(a, b)
+            local nA = H.getMagicEffectString(m.effectDataToEffect(a))
+            local nB = H.getMagicEffectString(m.effectDataToEffect(b))
+
+            if nA == nB then return a.id < b.id end
+            return nA < nB
+        end,
+        onRowUse = function(row) wnd:onEffectClicked(row) end,
+
+        --onKBMRowUse = function(row)
+        --    --return ctx.selectIngredient({ id = row.id, count = row.count })
+        --end,
+        ---@param row EffectItemData
+        ---@return openmw.ui.Layout
+        tooltipFn = function(row) return T.Special.magicEffectTooltip(row.effectId) end,
         parentWindow = wnd,
     })
 end

@@ -73,14 +73,20 @@ ControllerSettingsDesc: |-
 
 SettingController_Activate: Activate
 SettingController_ActivateDesc: |-
-  Selects currently highlighted ingredient.
+  Selects currently highlighted item in the list.
   Should be bound to same key as 'click-imitating' input.
 
 SettingController_Brew: Brew Potion
 SettingController_BrewDesc: Brew potion from currently selected ingredients.
 
+SettingController_ClearText: Clear Filter
+SettingController_ClearTextDesc: Clears ingredient filter text and any selected effects.
+
 SettingController_ToggleType: Toggle Potion Type
 SettingController_ToggleTypeDesc: Toggle between brewing Potions and Poisons.
+
+SettingController_ToggleTable: Toggle Between Ingredients and Effects
+SettingController_ToggleTableDesc: Toggle between showing ingredient list and effect list.
 
 SettingController_CountMore: Increase Potion Count
 SettingController_CountMoreDesc: |-
@@ -94,20 +100,22 @@ SettingController_CountLessDesc: |-
   If LT is held - decreases by 5.
   If RT is held - sets count to 1.
 
-SettingController_SelectNext: Select Next Ingredient
+SettingController_SelectNext: Select Next
 SettingController_SelectNextDesc: |-
-  Selects next ingredient down the list. If at the bottom - loops to the start.
-  If LT is held - skip by 5 ingredients forward.
+  Selects next item down the list.
+  If at the bottom - loops to the start.
+  If LT is held - skip by 5 items forward.
   If RT is held - skip full page forward.
 
-SettingController_SelectPrev: Select Previous Ingredient
+SettingController_SelectPrev: Select Previous
 SettingController_SelectPrevDesc: |-
-  Selects previous ingredient up the list. If at the top - loops to the bottom.
-  If LT is held - skip by 5 ingredients backward.
+  Selects previous item up the list.
+  If at the top - loops to the bottom.
+  If LT is held - skip by 5 items backward.
   If RT is held - skip full page backward.
 
 SettingRepeatingButtons: Repeating Buttons
-SettingRepeatingButtonsDesc: Allows to repeatedly trigger potion count and ingredient selection buttons while held.
+SettingRepeatingButtonsDesc: Allows to repeatedly trigger potion count and item selection buttons while held.
 
 SettingRepeatingButtonsThreshold: Repeat Threshold
 SettingRepeatingButtonsThresholdDesc: |-

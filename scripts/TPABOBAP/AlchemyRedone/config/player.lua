@@ -22,7 +22,9 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 ---@class ControllerSettings
 ---@field n_Activate number?
 ---@field n_Brew number?
+---@field n_ClearText number?
 ---@field n_ToggleType number?
+---@field n_ToggleTable number?
 ---@field n_CountMore number?
 ---@field n_CountLess number?
 ---@field n_SelectNext number?

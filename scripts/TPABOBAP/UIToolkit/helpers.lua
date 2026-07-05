@@ -329,6 +329,25 @@ Helpers.addSeparators = function(number)
     return minus .. int:reverse():gsub("^" .. separator, "") .. fraction
 end
 
+---Returns list of `str` parts split by `separator`
+---@param str string string to split
+---@param separator string? defaults to `%s` (space)
+---@return string[]
+Helpers.splitString = function(str, separator)
+    separator = separator or "%s"     -- Default to whitespace separator
+    local result = {}
+    for part in string.gmatch(str, "([^" .. separator .. "]+)") do
+        table.insert(result, part)
+    end
+    return result
+end
+
+---Returns `str` with spaces in front and end trimmed
+---@param str string
+---@return string
+Helpers.trim = function(str)
+    return str:match("^%s*(.-)%s*$")
+end
 
 Helpers.getEquippedName = function(actor)
     local name = C.Strings.HAND_TO_HAND
@@ -1152,9 +1171,11 @@ if isPlayer then
         return string
     end
 
+    ---@param effectParams {id: string, affectedSkill: string?, affectedAttribute: string?}
+    ---@return string
     Helpers.getMagicEffectString = function(effectParams)
         local effect = Helpers.getMagicEffectRecord(effectParams.id)
-        if not effect then return '' end
+        if not effect then return effectParams.id end
 
         local affectedSkill = effectParams.affectedSkill
         local affectedAttribute = effectParams.affectedAttribute

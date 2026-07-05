@@ -183,6 +183,8 @@ Alchemy.getMatchingEffects = function(recordsOrIds, actor)
     return effects, knowledge
 end
 
+---@param effect {id: string, affectedSkill: string?, affectedAttribute: string?}
+---@return string
 Alchemy.effectKey = function(effect)
     return effect.id
         .. ':' .. tostring(effect.affectedAttribute)

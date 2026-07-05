@@ -71,9 +71,11 @@ updateSizes()
 function AlchemyWindow:init(ctx)
     self:setContext(ctx)
     self.data = ctx.data
-    self.isPoison = false
+    self.isPoison = false    --Are we making potion or poison?
+    self.showEffects = false --Show effects or ingredients?
     self.showFullEffects = cfgPlayer.main.b_ShowFullEffectInfo
-    self.buttonPressDuration = {}
+    ---@type {id:string, text: string}[]
+    self.selectedEffects = {}
 
     local naming
     naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
@@ -113,8 +115,13 @@ function AlchemyWindow:init(ctx)
 
     self.itemTable = T.Alchemy.makeIngredientTable(self)
     self.itemTable.layout.userData.setFilter('default', function(row) return self:filterIngredient(row) end)
+
     local filter
     filter, self.filter = parts.filterInput(function(value) self:onFilterChanged(value) end)
+
+    self.effectTable = T.Alchemy.makeEffectTable(self)
+
+    self.tableSelector = parts.tableSelector(self)
 
     self.potionTypeSelector = parts.typeSelector(self)
 
@@ -152,7 +159,10 @@ function AlchemyWindow:updateSize()
     local inner = self.element.layout.userData.getInnerSize()
     local c = self.element.layout.props.position
     local sz = self.element.layout.props.size
-    self.itemTable.layout.userData.controllerTooltipPos = c + v2(sz.x + 10, sz.y / 2)
+    local tipPos = c + v2(sz.x + 10, sz.y / 2)
+    self.itemTable.layout.userData.controllerTooltipPos = tipPos
+    self.effectTable.layout.userData.controllerTooltipPos = tipPos
+
     if self.lastSz and self.lastSz == inner then return end
     self.lastSz = inner
 
@@ -162,7 +172,17 @@ function AlchemyWindow:updateSize()
     local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel', 'right' })
     right.props.size = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
 
-    self.itemTable.layout.userData.resize(right.props.size - v2(35, 140))
+    local tableSz = right.props.size - v2(35, 140)
+    self.itemTable.layout.userData.resize(tableSz)
+    self.effectTable.layout.userData.resize(tableSz)
+end
+
+function AlchemyWindow:getActiveTable()
+    if self.showEffects then
+        return self.effectTable
+    else
+        return self.itemTable
+    end
 end
 
 function AlchemyWindow:update(deep)
@@ -175,6 +195,7 @@ function AlchemyWindow:update(deep)
         self.selected.update()
         self.resultingEffects.update()
         self.itemTable.layout.userData.redrawColumns()
+        self.effectTable.layout.userData.redrawColumns()
     end
 
     Window.update(self, deep)
@@ -184,6 +205,7 @@ function AlchemyWindow:updateData()
     if not self.element then return end
     parts.setInteractiveState(self.btnCreate, false, false)
     self.itemTable.layout.userData.updateData(self.ctx.getAllIngredients())
+    self.effectTable.layout.userData.updateData(self.ctx.getAllEffects())
     self:update(true)
 end
 
@@ -228,6 +250,42 @@ end
 
 function AlchemyWindow:onIngredientClicked(n)
     self.ctx.clearIngredient(n)
+end
+
+---@param effect EffectItemData
+function AlchemyWindow:onEffectClicked(effect)
+    local add = input.isShiftPressed() or input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.6
+    local idx
+
+    for i = 1, #self.selectedEffects do
+        if self.selectedEffects[i].id == effect.id then
+            idx = i
+            break
+        end
+    end
+
+    if idx then
+        table.remove(self.selectedEffects, idx)
+    else
+        if add then
+            table.insert(self.selectedEffects, { id = effect.id, text = effect.searchText })
+        else
+            self.selectedEffects = { { id = effect.id, text = effect.searchText } }
+            self.showEffects = false
+            self.tableSelector.update()
+        end
+    end
+
+    local terms = {}
+    for i = 1, #self.selectedEffects do
+        local p = self.selectedEffects[i]
+        if p.text and #p.text > 0 then
+            table.insert(terms, p.text)
+        end
+    end
+    self.effectTable.layout.userData.refresh()
+    self.filter.setText(table.concat(terms, " | "))
+    self:onFilterChanged()
 end
 
 ---@return string[]
@@ -439,10 +497,24 @@ function AlchemyWindow:onFilterChanged(_)
     self.itemTable.layout.userData.refresh()
 end
 
+function AlchemyWindow:clearFilter()
+    self.filter.setText('')
+    self:onFilterChanged()
+    self.selectedEffects = {}
+    self.effectTable.layout.userData.refresh()
+end
+
 function AlchemyWindow:filterIngredient(row)
-    local filter = self.filter.getText():lower()
+    local filter = H.trim(self.filter.getText():lower())
+    if #filter <= 0 then return true end
+    local terms = H.splitString(filter, '|')
+    if #terms <= 0 then return true end
     local haystack = row.searchText or T.Alchemy.getIngredientSearchText(row.id, player)
-    return haystack:find(filter, 1, true) ~= nil
+    for i = 1, #terms do
+        local term = H.trim(terms[i])
+        if #term > 0 and haystack:find(term, 1, true) ~= nil then return true end
+    end
+    return false
 end
 
 function AlchemyWindow:destroy()
@@ -506,12 +578,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel,
                                         grow = 1,
                                     },
                                     content = ui.content {
-                                        {
-                                            template = T.Base.textNormal,
-                                            props = {
-                                                text = C.Strings.INGREDIENTS
-                                            },
-                                        },
+                                        self.tableSelector.element,
                                         T.Base.intervalV(3),
                                         {
                                             name = 'ingredients-box',
@@ -523,6 +590,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel,
                                                     template = T.Base.padding(5),
                                                     content = ui.content {
                                                         self.itemTable,
+                                                        self.effectTable,
                                                     }
                                                 },
                                             }
@@ -582,13 +650,14 @@ function AlchemyWindow:onControllerButtonPress(id)
     local bind = cfgPlayer.controls
     local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.35
     local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.35
+    local activeTable = self:getActiveTable()
 
     if id == bind.n_SelectPrev then
         local delta = LT and 5 or not RT and 1 or nil
-        self.itemTable.layout.userData.highlightPrevItem(delta)
+        activeTable.layout.userData.highlightPrevItem(delta)
     elseif id == bind.n_SelectNext then
         local delta = LT and 5 or not RT and 1 or nil
-        self.itemTable.layout.userData.highlightNextItem(delta)
+        activeTable.layout.userData.highlightNextItem(delta)
     elseif id == bind.n_CountMore then
         local count = self.counting.getCount()
         if LT then
@@ -611,8 +680,10 @@ function AlchemyWindow:onControllerButtonPress(id)
         self.counting.setValue(count)
     elseif id == bind.n_Brew then
         self:createPotion()
+    elseif id == bind.n_ClearText then
+        self:clearFilter()
     elseif id == bind.n_Activate then
-        local highlighted = self.itemTable.layout.userData.getHighlightedRow()
+        local highlighted = activeTable.layout.userData.getHighlightedRow()
         if highlighted then
             local userData = highlighted.layout.userData
             if userData.onKBMRowUse then
@@ -627,6 +698,9 @@ function AlchemyWindow:onControllerButtonPress(id)
     elseif id == bind.n_ToggleType then
         self.isPoison = not self.isPoison
         self.potionTypeSelector.update()
+    elseif id == bind.n_ToggleTable then
+        self.showEffects = not self.showEffects
+        self.tableSelector.update()
     end
 end
 
@@ -638,23 +712,6 @@ function AlchemyWindow:onControllerButtonRepeat(id)
     then
         self:onControllerButtonPress(id)
     end
-end
-
----Check for repeated button presses for navigation
----@param button number
----@param dt number
-function AlchemyWindow:checkControllerButtonRepeat(button, dt)
-    if not input.isControllerButtonPressed(button) then
-        self.buttonPressDuration[button] = 0
-        return
-    end
-
-    local held = (self.buttonPressDuration[button] or 0) + dt
-    if held >= 0.2 then
-        held = 0
-        self:onControllerButtonPress(button)
-    end
-    self.buttonPressDuration[button] = held
 end
 
 ---@param defaultText fun():string
@@ -1568,6 +1625,100 @@ parts.typeSelector = function(wnd)
             },
             T.Base.intervalH(5),
             poison,
+        }
+    }
+    wdg.element = element
+    update()
+
+    return wdg
+end
+
+---@param wnd AlchemyWindow
+parts.tableSelector = function(wnd)
+    local element, ingredients, effects
+
+    local function update()
+        ingredients.layout.userData.active = not wnd.showEffects
+        H.setInteractiveColor(ingredients)
+        ingredients:update()
+
+        effects.layout.userData.active = wnd.showEffects
+        H.setInteractiveColor(effects)
+        effects:update()
+
+        wnd.itemTable.layout.props.visible = not wnd.showEffects
+        wnd.effectTable.layout.props.visible = wnd.showEffects
+
+        wnd.itemTable:update()
+        wnd.effectTable:update()
+    end
+
+    local wdg = {
+        onIngredientClick = function()
+            wnd.showEffects = false
+            update()
+        end,
+        onEffectClick = function()
+            wnd.showEffects = true
+            update()
+        end,
+        update = update,
+    }
+
+    ingredients = T.Special.interactive({
+        name = 'type-selector-ingredients',
+        onClick = wdg.onIngredientClick,
+        tooltipFn = function()
+            return T.Special.lineTooltip(l10n('AlchemyWindow_Type_Potion_Tooltip'))
+        end,
+    }, {
+        template = T.Base.textNormal,
+        props = {
+            text = C.Strings.INGREDIENTS
+        },
+        userData = {
+            colorable = true,
+        }
+    }, wnd.ctx)
+
+    effects = T.Special.interactive({
+        name = 'type-selector-effects',
+        onClick = wdg.onEffectClick,
+        tooltipFn = function()
+            return T.Special.lineTooltip(l10n('AlchemyWindow_Type_Poison_Tooltip'))
+        end,
+    }, {
+        template = T.Base.textNormal,
+        props = {
+            text = C.Strings.EFFECTS
+        },
+        userData = {
+            colorable = true,
+        }
+    }, wnd.ctx)
+
+    element = ui.create {
+        name = 'table-type',
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = true,
+            anchor = v2(0.5, 1),
+            relativePosition = v2(0.5, 1),
+            align = ui.ALIGNMENT.Center,
+            arrange = ui.ALIGNMENT.Center,
+            position = v2(0, -3)
+        },
+        content = ui.content {
+            ingredients,
+            T.Base.intervalH(5),
+            {
+                template = T.Base.textHeader,
+                props = {
+                    text = '|'
+                },
+            },
+            T.Base.intervalH(5),
+            effects,
         }
     }
     wdg.element = element
