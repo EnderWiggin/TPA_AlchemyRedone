@@ -117,7 +117,7 @@ function AlchemyWindow:init(ctx)
     self.itemTable.layout.userData.setFilter('default', function(row) return self:filterIngredient(row) end)
 
     local filter
-    filter, self.filter = parts.filterInput(function(value) self:onFilterChanged(value) end)
+    filter, self.filter = parts.filterInput(self)
 
     self.effectTable = T.Alchemy.makeEffectTable(self)
 
@@ -1478,8 +1478,8 @@ parts.countBlock = function()
     return element, wdg
 end
 
----@param onValueUpdated fun(value:string)
-parts.filterInput = function(onValueUpdated)
+---@param wnd AlchemyWindow
+parts.filterInput = function(wnd)
     local path = { 'filterBar', 'padding', 'textEdit' }
     local filterValue = ''
     local element
@@ -1494,8 +1494,7 @@ parts.filterInput = function(onValueUpdated)
     }
 
     local btn = T.Base.imageButton(REVERT_PATH, v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE), function()
-        wdg.setText('')
-        onValueUpdated(filterValue)
+        wnd:clearFilter()
     end, 'btn-revert')
 
     element = ui.create {
@@ -1526,7 +1525,7 @@ parts.filterInput = function(onValueUpdated)
                                     textChanged = async:callback(function(text, layout)
                                         filterValue = text
                                         layout.props.text = text
-                                        onValueUpdated(text)
+                                        wnd:onFilterChanged(text)
                                     end),
                                 }
                             }
