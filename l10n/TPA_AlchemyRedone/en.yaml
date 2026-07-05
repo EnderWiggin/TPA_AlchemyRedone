@@ -51,17 +51,18 @@ SettingAllowCorpseIngredientsDesc: If set to true, you will be able to use ingre
 
 # -------------- Rework Block --------------
 ReworkSettingsName: Reworked Effect Discovery
-ReworkSettingsDesc: "Changes:\n
-  - Alchemy skill does not grant potion effect knowledge\n
-  - Drinking any potion reveals all of its effects\n
-  - Store-bought potions with positive effects will show all positive effects\n
-  - Store-bough potions without positive effects will show all effects\n
-  - Self-brewed potions will show effects that are known from at least 1 ingredient\n
-  - Every N successfully brewed potions with same ingredents will reveal next unknown effect\n
-  - Ingredients still reveal effects with Alchemy skill levels\n
-  - Ingredients also reveal all known effects from brewed potion\n
-  \n
-  Makes sense only if you have Inventory Extender installed - otherwise tooltips will show effects in vanilla way."
+ReworkSettingsDesc: |-
+  Changes:
+  - Alchemy skill does not grant potion effect knowledge
+  - Drinking any potion reveals all of its effects
+  - Store-bought potions with positive effects will show all positive effects
+  - Store-bough potions without positive effects will show all effects
+  - Self-brewed potions will show effects that are known from at least 1 ingredient
+  - Every N successfully brewed potions with same ingredents will reveal next unknown effect
+  - Ingredients still reveal effects with Alchemy skill levels
+  - Ingredients also reveal all known effects from brewed potion
+  
+  Makes sense only if you have Inventory Extender installed - otherwise tooltips will show effects in vanilla way.
 
 SettingReworkEnabled: Enable
 SettingSettingReworkEnabledDesc: Enables reworked effect discovery.
@@ -76,7 +77,9 @@ InterfaceReimaginedMode_On: " On "
 InterfaceReimaginedMode_Off: "Off "
 
 SettingPotionKnowledgeThreshold: New effect discovery threshold
-SettingPotionKnowledgeThresholdDesc: "How many potions you need to brew to learn new effect.\nRange [1-20], default is 5."
+SettingPotionKnowledgeThresholdDesc: |-
+  How many potions you need to brew to learn new effect.
+  Range [1-20], default is 5.
 
 # -------------- Controller Block --------------
 ControllerSettingsName: Controller Settings
