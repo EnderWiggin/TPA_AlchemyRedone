@@ -282,6 +282,11 @@ local function onUpdatePermissions(data)
     config[data.actor.id] = data.permissions
 end
 
+local function onUpdateSimScale(data)
+    local scale = data and data.scale or 1
+    world.setSimulationTimeScale(scale)
+end
+
 local function printError(data)
     if #data > 0 then
         local parts = {}
@@ -305,6 +310,7 @@ return {
         TPA_AlchemyRedone_AddItem = function(data) m.addObject(data.actor, data.recordId, data.count) end,
         TPA_AlchemyRedone_DeductIngredients = m.deductIngredients,
         TPA_AlchemyRedone_UpdatePermissions = onUpdatePermissions,
+        TPA_AlchemyRedone_SimScale = onUpdateSimScale,
         TPA_AlchemyRedone_PrintError = printError,
     },
 }

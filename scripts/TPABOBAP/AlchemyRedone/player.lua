@@ -414,6 +414,7 @@ end
 
 local function closeWindow()
     m.closeWindow()
+    core.sendGlobalEvent('TPA_AlchemyRedone_SimScale', { scale = 1 })
 end
 
 ---@param data CreatedPotionData
@@ -441,6 +442,7 @@ local function onMouseWheel(v)
     end
 end
 
+local wasLT = false
 local function onFrame()
     if not cfgPlayer.main.b_Enabled then return end
     if I.UI.getMode() ~= I.UI.MODE.Alchemy then return end
@@ -513,6 +515,15 @@ local function onFrame()
                     window:onControllerButtonRepeat(id)
                 end
                 buttonPressDuration[id] = held
+            end
+        end
+
+        local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.55
+
+        if LT ~= wasLT then
+            wasLT = LT
+            if cfgPlayer.controls.b_AllowPrecisionMode then
+                core.sendGlobalEvent('TPA_AlchemyRedone_SimScale', { scale = LT and 0.2 or 1 })
             end
         end
     end

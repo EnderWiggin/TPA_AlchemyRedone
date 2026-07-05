@@ -154,6 +154,13 @@ I.Settings.registerGroup {
             default = input.CONTROLLER_BUTTON.DPadUp,
         },
         {
+            key = 'b_AllowPrecisionMode',
+            renderer = 'checkbox',
+            name = 'SettingAllowPrecisionMode',
+            description = 'SettingAllowPrecisionModeDesc',
+            default = false,
+        },
+        {
             key = 'b_RepeatingButtons',
             renderer = 'checkbox',
             name = 'SettingRepeatingButtons',

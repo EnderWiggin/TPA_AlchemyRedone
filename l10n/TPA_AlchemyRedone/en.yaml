@@ -140,6 +140,9 @@ SettingController_SelectPrevDesc: |-
   If LT is held - skip by 5 items backward.
   If RT is held - skip full page backward.
 
+SettingAllowPrecisionMode: Precision Mode
+SettingAllowPrecisionModeDesc: If enabled, holding LT while alchemy window is open will slow down cursor speed.
+
 SettingRepeatingButtons: Repeating Buttons
 SettingRepeatingButtonsDesc: Allows to repeatedly trigger potion count and item selection buttons while held.
 

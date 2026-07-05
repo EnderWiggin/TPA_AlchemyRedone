@@ -722,8 +722,8 @@ end
 function AlchemyWindow:onControllerButtonPress(id)
     if not self.element then return end
     local bind = cfgPlayer.controls
-    local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.35
-    local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.35
+    local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.55
+    local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.55
     local activeTable = self:getActiveTable()
 
     if id == bind.n_SelectPrev then
