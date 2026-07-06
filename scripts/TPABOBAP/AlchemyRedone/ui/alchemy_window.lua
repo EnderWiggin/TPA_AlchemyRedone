@@ -597,13 +597,14 @@ function AlchemyWindow:filterIngredientByEffects(row)
     local effects = record and record.effects or {}
     local known = A.getKnownEffectFlagsForIngredient(record, player)
     local nonMatching = data.nonMatching
+    local noKnown = cfgPlayer.main.b_IngredientEffectMatchingAll
     for i = 1, 4 do
         if #effects >= i then
             local effect = effects[i]
-            local bright = known[i]
+            local bright = noKnown or known[i]
             if bright and nonMatching and #nonMatching > 0 then
                 local idx = A.containsEffect(nonMatching, effect)
-                bright = idx ~= nil and data.nonMatchingKnowledge[idx]
+                bright = idx ~= nil and (noKnown or data.nonMatchingKnowledge[idx])
             end
             if bright then return true end
         else

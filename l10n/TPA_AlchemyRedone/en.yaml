@@ -68,6 +68,11 @@ SettingPotionNamePrefixGoodDesc: Will be added in front of effect name when brew
 SettingPotionNamePrefixBad: Prefix For Poisons
 SettingPotionNamePrefixBadDesc: Will be added in front of effect name when brewing poison.
 
+SettingIngredientEffectMatchingAll: Ingredient Effect Filter Always Matching 
+SettingIngredientEffectMatchingAllDesc: |-
+  If enabled, then when ingredient list is filtered by Matching effects, all matching effects will be considered, even ones not learned yet.
+  Removes some tedium, since you already can test any 2 ingredients if they have matching effects by adding them to potion.
+
 SettingAllowOwnedContainerIngredients: Allow ingredients from owned containers
 SettingAllowOwnedContainerIngredientsDesc: If set to true, you will be able to use ingredients from containers that are owned by others.
 

@@ -81,6 +81,13 @@ I.Settings.registerGroup {
             default = l10n('Potion_Name_Prefix_Bad'),
         },
         {
+            key = 'b_IngredientEffectMatchingAll',
+            renderer = 'checkbox',
+            name = 'SettingIngredientEffectMatchingAll',
+            description = 'SettingIngredientEffectMatchingAllDesc',
+            default = false,
+        },
+        {
             key = 'b_AllowOwnedContainerIngredients',
             renderer = 'checkbox',
             name = 'SettingAllowOwnedContainerIngredients',
