@@ -585,12 +585,12 @@ IngredientTable.create = function(ctx, opts)
         return filteredRows
     end
 
-    wrapper.layout.userData.refresh = function()
+    wrapper.layout.userData.refresh = function(forceRedraw)
         -- Re-apply filters
         state.sortedRows = getFilteredRows()
 
         sortRows()
-        updateRows()
+        updateRows(forceRedraw)
     end
 
     wrapper.layout.userData.updateData = function(newDataRows)
@@ -811,6 +811,8 @@ IngredientTable.create = function(ctx, opts)
         end
     end
 
+    wrapper.layout.userData.findContendIdxById = findContendIdxById
+    wrapper.layout.userData.setHoveredRow = setHoveredRow
     wrapper.layout.userData.highlightNextItem = highlightNextItem
     wrapper.layout.userData.highlightPrevItem = highlightPrevItem
 
@@ -821,6 +823,10 @@ IngredientTable.create = function(ctx, opts)
 
         if cIdx then return content[cIdx] end
         return nil
+    end
+
+    wrapper.layout.userData.invalidateCache = function(id)
+        state.rowCache[id] = nil
     end
 
     return wrapper

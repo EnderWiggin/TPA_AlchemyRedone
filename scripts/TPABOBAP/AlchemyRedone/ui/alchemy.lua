@@ -12,6 +12,7 @@ local T = {
 }
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local H = require("scripts.TPABOBAP.UIToolkit.helpers")
+local C = require("scripts.TPABOBAP.UIToolkit.constants")
 
 local Table = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 
@@ -22,6 +23,7 @@ local Table = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 ---@field effectId string
 ---@field affectedAttribute string?
 ---@field affectedSkill string?
+---@field isFavorite fun():boolean
 
 local m = {}
 
@@ -69,6 +71,33 @@ local function renderEffectIcon(effect, width, height)
                     size = v2(sz, sz),
                 }
             },
+        }
+    }
+end
+
+---@param effect EffectItemData
+---@param width number
+---@param height number
+local function renderFavoriteEffect(effect, width, height)
+    if not effect.isFavorite() then return { props = {} } end
+    return {
+        name = 'Favorite',
+        props = {
+            size = v2(width, height),
+        },
+        content = ui.content {
+            {
+                template = T.Base.textNormal,
+                props = {
+                    text = '*',
+                    textSize = T.Base.TEXT_SIZE * 2,
+                    textColor = C.Colors.YELLOW,
+                    textAlignH = ui.ALIGNMENT.Center,
+                    textAlignV = ui.ALIGNMENT.Center,
+                    anchor = v2(0.5, 0.5),
+                    relativePosition = v2(0.5, 0.5),
+                },
+            }
         }
     }
 end
@@ -159,9 +188,6 @@ m.makeIngredientTable = function(wnd)
             return ctx.selectIngredient({ id = row.id, count = row.count })
         end,
 
-        onKBMRowUse = function(row)
-            return ctx.selectIngredient({ id = row.id, count = row.count })
-        end,
         tooltipFn = function(row) return T.Special.ingredientTooltip(row.id, player) end,
         parentWindow = wnd,
     })
@@ -183,8 +209,9 @@ m.makeEffectTable = function(wnd)
 
     return Table.create(ctx, {
         columns = {
-            { id = 'icon', width = rowHeight + 5, renderer = renderEffectIcon },
+            { id = 'icon',       width = rowHeight + 5, renderer = renderEffectIcon },
             { id = 'name', },
+            { id = 'isFavorite', width = rowHeight,     renderer = renderFavoriteEffect },
         },
         data = ctx.getAllEffects(),
         size = v2(600, 400),
@@ -193,6 +220,17 @@ m.makeEffectTable = function(wnd)
         ---@param b EffectItemData
         ---@return boolean
         comparator = function(a, b)
+            local fA = a.isFavorite()
+            local fB = b.isFavorite()
+
+            if fA ~= fB then
+                if fA then
+                    return true
+                else
+                    return false
+                end
+            end
+
             local nA = H.getMagicEffectString(m.effectDataToEffect(a))
             local nB = H.getMagicEffectString(m.effectDataToEffect(b))
 
@@ -201,9 +239,6 @@ m.makeEffectTable = function(wnd)
         end,
         onRowUse = function(row) wnd:onEffectClicked(row) end,
 
-        --onKBMRowUse = function(row)
-        --    --return ctx.selectIngredient({ id = row.id, count = row.count })
-        --end,
         ---@param row EffectItemData
         ---@return openmw.ui.Layout
         tooltipFn = function(row) return T.Special.magicEffectTooltip(row.effectId) end,

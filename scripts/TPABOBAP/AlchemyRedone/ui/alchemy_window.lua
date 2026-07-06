@@ -418,6 +418,21 @@ function AlchemyWindow:updateMatchingEffects()
     self.itemTable.layout.userData.refresh()
 end
 
+---@param effectKey string
+function AlchemyWindow:toggleFavoriteEffect(effectKey)
+    if self.data.favoriteEffects[effectKey] then
+        self.data.favoriteEffects[effectKey] = nil
+    else
+        self.data.favoriteEffects[effectKey] = true
+    end
+
+    local uData = self.effectTable.layout.userData
+    local selected = uData.findContendIdxById(effectKey)
+    uData.invalidateCache(effectKey)
+    uData.refresh(true)
+    if selected then uData.setHoveredRow(selected) end
+end
+
 local function handleModError(...)
     core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { ... })
 end
@@ -538,7 +553,7 @@ function AlchemyWindow:deductIngredients(ingredients, count)
 end
 
 function AlchemyWindow:onFilterChanged(_)
-    self.itemTable.layout.userData.refresh()
+    self.effectTable.layout.userData.refresh()
 end
 
 function AlchemyWindow:clearFilter()
@@ -740,6 +755,17 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel,
     }
 end
 
+function AlchemyWindow:toggleFavorite()
+    if self.showEffects then
+        local highlighted = self.effectTable.layout.userData.getHighlightedRow()
+        if highlighted then
+            ---@type EffectItemData
+            local row = highlighted.layout.userData.row
+            if row then self:toggleFavoriteEffect(row.id) end
+        end
+    end
+end
+
 function AlchemyWindow:onControllerButtonPress(id)
     if not self.element then return end
     local bind = cfgPlayer.controls
@@ -783,16 +809,16 @@ function AlchemyWindow:onControllerButtonPress(id)
             self:clearFilter()
         end
     elseif id == bind.n_Activate then
-        local highlighted = activeTable.layout.userData.getHighlightedRow()
-        if highlighted then
-            local userData = highlighted.layout.userData
-            if userData.onKBMRowUse then
-                userData.onKBMRowUse()
-                return
-            end
-            if userData.onRowUse then
-                userData.onRowUse()
-                return
+        if RT then
+            self:toggleFavorite()
+        else -- both LT and no LT are handled here
+            local highlighted = activeTable.layout.userData.getHighlightedRow()
+            if highlighted then
+                local userData = highlighted.layout.userData
+                if userData.onRowUse then
+                    userData.onRowUse()
+                    return
+                end
             end
         end
     elseif id == bind.n_ToggleType then

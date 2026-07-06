@@ -118,6 +118,9 @@ function Window:saveState() end
 
 function Window:loadState() end
 
+---@param evt openmw.input.KeyboardEvent
+function Window:onKeyboardButtonPress(evt) end
+
 function Window:onControllerButtonPress(id) end
 
 function Window:onControllerButtonRepeat(id) end

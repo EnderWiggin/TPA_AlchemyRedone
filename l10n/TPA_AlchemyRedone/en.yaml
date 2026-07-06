@@ -113,8 +113,13 @@ ControllerSettingsDesc: |-
 
 SettingController_Activate: Activate
 SettingController_ActivateDesc: |-
-  Selects currently highlighted item in the list.
   Should be bound to same key as 'click-imitating' input.
+  In ingredient list:
+  - Adds ingredient to the recipe.
+  In effect list:
+  - Sets effect as a filter and switches to ingredient list.
+  - If {color_header}LT{color_normal} is held - adds effect to filter.
+  - If {color_header}RT{color_normal} is held - marks effect as favorite.
 
 SettingController_Brew: Brew Potion
 SettingController_BrewDesc: Brew potion from currently selected ingredients.

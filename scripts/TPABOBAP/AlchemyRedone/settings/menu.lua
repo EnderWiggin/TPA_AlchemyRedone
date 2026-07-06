@@ -136,7 +136,7 @@ I.Settings.registerGroup {
             key = 'n_Activate',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_Activate',
-            description = 'SettingController_ActivateDesc',
+            description = l10n('SettingController_ActivateDesc', C.TextColorParams),
             default = input.CONTROLLER_BUTTON.A,
         },
         {

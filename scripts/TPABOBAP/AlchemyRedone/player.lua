@@ -39,14 +39,18 @@ storage.playerSection('TPA_AlchemyRedone/MainSettings'):subscribe(async:callback
 
 local needsInitialization = true
 
+---@param prev AlchemyData?
 ---@return AlchemyData
-local function defaultData()
-    return {
+local function defaultData(prev)
+    ---@type AlchemyData
+    local data = {
         apparatus = {},
         sources = {},
         selected = {},
         ingredients = {},
+        favoriteEffects = prev and prev.favoriteEffects or {},
     }
+    return data
 end
 
 local buttonPressDuration = {}
@@ -66,6 +70,7 @@ local m = {
 ---@field matchingKnowledge? table<integer, boolean>
 ---@field nonMatching? openmw.core.MagicEffectWithParams[]
 ---@field nonMatchingKnowledge? table<integer, boolean>
+---@field favoriteEffects table<string, boolean>
 
 ---@class AlchemyContext: WindowContext
 ---@field potionModifiers { id: string, mod: TPA_AlchemyRedone.PotionModifier }[]
@@ -124,7 +129,7 @@ m.closeWindow = function()
         ctx.activeTooltip = nil
     end
 
-    ctx.data = defaultData()
+    ctx.data = defaultData(ctx.data)
     hasData = false
 end
 
@@ -309,6 +314,7 @@ m.getAllEffects = function()
                         effectId = effect.id,
                         affectedAttribute = effect.affectedAttribute,
                         affectedSkill = effect.affectedSkill,
+                        isFavorite = function() return ctx.data.favoriteEffects[key] == true end,
                     }
                 end
             end
@@ -331,6 +337,7 @@ m.getAllEffects = function()
                 end
                 return false
             end,
+            isFavorite = data.isFavorite,
         })
     end
     return result
@@ -408,6 +415,7 @@ end
 
 ---@param id number
 local function onControllerButtonPress(id)
+    if not cfgPlayer.main.b_Enabled then return end
     if m.wndAlchemy then
         m.wndAlchemy:onControllerButtonPress(id)
     end
@@ -574,10 +582,12 @@ end
 ---@class AlchemySaveData
 ---@field version integer
 ---@field knowledge AlchemyKnowledge?
+---@field favoriteEffects table<string, boolean>?
 
 ---@param loadData AlchemySaveData
 local function onLoad(loadData)
     A.loadKnowledge(loadData and loadData.knowledge)
+    ctx.data.favoriteEffects = loadData and loadData.favoriteEffects or {}
 end
 
 ---@return AlchemySaveData
@@ -585,6 +595,7 @@ local function onSave()
     return {
         version = 1,
         knowledge = A.knowledge,
+        favoriteEffects = ctx.data.favoriteEffects
     }
 end
 
