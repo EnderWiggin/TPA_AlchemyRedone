@@ -441,7 +441,7 @@ function AlchemyWindow:createPotion()
     local name = self.naming.getText()
     local ingredients = self:getSelectedIngredientList()
     local draft, errorCode, known = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player,
-        { isPoison = self.isPoison })
+        { isPoison = self.isPoison, useSkillForArtSelection = cfgPlayer.main.b_PotionArtUsesSkill })
     local count = math.min(self.counting.getCount(), self:getLeastIngredientAmount(ingredients))
     local brewed = 0
 

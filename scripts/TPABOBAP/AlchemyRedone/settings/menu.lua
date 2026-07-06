@@ -53,6 +53,13 @@ I.Settings.registerGroup {
             default = false,
         },
         {
+            key = 'b_PotionArtUsesSkill',
+            renderer = 'checkbox',
+            name = 'SettingPotionArtUsesSkill',
+            description = l10n('SettingPotionArtUsesSkillDesc', C.TextColorParams),
+            default = false,
+        },
+        {
             key = 'b_PrefixPotionNames',
             renderer = 'checkbox',
             name = 'SettingPrefixPotionNames',

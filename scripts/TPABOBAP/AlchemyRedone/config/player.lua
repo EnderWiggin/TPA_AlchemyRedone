@@ -13,6 +13,7 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 ---@class MainSettings
 ---@field b_Enabled boolean?
 ---@field b_ShowFullEffectInfo boolean?
+---@field b_PotionArtUsesSkill boolean?
 ---@field b_PrefixPotionNames boolean?
 ---@field s_PotionNamePrefixGood string?
 ---@field s_PotionNamePrefixBad string?

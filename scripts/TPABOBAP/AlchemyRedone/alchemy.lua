@@ -384,7 +384,7 @@ end
 ---@param ingredientIds string[] ordered list of ingredient ids
 ---@param apparatus LocalApparatusIds info about apparatus being used
 ---@param actor openmw.LObject|openmw.GObject|nil
----@param opts {isPoison: boolean?}|nil
+---@param opts {isPoison: boolean?, useSkillForArtSelection: boolean?}|nil
 ---@return openmw.types.PotionRecord record, AlchemyPotionErrors code, boolean[] knowledge
 Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
     ---@type openmw.core.MagicEffectWithParams[]
@@ -392,8 +392,12 @@ Alchemy.getPotionStats = function(name, ingredientIds, apparatus, actor, opts)
     local known = {}
     name = name and trim(name)
     local factor = Alchemy.getAlchemyFactor(actor)
-    -- local model, icon = Alchemy.selectPotionArt(factor / 20) --TODO: add option to select model based on effective skill
-    local model, icon = Alchemy.selectPotionArt()
+    local model, icon
+    if opts and opts.useSkillForArtSelection then
+        model, icon = Alchemy.selectPotionArt(factor / 20)
+    else
+        model, icon = Alchemy.selectPotionArt()
+    end
     ---@type openmw.types.PotionRecord
     local stats = {
         id = '',

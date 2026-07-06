@@ -53,13 +53,18 @@ SettingModEnabledDesc: |-
 SettingShowFullEffectInfo: Show full effect info
 SettingShowFullEffectInfoDesc: Created Effects block will show effect info with magnitudes and durations as affected by your skills and tools.
 
+SettingPotionArtUsesSkill: Potion Look Depends On Skill
+SettingPotionArtUsesSkillDesc: |-
+  If enabled, potion look will be selected based on your effective {color_header}Alchemy{color_normal} skill (including bonuses from {color_header}Intelligence{color_normal} and {color_header}Luck{color_normal} skills).
+  Otherwise potion look is selected like in vanilla - randomly.
+
 SettingPrefixPotionNames: Prefix Potion Names
 SettingPrefixPotionNamesDesc: If enabled then default potion names will have prefix in front of the effect name.
 
 SettingPotionNamePrefixGood: Prefix For Potions
 SettingPotionNamePrefixGoodDesc: Will be added in front of effect name when brewing potion.
 
-SettingPotionNamePrefixBad: Prefix For Poisons 
+SettingPotionNamePrefixBad: Prefix For Poisons
 SettingPotionNamePrefixBadDesc: Will be added in front of effect name when brewing poison.
 
 SettingAllowOwnedContainerIngredients: Allow ingredients from owned containers
