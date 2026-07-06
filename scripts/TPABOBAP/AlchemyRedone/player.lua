@@ -71,8 +71,8 @@ local m = {
 ---@field potionModifiers { id: string, mod: TPA_AlchemyRedone.PotionModifier }[]
 ---@field data AlchemyData
 ---@field selectIngredient fun(info: IngredientItemData)
----@field clearIngredient fun(n:integer)
----@field clearAllIngredients fun()
+---@field clearSelectedIngredient fun(n:integer)
+---@field clearAllSelectedIngredients fun()
 ---@field getAllIngredients fun():IngredientItemData[]
 ---@field getAllEffects fun():EffectItemData[]
 
@@ -83,8 +83,8 @@ local ctx = {
     focusedScrollable = nil,
     data = defaultData(),
     selectIngredient = function(info) m.selectIngredient(info) end,
-    clearIngredient = function(n) m.clearIngredient(n) end,
-    clearAllIngredients = function() m.clearAllIngredients() end,
+    clearSelectedIngredient = function(n) m.clearSelectedIngredient(n) end,
+    clearAllSelectedIngredients = function() m.clearAllSelectedIngredients() end,
     getAllIngredients = function() return m.getAllIngredients() end,
     getAllEffects = function() return m.getAllEffects() end,
     setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end,
@@ -213,7 +213,7 @@ m.selectIngredient = function(info)
     end
 end
 
-m.clearIngredient = function(n)
+m.clearSelectedIngredient = function(n)
     if ctx.data and ctx.data.selected then
         if ctx.data.selected[n] then
             ctx.data.selected[n] = nil
@@ -224,7 +224,7 @@ m.clearIngredient = function(n)
     end
 end
 
-m.clearAllIngredients = function(n)
+m.clearAllSelectedIngredients = function()
     if ctx.data and ctx.data.selected then
         ctx.data.selected = {}
         if m.wndAlchemy then

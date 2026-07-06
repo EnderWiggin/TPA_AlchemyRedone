@@ -264,7 +264,7 @@ function AlchemyWindow:makeIngredientTip(n)
 end
 
 function AlchemyWindow:onIngredientClicked(n)
-    self.ctx.clearIngredient(n)
+    self.ctx.clearSelectedIngredient(n)
 end
 
 ---@param effect EffectItemData
@@ -756,7 +756,7 @@ function AlchemyWindow:onControllerButtonPress(id)
         self:createPotion()
     elseif id == bind.n_ClearText then
         if LT then
-            self.ctx.clearAllIngredients()
+            self.ctx.clearAllSelectedIngredients()
         elseif RT then
         else
             self:clearFilter()
