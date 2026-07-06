@@ -404,15 +404,6 @@ m.getKnownEffectFlagsForItem = function(item)
     return {}
 end
 
----@param evt openmw.input.KeyboardEvent
-local function onKeyRelease(evt)
-    if not cfgPlayer.main.b_Enabled then return end
-    if evt.code == input.KEY.Escape then
-        m.closeWindow()
-        return
-    end
-end
-
 ---@param id number
 local function onControllerButtonPress(id)
     if not cfgPlayer.main.b_Enabled then return end
@@ -618,7 +609,6 @@ return {
     interfaceName = 'TPA_AlchemyRedone',
     interface = Interface,
     engineHandlers = {
-        onKeyRelease = onKeyRelease,
         onMouseWheel = onMouseWheel,
         onFrame = onFrame,
         onUpdate = onUpdate,

@@ -270,6 +270,12 @@ end
 ---@param effect EffectItemData
 function AlchemyWindow:onEffectClicked(effect)
     local add = input.isShiftPressed() or input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.6
+    local favorite = input.isCtrlPressed() or input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.6
+
+    if favorite then
+        self:toggleFavoriteEffect(effect.id)
+        return
+    end
     local idx
 
     for i = 1, #self.selectedEffects do
@@ -755,17 +761,6 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel,
     }
 end
 
-function AlchemyWindow:toggleFavorite()
-    if self.showEffects then
-        local highlighted = self.effectTable.layout.userData.getHighlightedRow()
-        if highlighted then
-            ---@type EffectItemData
-            local row = highlighted.layout.userData.row
-            if row then self:toggleFavoriteEffect(row.id) end
-        end
-    end
-end
-
 function AlchemyWindow:onControllerButtonPress(id)
     if not self.element then return end
     local bind = cfgPlayer.controls
@@ -809,16 +804,12 @@ function AlchemyWindow:onControllerButtonPress(id)
             self:clearFilter()
         end
     elseif id == bind.n_Activate then
-        if RT then
-            self:toggleFavorite()
-        else -- both LT and no LT are handled here
-            local highlighted = activeTable.layout.userData.getHighlightedRow()
-            if highlighted then
-                local userData = highlighted.layout.userData
-                if userData.onRowUse then
-                    userData.onRowUse()
-                    return
-                end
+        local highlighted = activeTable.layout.userData.getHighlightedRow()
+        if highlighted then
+            local userData = highlighted.layout.userData
+            if userData.onRowUse then
+                userData.onRowUse()
+                return
             end
         end
     elseif id == bind.n_ToggleType then

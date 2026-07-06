@@ -24,6 +24,7 @@ AlchemyWindow_Type_Effect_Tooltip: |-
   List of available effects.
   Click on an effect to set it as a filter.
   Hold {color_header}SHIFT{color_normal} or {color_header}LT{color_normal} to select multiple effects.
+  Hold {color_header}CTRL{color_normal} or {color_header}RT{color_normal} to mark effect as favorite.
 
 AlchemyWindow_Toggle_Matching_Ingredient_Tooltip: |-
   If enabled then only ingredients that have effects that are present in selected ingredients, but not yet matched will be shown.
