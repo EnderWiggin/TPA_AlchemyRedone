@@ -352,6 +352,7 @@ function AlchemyWindow:getDefaultPotionName()
     ---@type MagicEffectWithParams[]
     local matching = self.data.matching
     local knowledge = self.data.matchingKnowledge
+    local harmful, positive
     if matching and #matching > 0 then
         if cfgGlobal.rework.b_Enabled then
             local m, code, k = self:getTempPotionStats()
@@ -362,10 +363,22 @@ function AlchemyWindow:getDefaultPotionName()
         end
         for i = 1, #matching do
             if knowledge and knowledge[i] then
-                return H.getMagicEffectString(matching[i])
+                local record = A.getEffectRecord(matching[i].id)
+                local name = H.getMagicEffectString(matching[i])
+                if record and record.harmful then
+                    if not harmful then harmful = name end
+                elseif not positive then
+                    positive = name
+                end
             end
         end
-        return l10n('Potion_Name_Unknown')
+        local name = l10n('Potion_Name_Unknown')
+        if self.isPoison then
+            name = harmful or positive or name
+        else
+            name = positive or harmful or name
+        end
+        return name
     end
     return ''
 end
