@@ -17,6 +17,7 @@ end
 ---@field potionKnowledge table<string, boolean|boolean[]>
 ---@field ingredientKnowledge table<string, boolean[]>
 ---@field recipeProgress table<string, number>
+---@field potionRecipe table<string, string>
 
 local Alchemy = {
     ---@type AlchemyKnowledge
@@ -24,8 +25,26 @@ local Alchemy = {
         potionKnowledge = {},
         ingredientKnowledge = {},
         recipeProgress = {},
+        potionRecipe = {},
     },
+    recipePotions = {},
 }
+
+Alchemy.loadKnowledge = function(data)
+    if not data then return end
+    local knowledge = Alchemy.knowledge
+    knowledge.potionKnowledge = data.potionKnowledge or {}
+    knowledge.ingredientKnowledge = data.ingredientKnowledge or {}
+    knowledge.recipeProgress = data.recipeProgress or {}
+    knowledge.potionRecipe = data.potionRecipe or {}
+
+    Alchemy.recipePotions = {}
+    for potion, recipe in pairs(knowledge.potionRecipe) do
+        local potions = Alchemy.recipePotions[recipe] or {}
+        table.insert(potions, potion)
+        Alchemy.recipePotions[recipe] = potions
+    end
+end
 
 ---@enum AlchemyPotionErrors
 Alchemy.PotionErrors = {
@@ -40,7 +59,22 @@ Alchemy.PotionErrors = {
 Alchemy.onItemConsumed = function(item)
     if not cfgGlobal.rework.b_Enabled then return end
     if types.Potion.objectIsInstance(item) then
-        Alchemy.knowledge.potionKnowledge[item.recordId] = true
+        Alchemy.updatePotionKnowledge(item.recordId, true)
+    end
+end
+
+---@param potion string recordId
+---@param known boolean|boolean[]
+Alchemy.updatePotionKnowledge = function(potion, known)
+    Alchemy.knowledge.potionKnowledge[potion] = known
+    local recipe = Alchemy.knowledge.potionRecipe[potion]
+    if recipe then
+        local potions = Alchemy.recipePotions[recipe]
+        if potions then
+            for i = 1, #potions do
+                Alchemy.knowledge.potionKnowledge[potions[i]] = known
+            end
+        end
     end
 end
 
@@ -50,6 +84,18 @@ end
 ---@param actor openmw.GObject|openmw.LObject|nil
 Alchemy.updateBrewedPotionKnowledge = function(potion, ingredients, actor)
     local record = Alchemy.toPotionRecord(potion)
+    local recipe = Alchemy.getIngredientsKey(ingredients, record and #record.effects or 0)
+    local prevKnown
+    if not Alchemy.knowledge.potionRecipe[potion] then
+        Alchemy.knowledge.potionRecipe[potion] = recipe
+        local potions = Alchemy.recipePotions[recipe] or {}
+        if #potions > 0 then
+            prevKnown = Alchemy.knowledge.potionKnowledge[potions[1]]
+        end
+        table.insert(potions, potion)
+        Alchemy.recipePotions[recipe] = potions
+    end
+
     if record and Alchemy.knowledge.potionKnowledge[potion] ~= true then
         local effects, known = Alchemy.getMatchingEffects(ingredients, actor)
         local all = true
@@ -57,13 +103,14 @@ Alchemy.updateBrewedPotionKnowledge = function(potion, ingredients, actor)
         for i = 1, #effects do
             local k = Alchemy.containsEffect(record.effects, effects[i])
             if k then
-                knowledge[k] = known[i]
-                if not known[i] then
+                local prev = type(prevKnown) == "table" and prevKnown[i] or prevKnown
+                knowledge[k] = known[i] or prev
+                if not knowledge[i] then
                     all = false
                 end
             end
         end
-        Alchemy.knowledge.potionKnowledge[potion] = all or knowledge
+        Alchemy.updatePotionKnowledge(potion, all or knowledge)
     end
 end
 
@@ -137,9 +184,12 @@ Alchemy.getPotionWeight = function(recordsOrIds)
 end
 
 ---@param ingredients string[]
+---@param effects integer?
 ---@return string
-Alchemy.getIngredientsKey = function(ingredients)
-    return table.concat(ingredients, ':')
+Alchemy.getIngredientsKey = function(ingredients, effects)
+    local key = table.concat(ingredients, ':')
+    if effects then key = effects .. ':' .. key end
+    return key
 end
 
 ---@param recordsOrIds string[]|openmw.types.IngredientRecord[] ordered list of ingredient ids

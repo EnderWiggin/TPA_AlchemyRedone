@@ -577,12 +577,7 @@ end
 
 ---@param loadData AlchemySaveData
 local function onLoad(loadData)
-    local knowledge = loadData and loadData.knowledge
-    if knowledge then
-        A.knowledge.potionKnowledge = knowledge.potionKnowledge or {}
-        A.knowledge.ingredientKnowledge = knowledge.ingredientKnowledge or {}
-        A.knowledge.recipeProgress = knowledge.recipeProgress or {}
-    end
+    A.loadKnowledge(loadData and loadData.knowledge)
 end
 
 ---@return AlchemySaveData
