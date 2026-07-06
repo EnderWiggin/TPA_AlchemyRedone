@@ -34,7 +34,9 @@ AlchemyWindow_Toggle_Matching_Effect_Tooltip: |-
 
 All_Effects_Neutralized: All matching effects were neutralized by Alembic
 
-Potion_Name_Unknown: Unknown Potion
+Potion_Name_Unknown: Unknown Effect
+Potion_Name_Prefix_Good: Potion of
+Potion_Name_Prefix_Bad: Poison of
 
 # -------------- Settings --------------
 PageName: Alchemy Redone
@@ -50,6 +52,15 @@ SettingModEnabledDesc: |-
 
 SettingShowFullEffectInfo: Show full effect info
 SettingShowFullEffectInfoDesc: Created Effects block will show effect info with magnitudes and durations as affected by your skills and tools.
+
+SettingPrefixPotionNames: Prefix Potion Names
+SettingPrefixPotionNamesDesc: If enabled then default potion names will have prefix in front of the effect name.
+
+SettingPotionNamePrefixGood: Prefix For Potions
+SettingPotionNamePrefixGoodDesc: Will be added in front of effect name when brewing potion.
+
+SettingPotionNamePrefixBad: Prefix For Poisons 
+SettingPotionNamePrefixBadDesc: Will be added in front of effect name when brewing poison.
 
 SettingAllowOwnedContainerIngredients: Allow ingredients from owned containers
 SettingAllowOwnedContainerIngredientsDesc: If set to true, you will be able to use ingredients from containers that are owned by others.

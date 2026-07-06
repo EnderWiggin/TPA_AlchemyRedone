@@ -378,6 +378,14 @@ function AlchemyWindow:getDefaultPotionName()
         else
             name = positive or harmful or name
         end
+        if cfgPlayer.main.b_PrefixPotionNames then
+            local prefix = self.isPoison and cfgPlayer.main.s_PotionNamePrefixBad
+                or cfgPlayer.main.s_PotionNamePrefixGood
+            prefix = prefix and H.trim(prefix)
+            if prefix and #prefix > 0 then
+                name = prefix .. ' ' .. name
+            end
+        end
         return name
     end
     return ''

@@ -53,6 +53,27 @@ I.Settings.registerGroup {
             default = false,
         },
         {
+            key = 'b_PrefixPotionNames',
+            renderer = 'checkbox',
+            name = 'SettingPrefixPotionNames',
+            description = 'SettingPrefixPotionNamesDesc',
+            default = true,
+        },
+        {
+            key = 's_PotionNamePrefixGood',
+            renderer = 'textLine',
+            name = 'SettingPotionNamePrefixGood',
+            description = 'SettingPotionNamePrefixGoodDesc',
+            default = l10n('Potion_Name_Prefix_Good'),
+        },
+        {
+            key = 's_PotionNamePrefixBad',
+            renderer = 'textLine',
+            name = 'SettingPotionNamePrefixBad',
+            description = 'SettingPotionNamePrefixBadDesc',
+            default = l10n('Potion_Name_Prefix_Bad'),
+        },
+        {
             key = 'b_AllowOwnedContainerIngredients',
             renderer = 'checkbox',
             name = 'SettingAllowOwnedContainerIngredients',
