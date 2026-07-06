@@ -304,11 +304,12 @@ m.getAllEffects = function()
 
     for id, _ in pairs(ctx.data.ingredients) do
         local record = types.Ingredient.record(id)
+        local known = A.getKnownEffectFlagsForIngredient(record, player)
         if record then
             for i = 1, #record.effects do
                 local effect = record.effects[i]
                 local key = A.effectKey(effect)
-                if not effects[key] then
+                if not effects[key] and known[i] then
                     effects[key] = {
                         id = key,
                         effectId = effect.id,
