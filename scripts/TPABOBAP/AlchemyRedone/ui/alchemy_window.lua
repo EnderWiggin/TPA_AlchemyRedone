@@ -559,7 +559,7 @@ function AlchemyWindow:deductIngredients(ingredients, count)
 end
 
 function AlchemyWindow:onFilterChanged(_)
-    self.effectTable.layout.userData.refresh()
+    self.itemTable.layout.userData.refresh()
 end
 
 function AlchemyWindow:clearFilter()
