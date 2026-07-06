@@ -72,6 +72,7 @@ local m = {
 ---@field data AlchemyData
 ---@field selectIngredient fun(info: IngredientItemData)
 ---@field clearIngredient fun(n:integer)
+---@field clearAllIngredients fun()
 ---@field getAllIngredients fun():IngredientItemData[]
 ---@field getAllEffects fun():EffectItemData[]
 
@@ -83,6 +84,7 @@ local ctx = {
     data = defaultData(),
     selectIngredient = function(info) m.selectIngredient(info) end,
     clearIngredient = function(n) m.clearIngredient(n) end,
+    clearAllIngredients = function() m.clearAllIngredients() end,
     getAllIngredients = function() return m.getAllIngredients() end,
     getAllEffects = function() return m.getAllEffects() end,
     setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end,
@@ -218,6 +220,15 @@ m.clearIngredient = function(n)
             if m.wndAlchemy then
                 m.wndAlchemy:onIngredientSelectionChanged()
             end
+        end
+    end
+end
+
+m.clearAllIngredients = function(n)
+    if ctx.data and ctx.data.selected then
+        ctx.data.selected = {}
+        if m.wndAlchemy then
+            m.wndAlchemy:onIngredientSelectionChanged()
         end
     end
 end

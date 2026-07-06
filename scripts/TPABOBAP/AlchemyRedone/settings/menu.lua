@@ -122,7 +122,7 @@ I.Settings.registerGroup {
             key = 'n_ClearText',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_ClearText',
-            description = 'SettingController_ClearTextDesc',
+            description = l10n('SettingController_ClearTextDesc', C.TextColorParams),
             default = input.CONTROLLER_BUTTON.Y,
         },
         {

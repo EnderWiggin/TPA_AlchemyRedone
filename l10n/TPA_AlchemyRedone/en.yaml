@@ -103,8 +103,10 @@ SettingController_ActivateDesc: |-
 SettingController_Brew: Brew Potion
 SettingController_BrewDesc: Brew potion from currently selected ingredients.
 
-SettingController_ClearText: Clear Filter
-SettingController_ClearTextDesc: Clears ingredient filter text and any selected effects.
+SettingController_ClearText: Clear
+SettingController_ClearTextDesc: |-
+  Clears ingredient filter text and any selected effects.
+  If {color_header}LT{color_normal} is held - clear selected ingredients instead.
 
 SettingController_ToggleType: Toggle Potion Type
 SettingController_ToggleTypeDesc: Toggle between brewing Potions and Poisons.

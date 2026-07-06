@@ -755,7 +755,12 @@ function AlchemyWindow:onControllerButtonPress(id)
     elseif id == bind.n_Brew then
         self:createPotion()
     elseif id == bind.n_ClearText then
-        self:clearFilter()
+        if LT then
+            self.ctx.clearAllIngredients()
+        elseif RT then
+        else
+            self:clearFilter()
+        end
     elseif id == bind.n_Activate then
         local highlighted = activeTable.layout.userData.getHighlightedRow()
         if highlighted then
