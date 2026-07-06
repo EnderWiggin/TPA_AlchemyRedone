@@ -231,8 +231,20 @@ m.makeEffectTable = function(wnd)
                 end
             end
 
-            local nA = H.getMagicEffectString(m.effectDataToEffect(a))
-            local nB = H.getMagicEffectString(m.effectDataToEffect(b))
+            local rA = A.getEffectRecord(a.effectId)
+            local rB = A.getEffectRecord(b.effectId)
+
+            local nA = rA and rA.name
+            local nB = rB and rB.name
+
+            if nA ~= nB then
+                if not nA then return false end
+                if not nB then return true end
+                return nA < nB
+            end
+
+            nA = H.getMagicEffectString(m.effectDataToEffect(a))
+            nB = H.getMagicEffectString(m.effectDataToEffect(b))
 
             if nA == nB then return a.id < b.id end
             return nA < nB
