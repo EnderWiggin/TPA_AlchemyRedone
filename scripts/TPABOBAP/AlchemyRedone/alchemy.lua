@@ -623,7 +623,12 @@ Alchemy.getKnownEffectFlagsForPotion = function(potion, actor)
             if wasDrank then
                 result[i] = wasDrank
             elseif isGeneratedId(potion.id) then
-                result[i] = type(knowledge) == "table" and knowledge[i]
+                if Alchemy.knowledge.potionRecipe[potion.id] then
+                    result[i] = type(knowledge) == "table" and knowledge[i]
+                else
+                    -- this is potion brewed without mod enabled, show effects in vanilla way
+                    result[i] = i <= known
+                end
             else
                 local effectRecord = effect.effect or Alchemy.getEffectRecord(effect.id)
                 result[i] = effectRecord and (not effectRecord.harmful or not hasGood)
