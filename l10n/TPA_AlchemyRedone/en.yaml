@@ -56,7 +56,7 @@ SettingShowFullEffectInfoDesc: Created Effects block will show effect info with 
 
 SettingPotionArtUsesSkill: Potion Look Depends On Skill
 SettingPotionArtUsesSkillDesc: |-
-  If enabled, potion look will be selected based on your effective {color_header}Alchemy{color_normal} skill (including bonuses from {color_header}Intelligence{color_normal} and {color_header}Luck{color_normal} skills).
+  If enabled, potion look will be selected based on your effective {color_header}Alchemy{color_normal} skill (including bonuses from {color_header}Intelligence{color_normal} and {color_header}Luck{color_normal} attributes).
   Otherwise potion look is selected like in vanilla - randomly.
 
 SettingPrefixPotionNames: Prefix Potion Names
@@ -84,13 +84,26 @@ ReworkSettingsDesc: |-
   - Store-bough potions without positive effects will show all effects
   - Self-brewed potions will show effects that are known from at least 1 ingredient
   - Every N successfully brewed potions with same ingredents will reveal next unknown effect
-  - Ingredients still reveal effects with Alchemy skill levels
+  - Ingredients still reveal effects with Alchemy skill levels, but slower
+  - Ingredients reveal next effect above skill limit when consumed
   - Ingredients also reveal all known effects from brewed potion
   
   Makes sense only if you have {color_header}Inventory Extender{color_normal} installed - otherwise tooltips will show effects in vanilla way.
 
 SettingReworkEnabled: Enable
 SettingSettingReworkEnabledDesc: Enables reworked effect discovery.
+
+SettingIngredientKnowledgeThreshold: Ingredient Effect Discovery Threshold
+SettingIngredientKnowledgeThresholdDesc: |-
+  Your {color_header}Alchemy{color_normal} skill is divided by this number and rounded down to determine how many ingredient effects you can see by default.
+  Range [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}], default is {color_header}{default}{color_normal}. Vanilla value is {color_header}15{color_normal}.
+
+SettingIngredientMaxTaste: Ingredient Max Tasted Effects
+SettingIngredientMaxTasteDesc: |-
+  You can consume ingredients to reveal next possible effect according to your {color_header}Alchemy{color_normal} skill.
+  This setting determines how many effects at max you can learn this way.
+  Range [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}], default is {color_header}{default}{color_normal}.
+  Set to {color_header}0{color_normal} to effectively disable this mechanic.
 
 # -------------- Interface Block --------------
 InterfaceSettingsName: Interface

@@ -16,6 +16,7 @@ end
 ---@class AlchemyKnowledge
 ---@field potionKnowledge table<string, boolean|boolean[]>
 ---@field ingredientKnowledge table<string, boolean[]>
+---@field ingredientTasted table<string, integer>
 ---@field recipeProgress table<string, number>
 ---@field potionRecipe table<string, string>
 
@@ -24,6 +25,7 @@ local Alchemy = {
     knowledge = {
         potionKnowledge = {},
         ingredientKnowledge = {},
+        ingredientTasted = {},
         recipeProgress = {},
         potionRecipe = {},
     },
@@ -35,6 +37,7 @@ Alchemy.loadKnowledge = function(data)
     local knowledge = Alchemy.knowledge
     knowledge.potionKnowledge = data.potionKnowledge or {}
     knowledge.ingredientKnowledge = data.ingredientKnowledge or {}
+    knowledge.ingredientTasted = data.ingredientTasted or {}
     knowledge.recipeProgress = data.recipeProgress or {}
     knowledge.potionRecipe = data.potionRecipe or {}
 
@@ -56,11 +59,21 @@ Alchemy.PotionErrors = {
 }
 
 ---@param item openmw.Object
-Alchemy.onItemConsumed = function(item)
+---@param actor openmw.Object
+Alchemy.onItemConsumed = function(item, actor)
     if not cfgGlobal.rework.b_Enabled then return end
     if types.Potion.objectIsInstance(item) then
         Alchemy.updatePotionKnowledge(item.recordId, true)
+    elseif types.Ingredient.objectIsInstance(item) then
+        Alchemy.onIngredientTasted(item.recordId, actor)
     end
+end
+
+---@param ingredient string recordId
+---@param actor openmw.Object
+Alchemy.onIngredientTasted = function(ingredient, actor)
+    local known = Alchemy.getReworkedKnownIngredientEffectCount(actor)
+    Alchemy.knowledge.ingredientTasted[ingredient] = known + 1
 end
 
 ---@param potion string recordId
@@ -581,6 +594,19 @@ Alchemy.getKnownAlchemyEffectCount = function(actor, isPotion)
     return visibleEffectCount
 end
 
+---@param actor openmw.Object|nil
+---@return integer
+Alchemy.getReworkedKnownIngredientEffectCount = function(actor)
+    if not actor or not actor.type or not actor.type.stats or not actor.type.stats.skills or not actor.type.stats.skills.alchemy then
+        return 99 --consider knowing all effects when there's no actor
+    end
+
+    local alchemy = actor.type.stats.skills.alchemy(actor).base
+    local threshold = cfgGlobal.rework.n_IngredientKnowledgeThreshold or core.getGMST('fWortChanceValue')
+    local visibleEffectCount = math.floor(alchemy / threshold)
+    return visibleEffectCount
+end
+
 ---Returns map of effect index to whether actor knows this effect. If actor is omitted - assume we know all effects.
 ---@param ingredient string|openmw.types.IngredientRecord|nil
 ---@param actor openmw.LObject|openmw.GObject|nil
@@ -588,7 +614,16 @@ end
 Alchemy.getKnownEffectFlagsForIngredient = function(ingredient, actor)
     ingredient = Alchemy.toIngredientRecord(ingredient)
     if not ingredient then return {} end
-    local known = Alchemy.getKnownAlchemyEffectCount(actor, false)
+    local known
+    if cfgGlobal.rework.b_Enabled then
+        local tasted = Alchemy.knowledge.ingredientTasted[ingredient.id] or 0
+        tasted = math.min(tasted, cfgGlobal.rework.n_IngredientMaxTaste)
+        known = Alchemy.getReworkedKnownIngredientEffectCount(actor)
+        known = math.max(known, tasted)
+    else
+        known = Alchemy.getKnownAlchemyEffectCount(actor, false)
+    end
+
     local knowledge = Alchemy.knowledge.ingredientKnowledge[ingredient.id]
     local result = {}
     for i = 1, #ingredient.effects do

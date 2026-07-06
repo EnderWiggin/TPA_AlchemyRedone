@@ -13,6 +13,18 @@ local KnowledgeThreshold = {
     max = 20,
 }
 
+local IngredientThreshold = {
+    default = 25,
+    min = 10,
+    max = 50,
+}
+
+local IngredientMaxTaste = {
+    default = 3,
+    min = 0,
+    max = 4,
+}
+
 I.Settings.registerGroup {
     key = MODNAME .. '/ReworkSettings',
     page = MODNAME,
@@ -38,6 +50,30 @@ I.Settings.registerGroup {
             argument = {
                 min = KnowledgeThreshold.min,
                 max = KnowledgeThreshold.max,
+                integer = true,
+            }
+        },
+        {
+            key = 'n_IngredientKnowledgeThreshold',
+            renderer = 'number',
+            name = 'SettingIngredientKnowledgeThreshold',
+            description = l10n('SettingIngredientKnowledgeThresholdDesc', H.mergeTables(C.TextColorParams, IngredientThreshold)),
+            default = IngredientThreshold.default,
+            argument = {
+                min = IngredientThreshold.min,
+                max = IngredientThreshold.max,
+                integer = true,
+            }
+        },
+        {
+            key = 'n_IngredientMaxTaste',
+            renderer = 'number',
+            name = 'SettingIngredientMaxTaste',
+            description = l10n('SettingIngredientMaxTasteDesc', H.mergeTables(C.TextColorParams, IngredientMaxTaste)),
+            default = IngredientMaxTaste.default,
+            argument = {
+                min = IngredientMaxTaste.min,
+                max = IngredientMaxTaste.max,
                 integer = true,
             }
         },

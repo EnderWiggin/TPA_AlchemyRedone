@@ -567,7 +567,7 @@ end
 
 local function onConsume(item)
     if not cfgPlayer.main.b_Enabled then return end
-    A.onItemConsumed(item)
+    A.onItemConsumed(item, player)
 end
 
 ---@class AlchemySaveData

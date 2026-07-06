@@ -10,6 +10,8 @@ local storage = require('openmw.storage')
 ---@class ReworkSettings
 ---@field b_Enabled boolean?
 ---@field n_PotionKnowledgeThreshold number?
+---@field n_IngredientKnowledgeThreshold number?
+---@field n_IngredientMaxTaste number?
 
 ---@type ConfigDataGlobal
 local config = {
