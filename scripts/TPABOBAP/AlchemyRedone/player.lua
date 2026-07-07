@@ -1,6 +1,7 @@
 ---@omw-context player
 
 local core = require('openmw.core')
+local ambient = require('openmw.ambient')
 local async = require('openmw.async')
 local storage = require('openmw.storage')
 local types = require("openmw.types")
@@ -61,6 +62,8 @@ local m = {
     wndAlchemy = nil,
 }
 
+---@alias NameOrGetter string|fun():string
+
 ---@class AlchemyData
 ---@field apparatus LocalApparatusIds
 ---@field sources openmw.GObject[]
@@ -75,6 +78,8 @@ local m = {
 ---@class AlchemyContext: WindowContext
 ---@field potionModifiers { id: string, mod: TPA_AlchemyRedone.PotionModifier }[]
 ---@field data AlchemyData
+---@field applyMods fun(draft:openmw.types.PotionRecord, ingredients:string[]):openmw.types.PotionRecord
+---@field brewPotions fun(name: NameOrGetter, count: integer, ingredients:string[], isPoison: boolean): boolean
 ---@field selectIngredient fun(info: IngredientItemData)
 ---@field clearSelectedIngredient fun(n:integer)
 ---@field clearAllSelectedIngredients fun()
@@ -94,6 +99,8 @@ local ctx = {
     getAllEffects = function() return m.getAllEffects() end,
     setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end,
     setHovered = function(element) return m.setHovered(element) end,
+    applyMods = function(draft, ingredients) return m.applyMods(draft, ingredients) end,
+    brewPotions = function(name, count, ingredients, isPoison) return m.brewPotions(name, count, ingredients, isPoison) end,
 }
 
 m.onOpenAlchemy = function(data)
@@ -344,6 +351,166 @@ m.getAllEffects = function()
     return result
 end
 
+local function handleModError(...)
+    core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { ... })
+end
+
+---@param draft openmw.types.PotionRecord
+---@param ingredients string[]
+m.applyMods = function(draft, ingredients)
+    for i = 1, #ctx.potionModifiers do
+        local modData = ctx.potionModifiers[i]
+        local ok, result = xpcall(modData.mod, function(err)
+            handleModError(('ERROR in potion modifier [%s]'):format(modData.id), err)
+        end, draft, ingredients)
+        if ok then
+            draft = result or draft
+        end
+    end
+    return draft
+end
+
+---returns the amount of selected ingredient that's smallest - this is our limit for brewing batch size
+---@param ingredients string[]
+---@return integer
+local function getLeastIngredientAmount(ingredients)
+    local min = math.huge
+    for i = 1, #ingredients do
+        local count = ctx.data.ingredients[ingredients[i]]
+        if count then
+            min = math.min(min, count)
+        end
+    end
+    return min
+end
+
+---@param name NameOrGetter
+---@param count integer
+---@param ingredients string[]
+---@param isPoison boolean
+m.brewPotions = function(name, count, ingredients, isPoison)
+    count = math.min(count, getLeastIngredientAmount(ingredients))
+    local opts = { isPoison = isPoison, useSkillForArtSelection = cfgPlayer.main.b_PotionArtUsesSkill }
+    local function getName()
+        if type(name) == "string" then return name end
+        return name()
+    end
+    local draft, errorCode, known = A.getPotionStats(getName(), ingredients, ctx.data.apparatus or {}, player, opts)
+    local brewed = 0
+
+    if errorCode == A.PotionErrors.OK then
+        local factor = A.getAlchemyFactor(player)
+        for _ = 1, count do
+            if A.checkPotionBrewSuccess(factor) then
+                brewed = brewed + 1
+            end
+        end
+
+        if brewed <= 0 then
+            errorCode = A.PotionErrors.FAIL
+        end
+    end
+    if errorCode == A.PotionErrors.OK then --Brewing succeeded
+        local effects
+        draft = m.applyMods(draft, ingredients)
+        local prevDraft = draft
+        ---@type {draft:openmw.types.PotionRecord, count:integer}[]
+        local drafts = { { draft = draft, count = 0 } }
+        local compareOpts = { ignore = { icon = true, model = true }, generated = true }
+        local processed = 0
+        repeat
+            effects = draft.effects
+            for i = 1, #effects do
+                --this field can't be sent with event and it is not required to create new record
+                effects[i].effect = nil
+            end
+
+            if A.potionRecordsEqual(prevDraft, draft, compareOpts) then
+                drafts[#drafts].count = drafts[#drafts].count + 1
+            else
+                table.insert(drafts, { draft = draft, count = 1 })
+                prevDraft = draft
+            end
+
+            I.SkillProgression.skillUsed('alchemy', {
+                useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
+                alchemyRedone = {
+                    potion = draft,
+                    ingredients = ingredients,
+                    isPoison = isPoison,
+                },
+            })
+
+            processed = processed + 1
+            if processed < brewed then
+                draft, errorCode, known = A.getPotionStats(getName(), ingredients, ctx.data.apparatus or {}, player, opts)
+                draft = m.applyMods(draft, ingredients)
+            end
+        until processed >= brewed
+
+        if cfgGlobal.rework.b_Enabled then
+            local progress = A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] or 0
+            progress = progress + brewed * cfgGlobal.PROGRESS
+            local records = A.toIngredientRecords(ingredients)
+            for i = 1, #records do
+                local record = records[i]
+                local knowledge = A.knowledge.ingredientKnowledge[record.id] or {}
+                for j = 1, #effects do
+                    local effect = effects[j]
+
+                    local threshold = cfgGlobal.rework.n_PotionKnowledgeThreshold or cfgGlobal.THRESHOLD
+                    if not known[j] and progress >= threshold then
+                        known[j] = true
+                        progress = progress - threshold
+                    end
+
+                    if known[j] then
+                        local k = A.containsEffect(record.effects, effect)
+                        if k then
+                            knowledge[k] = true
+                        end
+                    end
+                end
+                A.knowledge.ingredientKnowledge[record.id] = knowledge
+                A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] = progress
+            end
+        end
+
+        local msg = core.getGMST(A.PotionErrors.OK)
+        if brewed > 1 then
+            msg = msg .. ' ' .. getName() .. ' (' .. H.addSeparators(brewed) .. ')'
+        end
+        ui.showMessage(msg)
+        ambient.playSound('potion success', { scale = false })
+        ---@type FinalizePotionsData
+        local data = {
+            actor = player,
+            drafts = drafts,
+            ingredients = ingredients,
+            count = count,
+            sources = ctx.data.sources,
+        }
+        core.sendGlobalEvent('TPA_AlchemyRedone_FinalizePotions', data)
+    elseif errorCode == A.PotionErrors.FAIL then -- Brewing was attempted, but failed
+        ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
+        ambient.playSound('potion fail', { scale = false })
+        ---@type FinalizePotionsData
+        local data = {
+            actor = player,
+            drafts = {},
+            ingredients = ingredients,
+            count = count,
+            sources = ctx.data.sources,
+        }
+        core.sendGlobalEvent('TPA_AlchemyRedone_FinalizePotions', data)
+        --TODO: optionally grant skill use failure XP
+    else -- Something prevented brewing, show error
+        ui.showMessage(core.getGMST(errorCode))
+        return true
+    end
+    return false
+end
+
 m.updateWnd = function(wnd, deep)
     if wnd then wnd:update(deep) end
 end
@@ -429,14 +596,10 @@ local function closeWindow()
 end
 
 ---@param data CreatedPotionData
-m.useSkill = function(data)
-    A.updateBrewedPotionKnowledge(data.potion, data.ingredients, player)
-
-    I.SkillProgression.skillUsed('alchemy', {
-        useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
-        scale = data.brewed,
-        alchemyRedone = data,
-    })
+m.finalizePotions = function(data)
+    for i = 1, #data.potions do
+        A.updateBrewedPotionKnowledge(data.potions[i], data.ingredients, player)
+    end
 end
 
 local function onMouseWheel(v)
@@ -621,6 +784,6 @@ return {
     },
     eventHandlers = {
         TPA_AlchemyRedone_Open = m.onOpenAlchemy,
-        TPA_AlchemyRedone_UseSkill = m.useSkill,
+        TPA_AlchemyRedone_FinalizePotions = m.finalizePotions,
     },
 }

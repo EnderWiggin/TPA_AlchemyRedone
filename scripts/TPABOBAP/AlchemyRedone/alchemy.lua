@@ -544,7 +544,7 @@ end
 ---@param a openmw.types.PotionRecord
 ---@param b openmw.types.PotionRecord
 ---@param opts PotionCompareOpts?
-local function potionRecordsEqual(a, b, opts)
+Alchemy.potionRecordsEqual = function(a, b, opts)
     local ignoreIcon = false
     local ignoreModel = false
     if opts and opts.ignore then
@@ -572,7 +572,7 @@ Alchemy.findPotion = function(record, opts)
         ---@type openmw.types.PotionRecord
         local potion = types.Potion.records[i]
         if not generated or isGeneratedId(potion.id) then
-            if potionRecordsEqual(record, potion, opts) then return potion end
+            if Alchemy.potionRecordsEqual(record, potion, opts) then return potion end
         end
     end
     return nil

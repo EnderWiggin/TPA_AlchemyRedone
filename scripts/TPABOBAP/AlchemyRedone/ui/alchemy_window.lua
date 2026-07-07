@@ -7,7 +7,6 @@ local util = require("openmw.util")
 local types = require("openmw.types")
 local async = require('openmw.async')
 local player = require('openmw.self')
-local ambient = require('openmw.ambient')
 local auxUi = require('openmw_aux.ui')
 local storage = require('openmw.storage')
 
@@ -339,21 +338,6 @@ function AlchemyWindow:onIngredientSelectionChanged()
     self.itemTable.layout.userData.refresh()
 end
 
----returns the amount of selected ingredient that's smallest - this is our limit for brewing batch size
----@param ingredients string[]?
----@return integer
-function AlchemyWindow:getLeastIngredientAmount(ingredients)
-    ingredients = ingredients or self:getSelectedIngredientList()
-    local min = math.huge
-    for i = 1, #ingredients do
-        local count = self.data.ingredients[ingredients[i]]
-        if count then
-            min = math.min(min, count)
-        end
-    end
-    return min
-end
-
 function AlchemyWindow:getDefaultPotionName()
     ---@type MagicEffectWithParams[]
     local matching = self.data.matching
@@ -411,7 +395,7 @@ function AlchemyWindow:getTempPotionStats()
         { isPoison = self.isPoison })
 
     if errorCode == A.PotionErrors.OK then
-        draft = self:applyMods(draft, ingredients)
+        draft = self.ctx.applyMods(draft, ingredients)
     end
     return draft, errorCode, knowledge
 end
@@ -439,123 +423,23 @@ function AlchemyWindow:toggleFavoriteEffect(effectKey)
     if selected then uData.setHoveredRow(selected) end
 end
 
-local function handleModError(...)
-    core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { ... })
-end
-
----@param draft openmw.types.PotionRecord
----@param ingredients string[]
-function AlchemyWindow:applyMods(draft, ingredients)
-    for i = 1, #self.ctx.potionModifiers do
-        local modData = self.ctx.potionModifiers[i]
-        local ok, result = xpcall(modData.mod, function(err)
-            handleModError(('ERROR in potion modifier [%s]'):format(modData.id), err)
-        end, draft, ingredients)
-        if ok then
-            draft = result or draft
-        end
-    end
-    return draft
-end
-
 function AlchemyWindow:createPotion()
-    local name = self.naming.getText()
-    local ingredients = self:getSelectedIngredientList()
-    local draft, errorCode, known = A.getPotionStats(name, ingredients, self.data.apparatus or {}, player,
-        { isPoison = self.isPoison, useSkillForArtSelection = cfgPlayer.main.b_PotionArtUsesSkill })
-    local count = math.min(self.counting.getCount(), self:getLeastIngredientAmount(ingredients))
-    local brewed = 0
-
-    if errorCode == A.PotionErrors.OK then
-        local factor = A.getAlchemyFactor(player)
-        for _ = 1, count do
-            if A.checkPotionBrewSuccess(factor) then
-                brewed = brewed + 1
-            end
-        end
-
-        if brewed <= 0 then
-            errorCode = A.PotionErrors.FAIL
-        end
-    end
-
-    if errorCode == A.PotionErrors.OK then --Brewing succeeded
-        draft = self:applyMods(draft, ingredients)
-
-        local effects = draft.effects
-        for i = 1, #effects do
-            --this field can't be sent with event and it is not required to create new record
-            effects[i].effect = nil
-        end
-
-        if cfgGlobal.rework.b_Enabled then
-            local progress = A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] or 0
-            progress = progress + brewed * cfgGlobal.PROGRESS
-            local records = A.toIngredientRecords(ingredients)
-            for i = 1, #records do
-                local record = records[i]
-                local knowledge = A.knowledge.ingredientKnowledge[record.id] or {}
-                for j = 1, #effects do
-                    local effect = effects[j]
-
-                    local threshold = cfgGlobal.rework.n_PotionKnowledgeThreshold or cfgGlobal.THRESHOLD
-                    if not known[j] and progress >= threshold then
-                        known[j] = true
-                        progress = progress - threshold
-                    end
-
-                    if known[j] then
-                        local k = A.containsEffect(record.effects, effect)
-                        if k then
-                            knowledge[k] = true
-                        end
-                    end
-                end
-                A.knowledge.ingredientKnowledge[record.id] = knowledge
-                A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] = progress
-            end
-        end
-
-        ---@type CreateAndAddNewPotionData
-        local data = {
-            actor = player,
-            batch = count,
-            brewed = brewed,
-            draft = draft,
-            ingredients = ingredients,
-            isPoison = self.isPoison,
-        }
-        core.sendGlobalEvent('TPA_AlchemyRedone_CreateAndAddNewPotion', data)
-
-        local msg = core.getGMST(A.PotionErrors.OK)
-        if brewed > 1 then
-            msg = msg .. ' ' .. name .. ' (' .. H.addSeparators(brewed) .. ')'
-        end
-        ui.showMessage(msg)
-
-        ambient.playSound('potion success', { scale = false })
-        self:deductIngredients(ingredients, count)
-    elseif errorCode == A.PotionErrors.FAIL then -- Brewing was attempted, but failed
-        ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
-        ambient.playSound('potion fail', { scale = false })
-        self:deductIngredients(ingredients, count)
-        --TODO: optionally grant skill use failure XP
-    else -- Something prevented brewing, show error
-        ui.showMessage(core.getGMST(errorCode))
-    end
-end
-
----@param ingredients string[]
----@param count integer
-function AlchemyWindow:deductIngredients(ingredients, count)
     parts.setInteractiveState(self.btnCreate, false, true)
+    ---@type NameOrGetter
+    local name = self.naming.getText()
+    if name == self:getDefaultPotionName() then
+        name = function() return self:getDefaultPotionName() end
+    end
+    local aborted = self.ctx.brewPotions(
+        name,
+        self.counting.getCount(),
+        self:getSelectedIngredientList(),
+        self.isPoison
+    )
 
-    core.sendGlobalEvent('TPA_AlchemyRedone_DeductIngredients', {
-        actor = player,
-        sources = self.data.sources,
-        ingredients = ingredients,
-        count = count,
-    })
+    if aborted then
+        parts.setInteractiveState(self.btnCreate, false, false)
+    end
 end
 
 function AlchemyWindow:onFilterChanged(_)

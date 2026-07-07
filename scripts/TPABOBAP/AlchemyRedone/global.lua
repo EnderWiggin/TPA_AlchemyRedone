@@ -154,42 +154,41 @@ m.addObject = function(actor, recordId, count)
     world.createObject(recordId, count or 1):moveInto(actor.type.inventory(actor))
 end
 
----@class CreateAndAddNewPotionData
+---@class FinalizePotionsData
 ---@field actor openmw.self
----@field batch integer
----@field brewed integer
----@field draft openmw.types.PotionRecord
+---@field drafts {draft:openmw.types.PotionRecord, count:integer}[]
 ---@field ingredients string[]
----@field isPoison boolean
+---@field count integer
+---@field sources openmw.GObject[]
 
 ---@class CreatedPotionData
----@field batch integer
----@field brewed integer
----@field potion string
+---@field potions string[]
 ---@field ingredients string[]
----@field isPoison boolean
 
----@param data CreateAndAddNewPotionData
-m.createAndAddNewPotion = function(data)
-    local potion = A.findPotion(data.draft, { ignore = { icon = true, model = true }, generated = true })
-    if not potion then
-        local draft = T.Potion.createRecordDraft(data.draft)
-        potion = world.createRecord(draft)
+---@param data FinalizePotionsData
+m.finalizePotions = function(data)
+    local potions = {}
+    for i = 1, #data.drafts do
+        local draft = data.drafts[i].draft
+        local count = data.drafts[i].count
+        local potion = A.findPotion(draft, { ignore = { icon = true, model = true }, generated = true })
+        if not potion then
+            draft = T.Potion.createRecordDraft(draft)
+            potion = world.createRecord(draft)
+        end
+        table.insert(potions, potion.id)
+        m.addObject(data.actor, potion.id, count)
     end
 
-    m.addObject(data.actor, potion.id, data.brewed)
-
-    ---@type CreatedPotionData
-    local evt = {
-        batch = data.batch,
-        brewed = data.brewed,
-        potion = potion.id,
-        ingredients = data.ingredients,
-        isPoison = data.isPoison,
-    }
-    data.actor:sendEvent('TPA_AlchemyRedone_UseSkill', evt)
+    if #potions > 0 then
+        ---@type CreatedPotionData
+        local final = { potions = potions, ingredients = data.ingredients }
+        data.actor:sendEvent('TPA_AlchemyRedone_FinalizePotions', final)
+    end
+    m.deductIngredients(data)
 end
 
+---@param data {actor:openmw.GObject, sources:openmw.GObject[], ingredients:string[], count:integer}
 m.deductIngredients = function(data)
     ---@type openmw.GObject[]
     local sources = data.sources
@@ -217,14 +216,15 @@ m.deductIngredients = function(data)
             ---@type openmw.core.Inventory
             local inv = source.type.inventory(source)
             for id, need in pairs(consume) do
-                local item = inv:find(id)
-                ---@cast item openmw.GObject
-                if item then
+                local items = inv:findAll(id)
+                for j = 1, #items do
+                    local item = items[j]
                     local take = math.min(need, item.count)
                     item:remove(take)
                     need = need - take
                     if need <= 0 then
                         consume[id] = nil
+                        break
                     else
                         consume[id] = need
                     end
@@ -306,8 +306,7 @@ return {
         TPA_AlchemyRedone_CollectInfo = function(data)
             data.actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(data.actor))
         end,
-        TPA_AlchemyRedone_CreateAndAddNewPotion = m.createAndAddNewPotion,
-        TPA_AlchemyRedone_AddItem = function(data) m.addObject(data.actor, data.recordId, data.count) end,
+        TPA_AlchemyRedone_FinalizePotions = m.finalizePotions,
         TPA_AlchemyRedone_DeductIngredients = m.deductIngredients,
         TPA_AlchemyRedone_UpdatePermissions = onUpdatePermissions,
         TPA_AlchemyRedone_SimScale = onUpdateSimScale,
