@@ -432,6 +432,7 @@ m.brewPotions = function(name, count, ingredients, isPoison)
                 prevDraft = draft
             end
 
+            A.updateIngredientKnowledge(ingredients, effects, known)
             I.SkillProgression.skillUsed('alchemy', {
                 useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
                 alchemyRedone = {
@@ -447,34 +448,6 @@ m.brewPotions = function(name, count, ingredients, isPoison)
                 draft = m.applyMods(draft, ingredients)
             end
         until processed >= brewed
-
-        if cfgGlobal.rework.b_Enabled then
-            local progress = A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] or 0
-            progress = progress + brewed * cfgGlobal.PROGRESS
-            local records = A.toIngredientRecords(ingredients)
-            for i = 1, #records do
-                local record = records[i]
-                local knowledge = A.knowledge.ingredientKnowledge[record.id] or {}
-                for j = 1, #effects do
-                    local effect = effects[j]
-
-                    local threshold = cfgGlobal.rework.n_PotionKnowledgeThreshold or cfgGlobal.THRESHOLD
-                    if not known[j] and progress >= threshold then
-                        known[j] = true
-                        progress = progress - threshold
-                    end
-
-                    if known[j] then
-                        local k = A.containsEffect(record.effects, effect)
-                        if k then
-                            knowledge[k] = true
-                        end
-                    end
-                end
-                A.knowledge.ingredientKnowledge[record.id] = knowledge
-                A.knowledge.recipeProgress[A.getIngredientsKey(ingredients)] = progress
-            end
-        end
 
         local msg = core.getGMST(A.PotionErrors.OK)
         if brewed > 1 then

@@ -91,6 +91,38 @@ Alchemy.updatePotionKnowledge = function(potion, known)
     end
 end
 
+---@param ingredients string[]
+---@param effects openmw.core.MagicEffectWithParams[]
+---@param known boolean[]
+Alchemy.updateIngredientKnowledge = function(ingredients, effects, known)
+    if not cfgGlobal.rework.b_Enabled then return end
+    local progress = Alchemy.knowledge.recipeProgress[Alchemy.getIngredientsKey(ingredients)] or 0
+    progress = progress + cfgGlobal.PROGRESS
+    local records = Alchemy.toIngredientRecords(ingredients)
+    for i = 1, #records do
+        local record = records[i]
+        local knowledge = Alchemy.knowledge.ingredientKnowledge[record.id] or {}
+        for j = 1, #effects do
+            local effect = effects[j]
+
+            local threshold = cfgGlobal.rework.n_PotionKnowledgeThreshold or cfgGlobal.THRESHOLD
+            if not known[j] and progress >= threshold then
+                known[j] = true
+                progress = progress - threshold
+            end
+
+            if known[j] then
+                local k = Alchemy.containsEffect(record.effects, effect)
+                if k then
+                    knowledge[k] = true
+                end
+            end
+        end
+        Alchemy.knowledge.ingredientKnowledge[record.id] = knowledge
+        Alchemy.knowledge.recipeProgress[Alchemy.getIngredientsKey(ingredients)] = progress
+    end
+end
+
 --- Updates known effects of brewed potion
 ---@param potion string
 ---@param ingredients string[]
