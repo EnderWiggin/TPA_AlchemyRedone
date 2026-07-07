@@ -433,14 +433,16 @@ m.brewPotions = function(name, count, ingredients, isPoison)
             end
 
             A.updateIngredientKnowledge(ingredients, effects, known)
-            I.SkillProgression.skillUsed('alchemy', {
-                useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
-                alchemyRedone = {
-                    potion = draft,
-                    ingredients = ingredients,
-                    isPoison = isPoison,
-                },
-            })
+            xpcall(I.SkillProgression.skillUsed,
+                function(err) handleModError('ERROR in `skill used` handler:', err) end,
+                'alchemy', {
+                    useType = I.SkillProgression.SKILL_USE_TYPES.Alchemy_CreatePotion,
+                    alchemyRedone = {
+                        potion = draft,
+                        ingredients = ingredients,
+                        isPoison = isPoison,
+                    },
+                })
 
             processed = processed + 1
             if processed < brewed then
