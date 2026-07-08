@@ -98,6 +98,11 @@ ReworkSettingsDesc: |-
 SettingReworkEnabled: Enable
 SettingSettingReworkEnabledDesc: Enables reworked effect discovery.
 
+SettingPotionKnowledgeThreshold: New effect discovery threshold
+SettingPotionKnowledgeThresholdDesc: |-
+  How many potions you need to brew to learn new effect.
+  Range [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}], default is {color_header}{default}{color_normal}.
+
 SettingIngredientKnowledgeThreshold: Ingredient Effect Discovery Threshold
 SettingIngredientKnowledgeThresholdDesc: |-
   Your {color_header}Alchemy{color_normal} skill is divided by this number and rounded down to determine how many ingredient effects you can see by default.
@@ -118,11 +123,6 @@ SettingIntReMode: Interface Reimagined Support
 InterfaceReimaginedMode_Auto: "Auto"
 InterfaceReimaginedMode_On: " On "
 InterfaceReimaginedMode_Off: "Off "
-
-SettingPotionKnowledgeThreshold: New effect discovery threshold
-SettingPotionKnowledgeThresholdDesc: |-
-  How many potions you need to brew to learn new effect.
-  Range [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}], default is {color_header}{default}{color_normal}.
 
 # -------------- Controller Block --------------
 ControllerSettingsName: Controller Settings
