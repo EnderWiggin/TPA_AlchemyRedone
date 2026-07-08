@@ -585,7 +585,7 @@ Alchemy.potionRecordsEqual = function(a, b, opts)
     end
 
     if a.name ~= b.name then return false end
-    if math.floor(10000 * a.weight) ~= math.floor(10000 * b.weight) then return false end
+    if util.round(10000 * a.weight) ~= util.round(10000 * b.weight) then return false end
     if a.value ~= b.value then return false end
     if a.mwscript ~= b.mwscript then return false end
     if not ignoreIcon and a.icon ~= b.icon then return false end
