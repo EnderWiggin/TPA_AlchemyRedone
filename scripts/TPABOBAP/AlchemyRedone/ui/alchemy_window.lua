@@ -825,7 +825,7 @@ parts.tools = function(getToolRecord)
                 layout.props.text = record and record.name or C.Strings.NONE
 
                 layout = H.findLayoutByPath(tools, { 'quality', name })
-                layout.props.text = record and 'x' .. record.quality or ''
+                layout.props.text = record and 'x' .. H.roundToPlaces(record.quality, 2) or ''
 
                 layout = H.findLayoutByPath(tools, { 'icon', name })
                 layout.props.resource = record and T.Base.createTexture(record.icon)
