@@ -395,7 +395,7 @@ function AlchemyWindow:getTempPotionStats()
         { isPoison = self.isPoison })
 
     if errorCode == A.PotionErrors.OK then
-        draft = self.ctx.applyMods(draft, ingredients)
+        draft = self.ctx.applyMods(draft, ingredients, { isPoison = self.isPoison, isPreview = true })
     end
     return draft, errorCode, knowledge
 end

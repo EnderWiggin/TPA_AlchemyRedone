@@ -10,4 +10,8 @@
 ---@field unregisterPotionModifier fun(modId: string) removes potion modifier
 ---@field getKnownEffectFlagsForItem fun(item: openmw.Object): boolean[]
 
----@alias TPA_AlchemyRedone.PotionModifier fun(draft:openmw.types.PotionRecord, ingredients:string[]):openmw.types.PotionRecord?
+---@class PotionModifierOpts
+---@field isPoison boolean?
+---@field isPreview boolean?
+
+---@alias TPA_AlchemyRedone.PotionModifier fun(draft:openmw.types.PotionRecord, ingredients:string[], opts: PotionModifierOpts):openmw.types.PotionRecord?

@@ -78,7 +78,7 @@ local m = {
 ---@class AlchemyContext: WindowContext
 ---@field potionModifiers { id: string, mod: TPA_AlchemyRedone.PotionModifier }[]
 ---@field data AlchemyData
----@field applyMods fun(draft:openmw.types.PotionRecord, ingredients:string[]):openmw.types.PotionRecord
+---@field applyMods fun(draft:openmw.types.PotionRecord, ingredients:string[], opts:PotionModifierOpts?):openmw.types.PotionRecord
 ---@field brewPotions fun(name: NameOrGetter, count: integer, ingredients:string[], isPoison: boolean): boolean
 ---@field selectIngredient fun(info: IngredientItemData)
 ---@field clearSelectedIngredient fun(n:integer)
@@ -99,7 +99,7 @@ local ctx = {
     getAllEffects = function() return m.getAllEffects() end,
     setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end,
     setHovered = function(element) return m.setHovered(element) end,
-    applyMods = function(draft, ingredients) return m.applyMods(draft, ingredients) end,
+    applyMods = function(draft, ingredients, opts) return m.applyMods(draft, ingredients, opts) end,
     brewPotions = function(name, count, ingredients, isPoison) return m.brewPotions(name, count, ingredients, isPoison) end,
 }
 
@@ -357,12 +357,14 @@ end
 
 ---@param draft openmw.types.PotionRecord
 ---@param ingredients string[]
-m.applyMods = function(draft, ingredients)
+---@param opts PotionModifierOpts?
+m.applyMods = function(draft, ingredients, opts)
+    opts = opts or {}
     for i = 1, #ctx.potionModifiers do
         local modData = ctx.potionModifiers[i]
         local ok, result = xpcall(modData.mod, function(err)
             handleModError(('ERROR in potion modifier [%s]'):format(modData.id), err)
-        end, draft, ingredients)
+        end, draft, ingredients, opts)
         if ok then
             draft = result or draft
         end
@@ -412,7 +414,9 @@ m.brewPotions = function(name, count, ingredients, isPoison)
     end
     if errorCode == A.PotionErrors.OK then --Brewing succeeded
         local effects
-        draft = m.applyMods(draft, ingredients)
+        ---@type PotionModifierOpts
+        local modOpts = { isPoison = isPoison }
+        draft = m.applyMods(draft, ingredients, modOpts)
         local prevDraft = draft
         ---@type {draft:openmw.types.PotionRecord, count:integer}[]
         local drafts = { { draft = draft, count = 0 } }
@@ -447,7 +451,7 @@ m.brewPotions = function(name, count, ingredients, isPoison)
             processed = processed + 1
             if processed < brewed then
                 draft, errorCode, known = A.getPotionStats(getName(), ingredients, ctx.data.apparatus or {}, player, opts)
-                draft = m.applyMods(draft, ingredients)
+                draft = m.applyMods(draft, ingredients, modOpts)
             end
         until processed >= brewed
 
