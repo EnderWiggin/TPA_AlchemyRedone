@@ -310,7 +310,7 @@ Alchemy.getNonMatchingEffects = function(recordsOrIds, actor)
                     end
                 else
                     table.insert(effects, effect)
-                    table.insert(knowledge, known[k])
+                    table.insert(knowledge, known[k] == true)
                 end
                 all[key] = true
             end
