@@ -12,6 +12,7 @@ local player = require('openmw.self')
 local auxUi = require('openmw_aux.ui')
 
 local I = require('openmw.interfaces')
+local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local H = require('scripts.TPABOBAP.UIToolkit.helpers')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
@@ -36,7 +37,7 @@ local function updatePermissions()
     core.sendGlobalEvent('TPA_AlchemyRedone_UpdatePermissions', data)
 end
 
-storage.playerSection('TPA_AlchemyRedone/MainSettings'):subscribe(async:callback(updatePermissions))
+storage.playerSection(CFG.SECTION.MENU.Main):subscribe(async:callback(updatePermissions))
 
 local needsInitialization = true
 

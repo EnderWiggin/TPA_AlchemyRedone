@@ -9,8 +9,9 @@ local async = require('openmw.async')
 local player = require('openmw.self')
 local auxUi = require('openmw_aux.ui')
 local storage = require('openmw.storage')
+local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 
-local settings = storage.playerSection('TPA_AlchemyRedone:AlchemyWindow')
+local settings = storage.playerSection(CFG.SECTION.PLAYER.WINDOW)
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 

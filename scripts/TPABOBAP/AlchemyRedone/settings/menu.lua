@@ -2,11 +2,11 @@
 
 local input = require('openmw.input')
 local I = require('openmw.interfaces')
+local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local H = require('scripts.TPABOBAP.UIToolkit.helpers')
 
-local MODNAME = 'TPA_AlchemyRedone'
-local l10n = require('openmw.core').l10n(MODNAME)
+local l10n = require('openmw.core').l10n(CFG.MOD)
 
 local controllerInput = require('scripts.TPABOBAP.AlchemyRedone.settings.controllerInputRenderer')
 I.Settings.registerRenderer('TPA_controllerInput', controllerInput.renderer)
@@ -24,16 +24,16 @@ local RepeatStep = {
 }
 
 I.Settings.registerPage {
-    key = MODNAME,
-    l10n = MODNAME,
+    key = CFG.MOD,
+    l10n = CFG.MOD,
     name = 'PageName',
     description = 'PageDesc',
 }
 
 I.Settings.registerGroup {
-    key = MODNAME .. '/MainSettings',
-    page = MODNAME,
-    l10n = MODNAME,
+    key = CFG.SECTION.MENU.Main,
+    page = CFG.MOD,
+    l10n = CFG.MOD,
     name = 'MainSettingsName',
     order = 1,
     permanentStorage = true,
@@ -106,9 +106,9 @@ I.Settings.registerGroup {
 
 
 I.Settings.registerGroup {
-    key = MODNAME .. '/InterfaceSettings',
-    page = MODNAME,
-    l10n = MODNAME,
+    key = CFG.SECTION.MENU.Interface,
+    page = CFG.MOD,
+    l10n = CFG.MOD,
     name = 'InterfaceSettingsName',
     order = 3,
     permanentStorage = true,
@@ -119,7 +119,7 @@ I.Settings.registerGroup {
             name = 'SettingIntReMode',
             default = C.InterfaceReimaginedMode.Auto,
             argument = {
-                l10n = MODNAME,
+                l10n = CFG.MOD,
                 items = {
                     C.InterfaceReimaginedMode.OFF,
                     C.InterfaceReimaginedMode.Auto,
@@ -131,9 +131,9 @@ I.Settings.registerGroup {
 }
 
 I.Settings.registerGroup {
-    key = MODNAME .. '/ControllerSettings',
-    page = MODNAME,
-    l10n = MODNAME,
+    key = CFG.SECTION.MENU.Controller,
+    page = CFG.MOD,
+    l10n = CFG.MOD,
     name = 'ControllerSettingsName',
     description = 'ControllerSettingsDesc',
     order = 4,

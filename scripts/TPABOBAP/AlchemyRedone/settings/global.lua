@@ -1,11 +1,11 @@
 ---@omw-context global
 
 local I = require('openmw.interfaces')
+local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local H = require('scripts.TPABOBAP.UIToolkit.helpers')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
 
-local MODNAME = 'TPA_AlchemyRedone'
-local l10n = require('openmw.core').l10n(MODNAME)
+local l10n = require('openmw.core').l10n(CFG.MOD)
 
 local KnowledgeThreshold = {
     default = 5,
@@ -26,9 +26,9 @@ local IngredientMaxTaste = {
 }
 
 I.Settings.registerGroup {
-    key = MODNAME .. '/ReworkSettings',
-    page = MODNAME,
-    l10n = MODNAME,
+    key = CFG.SECTION.GLOBAL.Rework,
+    page = CFG.MOD,
+    l10n = CFG.MOD,
     name = 'ReworkSettingsName',
     description = l10n('ReworkSettingsDesc', C.TextColorParams),
     order = 2,

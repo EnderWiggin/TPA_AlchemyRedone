@@ -2,6 +2,7 @@
 
 local async = require('openmw.async')
 local storage = require('openmw.storage')
+local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 
 
 ---@class ConfigDataGlobal
@@ -27,7 +28,7 @@ local function subscribe(section, name)
 end
 
 
-local rework = storage.globalSection('TPA_AlchemyRedone/ReworkSettings')
+local rework = storage.globalSection(CFG.SECTION.GLOBAL.Rework)
 subscribe(rework, 'rework')
 
 return config

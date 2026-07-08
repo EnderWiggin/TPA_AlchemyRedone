@@ -3,6 +3,7 @@
 local async = require('openmw.async')
 local storage = require('openmw.storage')
 
+local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
 
 ---@class ConfigDataPlayer
@@ -54,14 +55,14 @@ local function subscribe(section, name)
     config[name] = section:asTable()
 end
 
-local main = storage.playerSection('TPA_AlchemyRedone/MainSettings')
+local main = storage.playerSection(CFG.SECTION.MENU.Main)
 subscribe(main, 'main')
 
-local ui = storage.playerSection('TPA_AlchemyRedone/InterfaceSettings')
+local ui = storage.playerSection(CFG.SECTION.MENU.Interface)
 subscribe(ui, 'ui')
 
 
-local controls = storage.playerSection('TPA_AlchemyRedone/ControllerSettings')
+local controls = storage.playerSection(CFG.SECTION.MENU.Controller)
 subscribe(controls, 'controls')
 
 return config

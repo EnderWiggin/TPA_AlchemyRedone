@@ -2,7 +2,6 @@
 local ui = require('openmw.ui')
 local auxUi = require('openmw_aux.ui')
 local util = require('openmw.util')
-local core = require('openmw.core')
 local I = require('openmw.interfaces')
 local async = require('openmw.async')
 local ambient = require('openmw.ambient')
@@ -12,6 +11,7 @@ local omwConstants = require('scripts.omw.mwui.constants')
 
 local helpers = require('scripts.TPABOBAP.UIToolkit.helpers')
 local constants = require('scripts.TPABOBAP.UIToolkit.constants')
+local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local storage = require('openmw.storage')
 
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
@@ -47,7 +47,7 @@ local function updateConfig()
     Templates.textEditLine.props.textSize = Templates.TEXT_SIZE
     ]]
 end
-storage.playerSection('TPA_AlchemyRedone/InterfaceSettings'):subscribe(async:callback(updateConfig))
+storage.playerSection(CFG.SECTION.MENU.Interface):subscribe(async:callback(updateConfig))
 
 --Templates.TEXT_SIZE = configPlayer.window.i_TextSizeOverride > 0 and configPlayer.window.i_TextSizeOverride or omwConstants.textNormalSize
 Templates.TEXT_SIZE = omwConstants.textNormalSize
