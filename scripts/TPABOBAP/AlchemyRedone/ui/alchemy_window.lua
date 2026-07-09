@@ -185,11 +185,14 @@ function AlchemyWindow:updateSize()
     content.props.size = inner
 
     local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel', 'right' })
-    right.props.size = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
+    local rsz = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
 
-    local tableSz = right.props.size - v2(35, 140)
+    local tableSz = rsz - v2(35, 140)
     self.itemTable.layout.userData.resize(tableSz)
     self.effectTable.layout.userData.resize(tableSz)
+
+    local topLine = H.findLayoutByPath(right, { 'top-lane' })
+    topLine.props.size = v2(tableSz.x + 10, T.Base.TEXT_SIZE)
 end
 
 function AlchemyWindow:getActiveTable()
@@ -566,14 +569,11 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel,
                                     props = {
                                         horizontal = false,
                                     },
-                                    external = {
-                                        grow = 1,
-                                    },
                                     content = ui.content {
                                         {
+                                            name = 'top-lane',
                                             type = ui.TYPE.Widget,
                                             props = {
-                                                relativeSize = v2(1, 0),
                                                 size = v2(0, T.Base.TEXT_SIZE),
                                             },
                                             content = ui.content {
@@ -1788,6 +1788,7 @@ parts.filterMatchingToggle = function(wnd)
         template = T.Base.textNormal,
         props = {
             text = l10n('Label_Matching'),
+            textAlignH = ui.ALIGNMENT.End,
         },
         userData = {
             colorable = true,
@@ -1803,7 +1804,7 @@ parts.filterMatchingToggle = function(wnd)
             relativePosition = v2(1, 1),
             align = ui.ALIGNMENT.End,
             arrange = ui.ALIGNMENT.Center,
-            position = v2(-25, 0)
+            position = v2(0, 0)
         },
         content = ui.content {
             toggle,
