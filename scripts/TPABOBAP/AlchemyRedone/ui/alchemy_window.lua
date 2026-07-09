@@ -812,6 +812,13 @@ parts.setInteractiveState = function(wdg, active, disabled)
     wdg:update()
 end
 
+local ICON_DEFAULTS = {
+    [C.Strings.MORTAR] = 'icons/TPABOBAP/AlchemyRedone/mortar.png',
+    [C.Strings.ALEMBIC] = 'icons/TPABOBAP/AlchemyRedone/alembic.png',
+    [C.Strings.CALCINATOR] = 'icons/TPABOBAP/AlchemyRedone/calcinator.png',
+    [C.Strings.RETORT] = 'icons/TPABOBAP/AlchemyRedone/retort.png',
+}
+
 ---@param getToolRecord fun(type:number):openmw.types.ApparatusRecord?
 parts.tools = function(getToolRecord)
     local element
@@ -829,7 +836,14 @@ parts.tools = function(getToolRecord)
                 layout.props.text = record and 'x' .. H.roundToPlaces(record.quality, 2) or ''
 
                 layout = H.findLayoutByPath(tools, { 'icon', name })
-                layout.props.resource = record and T.Base.createTexture(record.icon)
+                local tex = ICON_DEFAULTS[name]
+                local color = C.Colors.GRAY
+                if record and record.icon then
+                    tex = record.icon
+                    color = C.Colors.WHITE
+                end
+                layout.props.resource = T.Base.createTexture(tex)
+                layout.props.color = color
             end
 
             updateTool(C.Strings.MORTAR, ApparatusTypes.MortarPestle)
@@ -860,26 +874,6 @@ parts.tools = function(getToolRecord)
                         },
                         content = ui.content {
                             {
-                                name = 'title',
-                                type = ui.TYPE.Flex,
-                                props = {
-                                    horizontal = false,
-                                    arrange = ui.ALIGNMENT.End,
-                                },
-                                content = ui.content {
-                                    T.Base.intervalV(GAP_END),
-                                    parts.namedTitle(C.Strings.MORTAR),
-                                    T.Base.intervalV(GAP_MID),
-                                    parts.namedTitle(C.Strings.ALEMBIC),
-                                    T.Base.intervalV(GAP_MID),
-                                    parts.namedTitle(C.Strings.CALCINATOR),
-                                    T.Base.intervalV(GAP_MID),
-                                    parts.namedTitle(C.Strings.RETORT),
-                                    T.Base.intervalV(GAP_END),
-                                }
-                            },
-                            T.Base.intervalH(10),
-                            {
                                 name = 'icon',
                                 type = ui.TYPE.Flex,
                                 props = {
@@ -902,7 +896,7 @@ parts.tools = function(getToolRecord)
                                 type = ui.TYPE.Flex,
                                 props = {
                                     horizontal = false,
-                                    arrange = ui.ALIGNMENT.Center,
+                                    arrange = ui.ALIGNMENT.Start,
                                 },
                                 content = ui.content {
                                     T.Base.intervalV(GAP_END),
@@ -1125,6 +1119,17 @@ parts.selected = function(self, getId, onClick, tooltipFn)
     return element, wdg
 end
 
+
+parts.namedImg = function(name, path)
+    return {
+        name = name,
+        type = ui.TYPE.Image,
+        props = {
+            resource = T.Base.createTexture(path),
+            size = v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE),
+        },
+    }
+end
 parts.namedTitle = function(name)
     return {
         name = name,
