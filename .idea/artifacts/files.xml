@@ -14,6 +14,7 @@
             <element id="dir-copy" path="$PROJECT_DIR$/scripts" />
           </element>
           <element id="file-copy" path="$PROJECT_DIR$/TPA_Alchemy_Redone.omwscripts" />
+          <element id="file-copy" path="$PROJECT_DIR$/LICENSE" />
         </element>
       </element>
     </root>
