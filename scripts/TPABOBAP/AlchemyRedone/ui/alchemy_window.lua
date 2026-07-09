@@ -125,8 +125,7 @@ function AlchemyWindow:init(ctx)
     self.itemTable.layout.userData.setFilter('default', function(row) return self:filterIngredient(row) end)
     self.itemTable.layout.userData.setFilter('effect', function(row) return self:filterIngredientByEffects(row) end)
 
-    local filter
-    filter, self.filter = parts.filterInput(self)
+    self.filter = parts.filterInput(self)
 
     self.effectTable = T.Alchemy.makeEffectTable(self)
     self.effectTable.layout.userData.setFilter('matching', function(row) return self:filterEffectByPotionType(row) end)
@@ -137,7 +136,7 @@ function AlchemyWindow:init(ctx)
 
     self.potionTypeSelector = parts.typeSelector(self)
 
-    local content = self:makeContent(naming, tools, selected, counting, btnCancel, filter)
+    local content = self:makeContent(naming, tools, selected, counting, btnCancel)
 
     self.element = T.Base.window(core.getGMST('sSkillAlchemy'), content, self.ctx, {
         noResize = false,
@@ -193,6 +192,7 @@ function AlchemyWindow:updateSize()
 
     local topLine = H.findLayoutByPath(right, { 'top-lane' })
     topLine.props.size = v2(tableSz.x + 10, T.Base.TEXT_SIZE)
+    self.filter.setSize(tableSz.x)
 end
 
 function AlchemyWindow:getActiveTable()
@@ -522,9 +522,8 @@ end
 ---@param selected openmw.ui.Element|openmw.ui.Layout
 ---@param counting openmw.ui.Element|openmw.ui.Layout
 ---@param btnCancel openmw.ui.Element|openmw.ui.Layout
----@param filter openmw.ui.Element|openmw.ui.Layout
 ---@return openmw.ui.Content
-function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel, filter)
+function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
     return ui.content {
         {
             name = 'content',
@@ -598,7 +597,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel,
                                             }
                                         },
                                         T.Base.intervalV(5),
-                                        filter,
+                                        self.filter.element,
                                     },
                                 },
                             }
@@ -1504,6 +1503,11 @@ parts.filterInput = function(wnd)
             element:update()
         end,
         getText = function() return filterValue end,
+        setSize = function(width)
+            local txt = H.findLayoutByPath(element, path)
+            txt.props.size = v2(width - T.Base.TEXT_SIZE - 7, T.Base.TEXT_SIZE)
+            element:update()
+        end,
     }
 
     local btn = T.Base.imageButton(REVERT_PATH, v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE), function()
@@ -1550,8 +1554,9 @@ parts.filterInput = function(wnd)
             btn,
         },
     }
+    wdg.element = element
 
-    return element, wdg
+    return wdg
 end
 
 ---@param wnd AlchemyWindow
