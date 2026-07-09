@@ -41,7 +41,7 @@ Potion_Name_Prefix_Bad: Poison of
 
 # -------------- Settings --------------
 PageName: Alchemy Redone
-PageDesc: Version 1.0 RC4
+PageDesc: Version 1.0
 
 # -------------- Main Block --------------
 MainSettingsName: Main Settings
@@ -88,7 +88,7 @@ ReworkSettingsDesc: |-
   - Store-bought potions with positive effects will show all positive effects
   - Store-bough potions without positive effects will show all effects
   - Self-brewed potions will show effects that are known from at least 1 ingredient
-  - Every N successfully brewed potions with same ingredents will reveal next unknown effect
+  - Every N successfully brewed potions with same ingredients will reveal next unknown effect
   - Ingredients still reveal effects with Alchemy skill levels, but slower
   - Ingredients reveal next effect above skill limit when consumed
   - Ingredients also reveal all known effects from brewed potion
