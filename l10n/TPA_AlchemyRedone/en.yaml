@@ -96,7 +96,10 @@ ReworkSettingsDesc: |-
   Makes sense only if you have {color_header}Inventory Extender{color_normal} installed - otherwise tooltips will show effects in vanilla way.
 
 SettingReworkEnabled: Enable
-SettingSettingReworkEnabledDesc: Enables reworked effect discovery.
+SettingReworkEnabledDesc: Enables reworked effect discovery.
+
+SettingUseBaseAlchemyForKnowledge: Use Base Alchemy For Knowledge
+SettingUseBaseAlchemyForKnowledgeDesc: If enabled, then base level of alchemy (without bonuses and penalties) will be used for known effect count.
 
 SettingPotionKnowledgeThreshold: New effect discovery threshold
 SettingPotionKnowledgeThresholdDesc: |-

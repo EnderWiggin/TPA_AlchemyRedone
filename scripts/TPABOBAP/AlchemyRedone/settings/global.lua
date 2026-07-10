@@ -38,8 +38,15 @@ I.Settings.registerGroup {
             key = 'b_Enabled',
             renderer = 'checkbox',
             name = 'SettingReworkEnabled',
-            description = 'SettingSettingReworkEnabledDesc',
+            description = 'SettingReworkEnabledDesc',
             default = false,
+        },
+        {
+            key = 'b_UseBaseAlchemyForKnowledge',
+            renderer = 'checkbox',
+            name = 'SettingUseBaseAlchemyForKnowledge',
+            description = 'SettingUseBaseAlchemyForKnowledgeDesc',
+            default = true,
         },
         {
             key = 'n_PotionKnowledgeThreshold',

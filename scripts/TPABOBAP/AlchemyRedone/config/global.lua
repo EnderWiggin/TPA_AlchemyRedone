@@ -10,6 +10,7 @@ local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 
 ---@class ReworkSettings
 ---@field b_Enabled boolean?
+---@field b_UseBaseAlchemyForKnowledge boolean?
 ---@field n_PotionKnowledgeThreshold number?
 ---@field n_IngredientKnowledgeThreshold number?
 ---@field n_IngredientMaxTaste number?

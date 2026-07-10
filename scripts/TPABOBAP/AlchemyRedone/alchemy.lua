@@ -617,7 +617,7 @@ Alchemy.getKnownAlchemyEffectCount = function(actor, isPotion)
         return 99 --consider knowing all effects when there's no actor
     end
 
-    local alchemy = actor.type.stats.skills.alchemy(actor).base
+    local alchemy = actor.type.stats.skills.alchemy(actor).modified
     local threshold = core.getGMST('fWortChanceValue')
     local visibleEffectCount = math.floor(alchemy / threshold)
     if isPotion then
@@ -633,9 +633,10 @@ Alchemy.getReworkedKnownIngredientEffectCount = function(actor)
         return 99 --consider knowing all effects when there's no actor
     end
 
-    local alchemy = actor.type.stats.skills.alchemy(actor).base
+    local alchemy = actor.type.stats.skills.alchemy(actor)
+    local skill = cfgGlobal.rework.b_UseBaseAlchemyForKnowledge and alchemy.base or alchemy.modified
     local threshold = cfgGlobal.rework.n_IngredientKnowledgeThreshold or core.getGMST('fWortChanceValue')
-    local visibleEffectCount = math.floor(alchemy / threshold)
+    local visibleEffectCount = math.floor(skill / threshold)
     return visibleEffectCount
 end
 
