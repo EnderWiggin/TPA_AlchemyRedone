@@ -4,7 +4,9 @@ local core = require("openmw.core")
 local T = require("openmw.types")
 local I = require("openmw.interfaces")
 local H = require("scripts.TPABOBAP.UIToolkit.helpers")
+local C = require("scripts.TPABOBAP.UIToolkit.constants")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
+local l10n = core.l10n('TPA_AlchemyRedone')
 
 ---@alias AlchemyPermissionCfg {enabled: boolean?, allowCorpses: boolean?, allowOwned: boolean?}
 ---@alias AlchemyPermissionUpdateEvent {actor: openmw.Object, permissions: AlchemyPermissionCfg}
@@ -22,10 +24,15 @@ m.getConfig = function(actor)
 end
 
 ---@param actor openmw.GObject
-m.activateApparatus = function(_, actor)
+m.activateApparatus = function(object, actor)
     if actor.type == T.Player then
         if not m.getConfig(actor).enabled then return true end
-        actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(actor))
+        if m.isAllowedApparatus(object) then
+            actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(actor))
+        else
+            local type = H.getApparatusTypeLabel(object) or C.Strings.APPARATUS
+            actor:sendEvent('ShowMessage', { message = l10n('Cant_Use_Owned_Apparatus', { apparatus = type }) })
+        end
         return false
     end
     return true
