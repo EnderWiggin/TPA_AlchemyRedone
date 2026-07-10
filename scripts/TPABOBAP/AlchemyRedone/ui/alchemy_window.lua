@@ -49,15 +49,28 @@ end
 local parts = {}
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
-local MIN_SIZE = v2(800, 695) --TODO: update with font sizes?
+local MIN_SIZE = v2(800, 695)
+local isCompact = cfgPlayer.ui.b_CompactMode
 
-local BLOCK_WIDTH = 350
+local BLOCK_WIDTH = 300
 local ICON_SZ
 local GAP_END
 local GAP_MID
 local GAP_ICON
 local GAP_EFFECT
+local VERT_GAP
 local function updateSizes()
+    --TODO: update with font sizes?
+    if cfgPlayer.ui.b_CompactMode then
+        MIN_SIZE = v2(680, 550)
+        BLOCK_WIDTH = 310
+        VERT_GAP = 5
+    else
+        MIN_SIZE = v2(780, 695)
+        BLOCK_WIDTH = 310
+        VERT_GAP = 15
+    end
+
     ICON_SZ = util.round(T.Base.TEXT_SIZE * 1.5)
     GAP_ICON = 3
     GAP_END = util.round((ICON_SZ - T.Base.TEXT_SIZE) / 2)
@@ -69,6 +82,7 @@ updateSizes()
 
 ---@param ctx AlchemyContext
 function AlchemyWindow:init(ctx)
+    updateSizes()
     self:setContext(ctx)
     self.data = ctx.data
     --Show effects or ingredients?
@@ -152,6 +166,10 @@ function AlchemyWindow:loadState()
     self.element.layout.userData.minWidth = MIN_SIZE.x
     self.element.layout.userData.minHeight = MIN_SIZE.y
     local dims = settings:get('dimensions')
+    if isCompact ~= cfgPlayer.ui.b_CompactMode then
+        isCompact = cfgPlayer.ui.b_CompactMode
+        dims = nil
+    end
     if not dims then
         self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
         self:setSize(MIN_SIZE)
@@ -170,6 +188,7 @@ end
 
 function AlchemyWindow:updateSize()
     if not self.element or not self.element.layout then return end
+    local compact = cfgPlayer.ui.b_CompactMode
     local inner = self.element.layout.userData.getInnerSize()
     local c = self.element.layout.props.position
     local sz = self.element.layout.props.size
@@ -186,7 +205,7 @@ function AlchemyWindow:updateSize()
     local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel', 'right' })
     local rsz = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
 
-    local tableSz = rsz - v2(35, 140)
+    local tableSz = rsz - (compact and v2(20, 122) or v2(35, 140))
     self.itemTable.layout.userData.resize(tableSz)
     self.effectTable.layout.userData.resize(tableSz)
 
@@ -206,6 +225,8 @@ end
 function AlchemyWindow:update(deep)
     if not self.element then return end
     updateSizes()
+    self.element.layout.userData.minWidth = MIN_SIZE.x
+    self.element.layout.userData.minHeight = MIN_SIZE.y
     self:updateMatchingEffects()
 
     if deep then
@@ -553,15 +574,15 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
                                     },
                                     content = ui.content {
                                         naming,
-                                        T.Base.intervalV(15),
+                                        T.Base.intervalV(VERT_GAP),
                                         tools,
-                                        T.Base.intervalV(15),
+                                        T.Base.intervalV(VERT_GAP),
                                         selected,
-                                        T.Base.intervalV(15),
+                                        T.Base.intervalV(VERT_GAP),
                                         self.resultingEffects.element,
                                     },
                                 },
-                                T.Base.intervalH(15),
+                                T.Base.intervalH(VERT_GAP),
                                 {
                                     name = 'right',
                                     type = ui.TYPE.Flex,
@@ -776,7 +797,7 @@ parts.naming = function(defaultText)
                                         name = 'textEdit',
                                         template = T.Base.textEditLine,
                                         props = {
-                                            size = v2(330, T.Base.TEXT_SIZE),
+                                            size = v2(BLOCK_WIDTH - 20, T.Base.TEXT_SIZE),
                                             text = name,
                                             textColor = C.Colors.DEFAULT_LIGHT,
                                         },
@@ -1286,7 +1307,7 @@ parts.resultingEffects = function(self)
             for i = 1, #effects.content do
                 auxUi.deepDestroy(effects.content[i])
             end
-            local effectCount = 8 --min 4 for beauty
+            local effectCount = cfgPlayer.ui.b_CompactMode and 4 or 8
             effects.content = ui.content {}
 
             local matching = self.data.matching

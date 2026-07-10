@@ -127,6 +127,11 @@ InterfaceReimaginedMode_Auto: "Auto"
 InterfaceReimaginedMode_On: " On "
 InterfaceReimaginedMode_Off: "Off "
 
+SettingCompactMode: Compact Mode
+SettingCompactModeDesc: |-
+  Makes the window smaller.
+  Can be wonky if brewed potion has more than 4 effects, unless resized manually.
+
 # -------------- Controller Block --------------
 ControllerSettingsName: Controller Settings
 ControllerSettingsDesc: |-

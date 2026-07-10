@@ -24,6 +24,7 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 
 ---@class InterfaceSettings
 ---@field s_intReMode InterfaceReimaginedMode
+---@field b_CompactMode boolean?
 
 ---@class ControllerSettings
 ---@field n_Activate number?

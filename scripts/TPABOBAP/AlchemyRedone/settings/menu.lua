@@ -127,6 +127,13 @@ I.Settings.registerGroup {
                 },
             }
         },
+        {
+            key = 'b_CompactMode',
+            renderer = 'checkbox',
+            name = 'SettingCompactMode',
+            description = 'SettingCompactModeDesc',
+            default = false,
+        },
     },
 }
 
