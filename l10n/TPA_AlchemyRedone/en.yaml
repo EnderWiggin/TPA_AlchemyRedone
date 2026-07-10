@@ -33,6 +33,10 @@ AlchemyWindow_Toggle_Matching_Effect_Tooltip: |-
   If enabled then only positive effects are shown when brewing potion.
   And only harmful effects are shown when brewing poison.
 
+TipNameReset: Reset name to default
+TipFilterReset: Clear filter text
+FilterPlaceholder: Filter ingredients...
+
 All_Effects_Neutralized: All matching effects were neutralized by Alembic
 
 Potion_Name_Unknown: Unknown Effect

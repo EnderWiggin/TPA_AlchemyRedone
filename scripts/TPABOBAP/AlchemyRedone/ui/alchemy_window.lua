@@ -100,7 +100,7 @@ function AlchemyWindow:init(ctx)
     self.selectedEffects = {}
 
     local naming
-    naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end)
+    naming, self.naming = parts.naming(function() return self:getDefaultPotionName() end, self.ctx)
     self.lastDefaultPotionName = self:getDefaultPotionName()
 
     self.btnCreate = T.Special.button(C.Strings.CREATE, {
@@ -743,7 +743,7 @@ function AlchemyWindow:onControllerButtonRepeat(id)
 end
 
 ---@param defaultText fun():string
-parts.naming = function(defaultText)
+parts.naming = function(defaultText, ctx)
     local path = { 'naming', 'nameBar', 'padding', 'textEdit' }
     local name = defaultText()
     local element
@@ -757,9 +757,23 @@ parts.naming = function(defaultText)
         getText = function() return name end,
     }
 
-    local btn = T.Base.imageButton(REVERT_PATH, v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE), function()
-        wdg.setText(defaultText())
-    end, 'btn-revert')
+    local btn = T.Special.interactive({
+        name = 'btn-revert-name',
+        onClick = function() wdg.setText(defaultText()) end,
+        tooltipFn = function()
+            return T.Special.lineTooltip(l10n('TipNameReset'), 'btn-revert-name-tip')
+        end,
+    }, {
+        type = ui.TYPE.Image,
+        props = {
+            resource = T.Base.createTexture(REVERT_PATH),
+            size = v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE),
+            color = C.Colors.DEFAULT,
+        },
+        userData = {
+            colorable = true,
+        },
+    }, ctx)
 
     element = ui.create {
         name = 'naming-box',
@@ -780,7 +794,6 @@ parts.naming = function(defaultText)
                 type = ui.TYPE.Flex,
                 props = {
                     horizontal = true,
-                    --gap = 10, --TODO: this is not in 0.51, hope for 0.52
                     arrange = ui.ALIGNMENT.Center,
                 },
                 content = ui.content {
@@ -1516,11 +1529,14 @@ parts.filterInput = function(wnd)
     local path = { 'filterBar', 'padding', 'textEdit' }
     local filterValue = ''
     local element
+    local placeholder = l10n('FilterPlaceholder')
+    local function isEmpty() return filterValue == '' end
+
     local wdg = {
         setText = function(text)
             local txt = H.findLayoutByPath(element, path)
-            txt.props.text = text
             filterValue = text
+            txt.props.text = isEmpty() and placeholder or filterValue
             element:update()
         end,
         getText = function() return filterValue end,
@@ -1531,9 +1547,24 @@ parts.filterInput = function(wnd)
         end,
     }
 
-    local btn = T.Base.imageButton(REVERT_PATH, v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE), function()
-        wnd:clearFilter()
-    end, 'btn-revert')
+
+    local btn = T.Special.interactive({
+        name = 'btn-revert-filter',
+        onClick = function() wnd:clearFilter() end,
+        tooltipFn = function()
+            return T.Special.lineTooltip(l10n('TipFilterReset'), 'btn-revert-filter-tip')
+        end,
+    }, {
+        type = ui.TYPE.Image,
+        props = {
+            resource = T.Base.createTexture(REVERT_PATH),
+            size = v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE),
+            color = C.Colors.DEFAULT,
+        },
+        userData = {
+            colorable = true,
+        },
+    }, wnd.ctx)
 
     element = ui.create {
         name = 'filter',
@@ -1556,14 +1587,26 @@ parts.filterInput = function(wnd)
                                 template = T.Base.textEditLine,
                                 props = {
                                     size = v2(BLOCK_WIDTH - 2, T.Base.TEXT_SIZE),
-                                    text = filterValue,
-                                    textColor = C.Colors.DEFAULT_LIGHT,
+                                    text = isEmpty() and placeholder or filterValue,
+                                    textColor = isEmpty() and C.Colors.DISABLED or C.Colors.DEFAULT_LIGHT,
                                 },
                                 events = {
                                     textChanged = async:callback(function(text, layout)
                                         filterValue = text
-                                        layout.props.text = text
+                                        layout.props.text = isEmpty() and placeholder or text
                                         wnd:onFilterChanged(text)
+                                    end),
+                                    focusGain = async:callback(function(_, layout)
+                                        if isEmpty() then
+                                            layout.props.text = ''
+                                            element:update()
+                                        end
+                                    end),
+                                    focusLoss = async:callback(function(_, layout)
+                                        if isEmpty() then
+                                            layout.props.text = placeholder
+                                            element:update()
+                                        end
                                     end),
                                 }
                             }
