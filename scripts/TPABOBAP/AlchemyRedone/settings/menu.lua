@@ -87,18 +87,48 @@ I.Settings.registerGroup {
             description = 'SettingIngredientEffectMatchingAllDesc',
             default = false,
         },
+    },
+}
+
+I.Settings.registerGroup {
+    key = CFG.SECTION.MENU.Nearby,
+    page = CFG.MOD,
+    l10n = CFG.MOD,
+    name = 'NearbyGroupTitle',
+    order = 2,
+    permanentStorage = true,
+    settings = {
         {
-            key = 'b_AllowOwnedContainerIngredients',
+            key = 'b_AllowNearbySources',
             renderer = 'checkbox',
-            name = 'SettingAllowOwnedContainerIngredients',
-            description = 'SettingAllowOwnedContainerIngredientsDesc',
-            default = false,
+            name = 'NearbySettingsName',
+            description = 'NearbySettingsDesc',
+            default = true,
+            argument = {
+                l10n = CFG.MOD,
+                trueLabel = 'NearbySettingsEnabled',
+                falseLabel = 'NearbySettingsDisabled',
+            },
         },
         {
             key = 'b_AllowCorpseIngredients',
             renderer = 'checkbox',
             name = 'SettingAllowCorpseIngredients',
             description = 'SettingAllowCorpseIngredientsDesc',
+            default = false,
+        },
+        {
+            key = 'b_AllowFactionOwned',
+            renderer = 'checkbox',
+            name = 'SettingAllowFactionOwned',
+            description = 'SettingAllowFactionOwnedDesc',
+            default = true,
+        },
+        {
+            key = 'b_AllowOwnedContainerIngredients',
+            renderer = 'checkbox',
+            name = l10n('SettingAllowOwnedContainerIngredients', C.TextColorParams),
+            description = 'SettingAllowOwnedContainerIngredientsDesc',
             default = false,
         },
     },

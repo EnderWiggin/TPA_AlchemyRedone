@@ -78,11 +78,23 @@ SettingIngredientEffectMatchingAllDesc: |-
   If enabled, then when ingredient list is filtered by Matching effects, all matching effects will be considered, even ones not learned yet.
   Removes some tedium, since you already can test any 2 ingredients if they have matching effects by adding them to potion.
 
-SettingAllowOwnedContainerIngredients: Allow ingredients from owned containers
-SettingAllowOwnedContainerIngredientsDesc: If set to true, you will be able to use ingredients from containers that are owned by others.
+NearbyGroupTitle: External Inventory Search & Use
+NearbySettingsName: "Allow Nearby Ingredients & Apparatus:"
+NearbySettingsDesc: Enables or disables all features below.
+NearbySettingsEnabled: Enabled
+NearbySettingsDisabled: Disabled
 
-SettingAllowCorpseIngredients: Allow ingredients from dead bodies
+SettingAllowCorpseIngredients: "Dead Bodies:"
 SettingAllowCorpseIngredientsDesc: If set to true, you will be able to use ingredients from dead bodies.
+
+SettingAllowFactionOwned: "Owned - Faction Member, Not Theft:"
+SettingAllowFactionOwnedDesc: If set to true, containers and apparatus owned by a faction you belong to count as yours when your rank permits. Using them is not theft.
+
+SettingAllowOwnedContainerIngredients: "Owned - Everything, {color_negative}Theft, Stealing:{color_normal}"
+SettingAllowOwnedContainerIngredientsDesc: If set to true, everything owned by others becomes available, including containers where taking would be stealing. No crime is recorded.
+
+Apparatus_Hint_Use: Activate to Use
+Apparatus_Hint_Take: Sneak to Take
 
 # -------------- Rework Block --------------
 ReworkSettingsName: Reworked Effect Discovery

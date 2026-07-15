@@ -9,6 +9,8 @@ local input = require('openmw.input')
 local ui = require('openmw.ui')
 local util = require('openmw.util')
 local player = require('openmw.self')
+local camera = require('openmw.camera')
+local nearby = require('openmw.nearby')
 local auxUi = require('openmw_aux.ui')
 
 local I = require('openmw.interfaces')
@@ -22,7 +24,10 @@ local T = {
 }
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
+local l10n = core.l10n('TPA_AlchemyRedone')
 
+
+local sneaking = false
 
 local function updatePermissions()
     ---@type AlchemyPermissionUpdateEvent
@@ -30,14 +35,29 @@ local function updatePermissions()
         actor = player,
         permissions = {
             enabled = cfgPlayer.main.b_Enabled,
-            allowCorpses = cfgPlayer.main.b_AllowCorpseIngredients,
-            allowOwned = cfgPlayer.main.b_AllowOwnedContainerIngredients,
+            allowNearby = cfgPlayer.nearby.b_AllowNearbySources,
+            allowCorpses = cfgPlayer.nearby.b_AllowCorpseIngredients,
+            allowOwned = cfgPlayer.nearby.b_AllowOwnedContainerIngredients,
+            allowFaction = cfgPlayer.nearby.b_AllowFactionOwned,
+            sneaking = sneaking,
         }
     }
     core.sendGlobalEvent('TPA_AlchemyRedone_UpdatePermissions', data)
 end
 
+-- carry saved values over from the old Main-section keys
+do
+    local oldMain = storage.playerSection(CFG.SECTION.MENU.Main)
+    local nearby = storage.playerSection(CFG.SECTION.MENU.Nearby)
+    for _, key in ipairs({ 'b_AllowOwnedContainerIngredients', 'b_AllowCorpseIngredients' }) do
+        if nearby:get(key) == nil and oldMain:get(key) ~= nil then
+            nearby:set(key, oldMain:get(key))
+        end
+    end
+end
+
 storage.playerSection(CFG.SECTION.MENU.Main):subscribe(async:callback(updatePermissions))
+storage.playerSection(CFG.SECTION.MENU.Nearby):subscribe(async:callback(updatePermissions))
 
 local needsInitialization = true
 
@@ -596,9 +616,87 @@ local function onMouseWheel(v)
     end
 end
 
+-- crosshair hint over world apparatus (activate = brew, sneak = take)
+local hint = { widget = nil }
+
+local function hideApparatusHint()
+    if hint.widget then
+        hint.widget:destroy()
+        hint.widget = nil
+    end
+end
+
+local function hintLine(text)
+    return {
+        type = ui.TYPE.Text,
+        props = {
+            text = text,
+            textSize = 15,
+            textColor = C.Colors.DEFAULT,
+            font = 'DefaultBold',
+        },
+    }
+end
+
+local function showApparatusHint()
+    if hint.widget then return end
+    hint.widget = ui.create({
+        layer = 'HUD',
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = false,
+            arrange = ui.ALIGNMENT.Center,
+            relativePosition = util.vector2(0.5, 0.55),
+            anchor = util.vector2(0.5, 0.5),
+        },
+        content = ui.content({
+            hintLine(l10n('Apparatus_Hint_Use')),
+            hintLine(l10n('Apparatus_Hint_Take')),
+        }),
+    })
+end
+
+local hintScan = { last = 0, busy = false }
+local function updateApparatusHint()
+    if I.UI.getMode() ~= nil
+        or camera.getMode() == camera.MODE.Vanity
+        or camera.getMode() == camera.MODE.Static then
+        hideApparatusHint()
+        return
+    end
+    if hintScan.busy then return end
+    local now = core.getRealTime()
+    if now - hintScan.last < 0.25 then return end
+    hintScan.last = now
+    hintScan.busy = true
+    local reach = (core.getGMST('iMaxActivateDist') or 192)
+        + camera.getThirdPersonDistance()
+    local camPos = camera.getPosition()
+    local rayEnd = camPos
+        + camera.viewportToWorldVector(util.vector2(0.5, 0.5)) * reach
+    nearby.asyncCastRenderingRay(
+        async:callback(function(result)
+            hintScan.busy = false
+            if result.hit and result.hitObject
+                and result.hitObject.type == types.Apparatus then
+                showApparatusHint()
+            else
+                hideApparatusHint()
+            end
+        end),
+        camPos, rayEnd, { ignore = player }
+    )
+end
+
 local wasLT = false
 local function onFrame()
     if not cfgPlayer.main.b_Enabled then return end
+    -- global scripts cannot read input; relay sneak via permissions
+    if player.controls.sneak ~= sneaking then
+        sneaking = player.controls.sneak
+        updatePermissions()
+    end
+    updateApparatusHint()
     if I.UI.getMode() ~= I.UI.MODE.Alchemy then return end
 
     if ctx.focusedInteractiveDelayed ~= nil then
