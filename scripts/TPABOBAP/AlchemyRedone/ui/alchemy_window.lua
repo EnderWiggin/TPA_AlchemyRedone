@@ -66,7 +66,7 @@ local function updateSizes()
         BLOCK_WIDTH = 310
         VERT_GAP = 5
     else
-        MIN_SIZE = v2(780, 695)
+        MIN_SIZE = v2(780, 741)
         BLOCK_WIDTH = 310
         VERT_GAP = 15
     end
@@ -93,7 +93,7 @@ function AlchemyWindow:init(ctx)
     --Show only ingredients that have effects present in selected ingredients but not matched yet, default: false
     self.filterMatchingIngredients = settings:get('filterMatchingIngredients') == true
     --Show only effects that match potion type (harmful/positive), default: true
-    self.filterMatchingEffects = settings:get('filterToShowMatchingEffects') ~= false
+    self.filterMatchingEffects = settings:get('filterMatchingEffects') ~= false
 
     self.showFullEffects = cfgPlayer.main.b_ShowFullEffectInfo
     ---@type {id:string, text: string}[]
@@ -171,7 +171,10 @@ function AlchemyWindow:loadState()
         dims = nil
     end
     if not dims then
-        self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
+        local lsz = ui.layers[ui.layers.indexOf('Windows')].size
+        self.element.layout.props.position = v2(
+            math.max(0, (lsz.x - MIN_SIZE.x) / 2),
+            math.max(0, (lsz.y - MIN_SIZE.y) / 2))
         self:setSize(MIN_SIZE)
     else
         self:setDimensions(dims)
@@ -1829,7 +1832,7 @@ parts.filterMatchingToggle = function(wnd)
         end
         H.setInteractiveColor(toggle)
         toggle:update()
-        wnd:onFilterChanged()
+        wnd:getActiveTable().layout.userData.refresh()
     end
 
     local wdg = {
@@ -1851,11 +1854,11 @@ parts.filterMatchingToggle = function(wnd)
             if wnd.showEffects then
                 return T.Special.paragraphTooltip(
                     l10n('AlchemyWindow_Toggle_Matching_Effect_Tooltip', C.TextColorParams),
-                    'toggle-filter-types-matching-toggle', { size = v2(200, 0) })
+                    'toggle-filter-types-matching-toggle-effects', { size = v2(200, 0) })
             else
                 return T.Special.paragraphTooltip(
                     l10n('AlchemyWindow_Toggle_Matching_Ingredient_Tooltip', C.TextColorParams),
-                    'toggle-filter-types-matching-toggle', { size = v2(200, 0) })
+                    'toggle-filter-types-matching-toggle-ingredients', { size = v2(200, 0) })
             end
         end,
     }, {
