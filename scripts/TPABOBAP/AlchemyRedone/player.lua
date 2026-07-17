@@ -23,6 +23,9 @@ local T = {
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 
+local function handleModError(...)
+    core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { ... })
+end
 
 local function updatePermissions()
     ---@type AlchemyPermissionUpdateEvent
@@ -316,15 +319,17 @@ m.getAllEffects = function()
         if record then
             for i = 1, #record.effects do
                 local effect = record.effects[i]
-                local key = A.effectKey(effect)
-                if not effects[key] and known[i] then
-                    effects[key] = {
-                        id = key,
-                        effectId = effect.id,
-                        affectedAttribute = effect.affectedAttribute,
-                        affectedSkill = effect.affectedSkill,
-                        isFavorite = function() return ctx.data.favoriteEffects[key] == true end,
-                    }
+                if effect then
+                    local key = A.effectKey(effect)
+                    if not effects[key] and known[i] then
+                        effects[key] = {
+                            id = key,
+                            effectId = effect.id,
+                            affectedAttribute = effect.affectedAttribute,
+                            affectedSkill = effect.affectedSkill,
+                            isFavorite = function() return ctx.data.favoriteEffects[key] == true end,
+                        }
+                    end
                 end
             end
         end
@@ -350,10 +355,6 @@ m.getAllEffects = function()
         })
     end
     return result
-end
-
-local function handleModError(...)
-    core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { ... })
 end
 
 ---@param draft openmw.types.PotionRecord

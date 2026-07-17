@@ -122,7 +122,7 @@ m.makeIngredientTable = function(wnd)
         local knownKey = {}
 
         for i = 1, 4 do
-            if #effects >= i then
+            if #effects >= i and effects[i] then
                 local effect = effects[i]
                 local bright = known[i]
                 if bright and nonMatching and #nonMatching > 0 then
