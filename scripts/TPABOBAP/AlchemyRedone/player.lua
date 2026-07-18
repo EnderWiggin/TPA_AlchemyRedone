@@ -632,10 +632,9 @@ end
 local hint = { widget = nil, text = nil }
 
 local function hideApparatusHint()
-    if hint.widget then
-        hint.widget:destroy()
-        hint.widget = nil
-    end
+    if not hint.widget then return end
+    hint.widget:destroy()
+    hint.widget = nil
 end
 
 local function showApparatusHint(text)
@@ -652,7 +651,8 @@ end
 
 local hintScan = { last = 0, busy = false }
 local function updateApparatusHint()
-    if I.UI.getMode() ~= nil
+    if not cfgPlayer.ui.b_ShowUseHint
+        or I.UI.getMode() ~= nil
         or camera.getMode() == camera.MODE.Vanity
         or camera.getMode() == camera.MODE.Static then
         hideApparatusHint()

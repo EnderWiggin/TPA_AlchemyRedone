@@ -161,6 +161,9 @@ SettingTextSizeDesc: |-
   Override text size. Set to {color_header}0{color_normal} to use default size.
   Range is [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}], default is {color_header}{default}{color_normal}.
 
+SettingShowUseHint: Show Usage Hint
+SettingShowUseHintDesc: If enabled, will show tooltip with info about how to use or pickup apparatus when you look at it.
+
 # -------------- Controller Block --------------
 ControllerSettingsName: Controller Settings
 ControllerSettingsDesc: |-

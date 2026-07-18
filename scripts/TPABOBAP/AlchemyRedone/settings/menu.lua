@@ -187,6 +187,13 @@ I.Settings.registerGroup {
                 items = { C.SEPARATOR_OPTS.None, C.SEPARATOR_OPTS.Space, C.SEPARATOR_OPTS.Comma },
             }
         },
+        {
+            key = 'b_ShowUseHint',
+            renderer = 'checkbox',
+            name = 'SettingShowUseHint',
+            description = 'SettingShowUseHintDesc',
+            default = true,
+        },
     },
 }
 
