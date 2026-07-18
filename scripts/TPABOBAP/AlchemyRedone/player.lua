@@ -20,6 +20,8 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
 local T = {
+    Base = require("scripts.TPABOBAP.UIToolkit.templates.base"),
+    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
     Alchemy = require("scripts.TPABOBAP.AlchemyRedone.ui.alchemy")
 }
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
@@ -637,32 +639,31 @@ end
 
 local function hintLine(text)
     return {
-        type = ui.TYPE.Text,
+        template = T.Base.textNormal,
         props = {
             text = text,
-            textSize = 15,
-            textColor = C.Colors.DEFAULT,
-            font = 'DefaultBold',
         },
     }
 end
 
 local function showApparatusHint()
     if hint.widget then return end
-    hint.widget = ui.create({
-        layer = 'HUD',
-        type = ui.TYPE.Flex,
-        props = {
-            horizontal = false,
-            arrange = ui.ALIGNMENT.Center,
-            relativePosition = util.vector2(0.5, 0.55),
-            anchor = util.vector2(0.5, 0.5),
-        },
-        content = ui.content({
-            hintLine(l10n('Apparatus_Hint_Use')),
-            hintLine(l10n('Apparatus_Hint_Take')),
-        }),
-    })
+    local layout = T.Special.tooltip(4, ui.content {
+        {
+            type = ui.TYPE.Flex,
+            props = {
+                arrange = ui.ALIGNMENT.Center,
+            },
+            content = ui.content {
+                hintLine(l10n('Apparatus_Hint_Use')),
+                hintLine(l10n('Apparatus_Hint_Take')),
+            },
+        }
+    }, 'alchemy-usage-hint')
+    layout.layer = 'HUD'
+    layout.props.relativePosition = util.vector2(0.5, 0.55)
+    layout.props.anchor = util.vector2(0.5, 0.5)
+    hint.widget = ui.create(layout)
 end
 
 local hintScan = { last = 0, busy = false }
