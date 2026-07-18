@@ -177,6 +177,16 @@ I.Settings.registerGroup {
                 max = FontSize.max,
             }
         },
+        {
+            key = 's_NumberSeparators',
+            renderer = 'select',
+            name = 'SettingNumberSeparators',
+            default = C.SEPARATOR_OPTS.Space,
+            argument = {
+                l10n = CFG.MOD,
+                items = { C.SEPARATOR_OPTS.None, C.SEPARATOR_OPTS.Space, C.SEPARATOR_OPTS.Comma },
+            }
+        },
     },
 }
 

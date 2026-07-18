@@ -12,10 +12,11 @@ local _, ui = pcall(require, 'openmw.ui')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
 local l10n = core.l10n('UIToolkit')
 
---TODO: add options for these flags
-local b_SoulGemValueRebalance = true
-local SeparatorsMode = C.SEPARATOR_OPTS.Comma
---- END FLAGS
+local cfgPlayer
+if isPlayer then
+    cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
+end
+
 
 local Helpers = {}
 
@@ -273,7 +274,7 @@ Helpers.getCountString = function(count)
 end
 
 Helpers.addSeparators = function(number)
-    local mode = SeparatorsMode
+    local mode = cfgPlayer and cfgPlayer.ui.s_NumberSeparators or C.SEPARATOR_OPTS.None
     local separator
 
     if mode == C.SEPARATOR_OPTS.Comma then
@@ -671,48 +672,6 @@ Helpers.getItemName = function(item)
         end
     end
     return baseName
-end
-
-Helpers.getItemValue = function(item)
-    if Helpers.isGold(item) then
-        return 1
-    end
-
-    if item.type.record(item).isKey then
-        return 0
-    end
-
-    local soul = item.type.itemData(item).soul
-    local baseValue = item.type.record(item).value
-    if not soul then return baseValue end
-
-    ---@type openmw.types.CreatureRecord
-    local soulRecord = types.Creature.records[soul]
-    local soulValue = soulRecord and soulRecord.soulValue or 0
-    if b_SoulGemValueRebalance then
-        soulValue = 0.0001 * (soulValue ^ 3) + 2 * soulValue
-
-        if item.recordId:lower() == 'misc_soulgem_azura' then
-            return baseValue + math.modf(soulValue)
-        else
-            return math.modf(soulValue)
-        end
-    else
-        return baseValue * soulValue
-    end
-end
-
-Helpers.isSoulGem = function(item)
-    return types.Miscellaneous.objectIsInstance(item) and item.recordId:lower():find('^misc_soulgem')
-end
-
-Helpers.getSoulGemCapacity = function(item)
-    if not Helpers.isSoulGem(item) then
-        return nil
-    end
-
-    local record = item.type.record(item)
-    return record.value * core.getGMST('fSoulGemMult')
 end
 
 Helpers.getWeaponRangeInFeet = function(item)

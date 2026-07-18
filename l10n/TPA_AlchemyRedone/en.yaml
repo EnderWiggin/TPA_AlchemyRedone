@@ -147,6 +147,11 @@ SettingCompactModeDesc: |-
   Makes the window smaller.
   Can be wonky if brewed potion has more than 4 effects, unless resized manually.
 
+SettingNumberSeparators: Show thousand separators
+ConfigNumberSeparators_None: None
+ConfigNumberSeparators_Comma: Comma
+ConfigNumberSeparators_Space: Space
+
 SettingTextSize: Text Size
 SettingTextSizeDesc: |-
   Override text size. Set to {color_header}0{color_normal} to use default size.
