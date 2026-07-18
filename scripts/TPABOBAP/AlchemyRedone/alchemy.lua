@@ -170,9 +170,10 @@ end
 ---@param effect openmw.core.MagicEffectWithParams
 ---@return integer? index where effect is in the list, or nil
 Alchemy.containsEffect = function(list, effect)
-    if not list then return nil end
+    if not list or not effect then return nil end
     for i = 1, #list do
-        if Alchemy.sameEffect(list[i], effect) then return i end
+        local tmp = list[i]
+        if tmp and Alchemy.sameEffect(tmp, effect) then return i end
     end
     return nil
 end
@@ -301,18 +302,20 @@ Alchemy.getNonMatchingEffects = function(recordsOrIds, actor)
         if ingredient then
             for k = 1, #ingredient.effects do
                 local effect = ingredient.effects[k]
-                local key = Alchemy.effectKey(effect)
-                if all[key] then
-                    local pos = Alchemy.containsEffect(effects, effect)
-                    if pos then
-                        table.remove(effects, pos)
-                        table.remove(knowledge, pos)
+                if effect then
+                    local key = Alchemy.effectKey(effect)
+                    if all[key] then
+                        local pos = Alchemy.containsEffect(effects, effect)
+                        if pos then
+                            table.remove(effects, pos)
+                            table.remove(knowledge, pos)
+                        end
+                    else
+                        table.insert(effects, effect)
+                        table.insert(knowledge, known[k] == true)
                     end
-                else
-                    table.insert(effects, effect)
-                    table.insert(knowledge, known[k] == true)
+                    all[key] = true
                 end
-                all[key] = true
             end
         end
     end

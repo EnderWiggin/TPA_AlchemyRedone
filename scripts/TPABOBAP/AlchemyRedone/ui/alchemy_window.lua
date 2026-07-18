@@ -1025,7 +1025,7 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                     local known = A.getKnownEffectFlagsForIngredient(record, player)
                     for i = 1, 4 do
                         icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
-                        if #effects >= i then
+                        if #effects >= i and effects[i] then
                             local effect = effects[i]
                             if known[i] then
                                 icon.props.resource = T.Base.effectIconTexture(effect.id)
