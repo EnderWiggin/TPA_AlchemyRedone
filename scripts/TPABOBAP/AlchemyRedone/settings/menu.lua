@@ -110,11 +110,6 @@ I.Settings.registerGroup {
             name = 'NearbySettingsName',
             description = 'NearbySettingsDesc',
             default = true,
-            argument = {
-                l10n = CFG.MOD,
-                trueLabel = 'NearbySettingsEnabled',
-                falseLabel = 'NearbySettingsDisabled',
-            },
         },
         {
             key = 'b_AllowCorpseIngredients',
