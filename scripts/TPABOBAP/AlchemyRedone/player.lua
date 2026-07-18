@@ -337,18 +337,24 @@ m.getAllEffects = function()
         local record = types.Ingredient.record(id)
         local known = A.getKnownEffectFlagsForIngredient(record, player)
         if record then
+            local added = {}
             for i = 1, #record.effects do
                 local effect = record.effects[i]
-                if effect then
+                if effect and known[i] then
                     local key = A.effectKey(effect)
-                    if not effects[key] and known[i] then
+                    if not effects[key] then
+                        added[key] = true
                         effects[key] = {
                             id = key,
                             effectId = effect.id,
                             affectedAttribute = effect.affectedAttribute,
                             affectedSkill = effect.affectedSkill,
                             isFavorite = function() return ctx.data.favoriteEffects[key] == true end,
+                            count = 1,
                         }
+                    elseif not added[key] then
+                        added[key] = true
+                        effects[key].count = effects[key].count + 1
                     end
                 end
             end
@@ -363,6 +369,8 @@ m.getAllEffects = function()
             affectedSkill = data.affectedSkill,
             affectedAttribute = data.affectedAttribute,
             name = name,
+            displayName = name .. ' (' .. H.addSeparators(data.count) .. ')',
+            count = data.count,
             searchText = '"' .. name .. '"',
             activeFn = function()
                 if not m.wndAlchemy then return false end

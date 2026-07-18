@@ -24,6 +24,7 @@ local Table = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
 ---@field affectedAttribute string?
 ---@field affectedSkill string?
 ---@field isFavorite fun():boolean
+---@field count integer
 
 local m = {}
 
@@ -210,7 +211,7 @@ m.makeEffectTable = function(wnd)
     return Table.create(ctx, {
         columns = {
             { id = 'icon',       width = rowHeight + 5, renderer = renderEffectIcon },
-            { id = 'name', },
+            { id = 'displayName', },
             { id = 'isFavorite', width = rowHeight,     renderer = renderFavoriteEffect },
         },
         data = ctx.getAllEffects(),
