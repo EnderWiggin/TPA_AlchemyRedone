@@ -14,6 +14,7 @@ return {
         },
         MENU = {
             Main = section('Main'),
+            Nearby = section('Nearby'),
             Interface = section('Interface'),
             Controller = section('Controller'),
         },

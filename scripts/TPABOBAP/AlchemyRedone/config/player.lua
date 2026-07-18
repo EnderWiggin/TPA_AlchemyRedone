@@ -8,6 +8,7 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 
 ---@class ConfigDataPlayer
 ---@field main MainSettings
+---@field nearby NearbySettings
 ---@field ui InterfaceSettings
 ---@field controls ControllerSettings
 
@@ -19,8 +20,12 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 ---@field s_PotionNamePrefixGood string?
 ---@field s_PotionNamePrefixBad string?
 ---@field b_IngredientEffectMatchingAll boolean?
----@field b_AllowOwnedContainerIngredients boolean?
+
+---@class NearbySettings
+---@field b_AllowNearbySources boolean?
 ---@field b_AllowCorpseIngredients boolean?
+---@field b_AllowFactionOwned boolean?
+---@field b_AllowOwnedContainerIngredients boolean?
 
 ---@class InterfaceSettings
 ---@field s_intReMode InterfaceReimaginedMode
@@ -44,6 +49,7 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 ---@type ConfigDataPlayer
 local config = {
     main = {},
+    nearby = {},
     ui = {
         s_intReMode = C.InterfaceReimaginedMode.Auto,
     },
@@ -58,6 +64,9 @@ end
 
 local main = storage.playerSection(CFG.SECTION.MENU.Main)
 subscribe(main, 'main')
+
+local nearby = storage.playerSection(CFG.SECTION.MENU.Nearby)
+subscribe(nearby, 'nearby')
 
 local ui = storage.playerSection(CFG.SECTION.MENU.Interface)
 subscribe(ui, 'ui')

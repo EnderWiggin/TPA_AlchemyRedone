@@ -8,7 +8,7 @@ local C = require("scripts.TPABOBAP.UIToolkit.constants")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local l10n = core.l10n('TPA_AlchemyRedone')
 
----@alias AlchemyPermissionCfg {enabled: boolean?, allowCorpses: boolean?, allowOwned: boolean?}
+---@alias AlchemyPermissionCfg {enabled: boolean?, allowNearby: boolean?, allowCorpses: boolean?, allowOwned: boolean?, allowFaction: boolean?, sneaking: boolean?}
 ---@alias AlchemyPermissionUpdateEvent {actor: openmw.Object, permissions: AlchemyPermissionCfg}
 
 ---@type table<string, AlchemyPermissionCfg>
@@ -26,8 +26,11 @@ end
 ---@param actor openmw.GObject
 m.activateApparatus = function(object, actor)
     if actor.type == T.Player then
-        if not m.getConfig(actor).enabled then return true end
-        if m.isAllowedApparatus(object) then
+        local cfg = m.getConfig(actor)
+        if not cfg.enabled then return true end
+        -- sneak-activate = engine default: pick the apparatus up
+        if cfg.sneaking then return true end
+        if m.isAllowedApparatus(object, actor, cfg) then
             actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(actor))
         else
             local type = H.getApparatusTypeLabel(object) or C.Strings.APPARATUS
@@ -40,9 +43,11 @@ end
 
 ---@alias LocalApparatusIds {Mortar: string?, Alembic: string?, Calcinator: string?, Retort: string?}
 
+---@param actor openmw.GObject
+---@param cfg AlchemyPermissionCfg
 ---@param ... ObjectList
 ---@return LocalApparatusIds
-m.collectApparatus = function(...)
+m.collectApparatus = function(actor, cfg, ...)
     local lists = { ... }
     ---@type LocalApparatusIds
     local result = {}
@@ -59,7 +64,7 @@ m.collectApparatus = function(...)
             local apparatus = objectList[i]
             local recordId = apparatus.recordId
             local record = T.Apparatus.record(recordId)
-            if record and m.isAllowedApparatus(apparatus) then
+            if record and m.isAllowedApparatus(apparatus, actor, cfg) then
                 local quality = record.quality
                 local type = record.type
                 if (type == T.Apparatus.TYPE.Alembic and quality > qAlembic) then
@@ -115,14 +120,14 @@ end
 ---@param actor openmw.GObject
 m.collectAlchemyInfo = function(actor)
     --TODO: search for apparatus in containers too? need to check container ownership in that case
+    local cfg = m.getConfig(actor)
     local inventory = T.Player.inventory(actor)
-    local apparatus = m.collectApparatus(
+    local apparatus = m.collectApparatus(actor, cfg,
         actor.cell:getAll(T.Apparatus),
         inventory:getAll(T.Apparatus)
     )
-    local cfg = m.getConfig(actor)
     local sources = m.filterContainers(actor.cell:getAll(T.Container), function(container)
-        return m.isAllowedIngredientContainer(container, cfg.allowOwned)
+        return m.isAllowedIngredientContainer(container, cfg, actor)
     end)
 
     if cfg.allowCorpses then
@@ -255,10 +260,31 @@ m.isOwned = function(object)
     return object.owner ~= nil and (object.owner.recordId ~= nil or object.owner.factionId ~= nil)
 end
 
+---Returns whether object is unowned or faction owned with sufficient rank
+---@param object openmw.GObject
+---@param actor openmw.GObject
+---@return boolean
+m.isFreeToUse = function(object, actor)
+    if not m.isOwned(object) then return true end
+    local owner = object.owner
+    if owner.recordId ~= nil then return false end
+    if owner.factionId == nil then return false end
+    local ok, rank = pcall(function()
+        return T.NPC.getFactionRank(actor, owner.factionId)
+    end)
+    if not ok or not rank or rank <= 0 then return false end
+    -- getFactionRank is 1-based, owner.factionRank is 0-based
+    return rank > (owner.factionRank or 0)
+end
+
 ---Returns whether apparatus can be used by player
 ---@param object openmw.GObject
+---@param actor openmw.GObject
+---@param cfg AlchemyPermissionCfg
 ---@return boolean
-m.isAllowedApparatus = function(object)
+m.isAllowedApparatus = function(object, actor, cfg)
+    if cfg.allowOwned then return true end
+    if cfg.allowFaction then return m.isFreeToUse(object, actor) end
     return not m.isOwned(object)
 end
 
@@ -270,10 +296,14 @@ m.isResolved = function(object)
 end
 
 ---@param object openmw.GObject
----@param allowOwned boolean
+---@param cfg AlchemyPermissionCfg
+---@param actor openmw.GObject
 ---@return boolean
-m.isAllowedIngredientContainer = function(object, allowOwned)
-    return (allowOwned or not m.isOwned(object)) and m.isResolved(object)
+m.isAllowedIngredientContainer = function(object, cfg, actor)
+    local usable = cfg.allowOwned == true
+        or not m.isOwned(object)
+        or (cfg.allowFaction == true and m.isFreeToUse(object, actor))
+    return usable and m.isResolved(object)
 end
 
 ---@param object openmw.GObject
@@ -286,7 +316,12 @@ end
 
 ---@param data AlchemyPermissionUpdateEvent
 local function onUpdatePermissions(data)
-    config[data.actor.id] = data.permissions
+    local p = data.permissions
+    -- master off = all extra sources off; unowned stays available
+    if p.allowNearby == false then
+        p.allowCorpses, p.allowFaction, p.allowOwned = false, false, false
+    end
+    config[data.actor.id] = p
 end
 
 local function onUpdateSimScale(data)
