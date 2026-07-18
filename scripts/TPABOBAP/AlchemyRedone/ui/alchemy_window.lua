@@ -1289,7 +1289,7 @@ parts.resultingEffects = function(self)
                 name = 'value-icon',
                 type = ui.TYPE.Image,
                 props = {
-                    size = v2(16, 16),
+                    size = v2(1, 1) * T.Base.TEXT_SIZE,
                     resource = T.Base.createTexture('icons/gold.dds'),
                 }
             }
@@ -1310,7 +1310,7 @@ parts.resultingEffects = function(self)
                 name = 'weight-icon',
                 type = ui.TYPE.Image,
                 props = {
-                    size = v2(16, 16),
+                    size = v2(1, 1) * T.Base.TEXT_SIZE,
                     resource = T.Base.createTexture('icons/weight.dds'),
                 }
             }
