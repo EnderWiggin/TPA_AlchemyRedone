@@ -173,7 +173,8 @@ function AlchemyWindow:loadState()
 
     local pos, sz
     if not dims then
-        pos = self:getPositionAndSizeFromDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
+        pos = self:getPositionAndSizeFromDimensions({ x = 0.5, y = 0.5, w = 0.3, h = 0.3 })
+        pos = pos - MIN_SIZE/2
         sz = MIN_SIZE
     else
         pos, sz = self:getPositionAndSizeFromDimensions(dims)
