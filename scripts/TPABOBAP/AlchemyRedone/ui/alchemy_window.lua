@@ -170,25 +170,26 @@ function AlchemyWindow:loadState()
         isCompact = cfgPlayer.ui.b_CompactMode
         dims = nil
     end
+
+    local pos, sz
     if not dims then
-        self:setDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
-        self:setSize(MIN_SIZE)
+        pos = self:getPositionAndSizeFromDimensions({ x = 0.35, y = 0.25, w = 0.3, h = 0.3 })
+        sz = MIN_SIZE
     else
-        self:setDimensions(dims)
+        pos, sz = self:getPositionAndSizeFromDimensions(dims)
     end
     --clamp the restored window to the screen: dimensions saved on a larger
     --resolution can load with the title bar and resize grip out of reach
     local layerSize = ui.layers[ui.layers.indexOf('Windows')].size
-    local props = self.element.layout.props
-    local size = v2(math.min(props.size.x, layerSize.x), math.min(props.size.y, layerSize.y))
+    local size = v2(math.min(sz.x, layerSize.x), math.min(sz.y, layerSize.y))
     local position = v2(
-        math.max(0, math.min(props.position.x, layerSize.x - size.x)),
-        math.max(0, math.min(props.position.y, layerSize.y - size.y)))
-    if size ~= props.size or position ~= props.position then
-        props.size = size
-        props.position = position
-        self.element:update()
+        math.max(0, math.min(pos.x, layerSize.x - size.x)),
+        math.max(0, math.min(pos.y, layerSize.y - size.y)))
+    if size ~= sz or position ~= pos then
+        sz = size
+        pos = position
     end
+    self:setPositionAndSize(pos, sz)
 end
 
 function AlchemyWindow:saveState()

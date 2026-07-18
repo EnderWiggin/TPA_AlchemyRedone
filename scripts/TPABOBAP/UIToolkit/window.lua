@@ -98,18 +98,25 @@ function Window:getDimensions()
 end
 
 function Window:setDimensions(dimensions)
-    if not self.element then return end
-
-    local layerSize = ui.layers[ui.layers.indexOf('Windows')].size
-
-    self.element.layout.props.position = v2(dimensions.x * layerSize.x, dimensions.y * layerSize.y)
-    self.element.layout.props.size = v2(dimensions.w * layerSize.x, dimensions.h * layerSize.y)
-    self:update()
+    local position, size = self:getPositionAndSizeFromDimensions(dimensions)
+    self:setPositionAndSize(size, position)
 end
 
-function Window:setSize(size)
+---@param dimensions {x:number, y:number, w:number, h: number}
+---@return openmw.util.Vector2 position, openmw.util.Vector2 size
+function Window:getPositionAndSizeFromDimensions(dimensions)
+    local layerSize = ui.layers[ui.layers.indexOf('Windows')].size
+
+    return v2(dimensions.x * layerSize.x, dimensions.y * layerSize.y),
+        v2(dimensions.w * layerSize.x, dimensions.h * layerSize.y)
+end
+
+---@param position openmw.util.Vector2?
+---@param size openmw.util.Vector2?
+function Window:setPositionAndSize(position, size)
     if not self.element then return end
-    self.element.layout.props.size = size
+    if position then self.element.layout.props.position = position end
+    if size then self.element.layout.props.size = size end
     self:update()
 end
 
