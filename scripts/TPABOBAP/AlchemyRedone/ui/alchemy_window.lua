@@ -60,14 +60,14 @@ local GAP_ICON
 local GAP_EFFECT
 local VERT_GAP
 local function updateSizes()
-    --TODO: update with font sizes?
+    local fontRatio = T.Base.TEXT_SIZE / 16
+    local fontDiff = T.Base.TEXT_SIZE - 16
+    BLOCK_WIDTH = util.round(310 * fontRatio)
     if cfgPlayer.ui.b_CompactMode then
-        MIN_SIZE = v2(680, 550)
-        BLOCK_WIDTH = 310
+        MIN_SIZE = v2(2 * BLOCK_WIDTH + 60, 551 + fontDiff * 19)
         VERT_GAP = 5
     else
-        MIN_SIZE = v2(780, 741)
-        BLOCK_WIDTH = 310
+        MIN_SIZE = v2(2 * BLOCK_WIDTH + 160, 695 + fontDiff * 23)
         VERT_GAP = 15
     end
 
@@ -174,7 +174,7 @@ function AlchemyWindow:loadState()
     local pos, sz
     if not dims then
         pos = self:getPositionAndSizeFromDimensions({ x = 0.5, y = 0.5, w = 0.3, h = 0.3 })
-        pos = pos - MIN_SIZE/2
+        pos = pos - MIN_SIZE / 2
         sz = MIN_SIZE
     else
         pos, sz = self:getPositionAndSizeFromDimensions(dims)
