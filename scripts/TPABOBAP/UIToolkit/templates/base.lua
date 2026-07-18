@@ -38,14 +38,14 @@ local function updateConfig()
         intRe = true
     end
 
-    --[[
-    Templates.TEXT_SIZE = configPlayer.window.i_TextSizeOverride > 0 and configPlayer.window.i_TextSizeOverride or
-    omwConstants.textNormalSize
-    Templates.textNormal.props.textSize = Templates.TEXT_SIZE
-    Templates.textHeader.props.textSize = Templates.TEXT_SIZE
-    Templates.textParagraph.props.textSize = Templates.TEXT_SIZE
-    Templates.textEditLine.props.textSize = Templates.TEXT_SIZE
-    ]]
+    local sz = cfgPlayer.ui.n_TextSize
+    if not sz or sz <= 0 then sz = omwConstants.textNormalSize end
+
+    Templates.TEXT_SIZE = sz
+    Templates.textNormal.props.textSize = sz
+    Templates.textHeader.props.textSize = sz
+    Templates.textParagraph.props.textSize = sz
+    Templates.textEditLine.props.textSize = sz
 end
 storage.playerSection(CFG.SECTION.MENU.Interface):subscribe(async:callback(updateConfig))
 

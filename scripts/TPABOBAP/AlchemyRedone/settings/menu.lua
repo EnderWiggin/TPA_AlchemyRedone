@@ -23,6 +23,12 @@ local RepeatStep = {
     max = 0.5,
 }
 
+local FontSize = {
+    default = 0,
+    min = 0,
+    max = 24,
+}
+
 I.Settings.registerPage {
     key = CFG.MOD,
     l10n = CFG.MOD,
@@ -163,6 +169,18 @@ I.Settings.registerGroup {
             name = 'SettingCompactMode',
             description = 'SettingCompactModeDesc',
             default = false,
+        },
+        {
+            key = 'n_TextSize',
+            renderer = 'number',
+            name = 'SettingTextSize',
+            description = l10n('SettingTextSizeDesc', H.mergeTables(C.TextColorParams, FontSize)),
+            default = FontSize.default,
+            argument = {
+                integer = true,
+                min = FontSize.min,
+                max = FontSize.max,
+            }
         },
     },
 }
