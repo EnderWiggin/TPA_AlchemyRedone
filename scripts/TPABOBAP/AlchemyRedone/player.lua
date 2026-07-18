@@ -27,6 +27,7 @@ local T = {
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 local l10n = core.l10n('TPA_AlchemyRedone')
+local v2 = util.vector2
 
 local function handleModError(...)
     core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { ... })
@@ -619,7 +620,7 @@ local function onMouseWheel(v)
     if ctx.focusedScrollable and ctx.focusedScrollable.layout then
         local layout = ctx.focusedScrollable.layout
         local pos = layout.content[1].props.position
-        layout.content[1].props.position = util.vector2(
+        layout.content[1].props.position = v2(
             pos.x,
             util.clamp(pos.y + v * layout.userData.scrollStep, -layout.userData.scrollLimit, 0)
         )
@@ -628,7 +629,7 @@ local function onMouseWheel(v)
 end
 
 -- crosshair hint over world apparatus (activate = brew, sneak = take)
-local hint = { widget = nil }
+local hint = { widget = nil, text = nil }
 
 local function hideApparatusHint()
     if hint.widget then
@@ -637,32 +638,15 @@ local function hideApparatusHint()
     end
 end
 
-local function hintLine(text)
-    return {
-        template = T.Base.textNormal,
-        props = {
-            text = text,
-        },
-    }
-end
-
-local function showApparatusHint()
-    if hint.widget then return end
-    local layout = T.Special.tooltip(4, ui.content {
-        {
-            type = ui.TYPE.Flex,
-            props = {
-                arrange = ui.ALIGNMENT.Center,
-            },
-            content = ui.content {
-                hintLine(l10n('Apparatus_Hint_Use')),
-                hintLine(l10n('Apparatus_Hint_Take')),
-            },
-        }
-    }, 'alchemy-usage-hint')
+local function showApparatusHint(text)
+    if hint.widget and hint.text == text then return end
+    hideApparatusHint()
+    hint.text = text
+    local layout = T.Special.lineTooltip(l10n(text), 'alchemy-usage-hint',
+        { textAlignH = ui.ALIGNMENT.Center, })
     layout.layer = 'HUD'
-    layout.props.relativePosition = util.vector2(0.5, 0.55)
-    layout.props.anchor = util.vector2(0.5, 0.5)
+    layout.props.relativePosition = v2(0.5, 0.55)
+    layout.props.anchor = v2(0.5, 0.5)
     hint.widget = ui.create(layout)
 end
 
@@ -682,14 +666,13 @@ local function updateApparatusHint()
     local reach = (core.getGMST('iMaxActivateDist') or 192)
         + camera.getThirdPersonDistance()
     local camPos = camera.getPosition()
-    local rayEnd = camPos
-        + camera.viewportToWorldVector(util.vector2(0.5, 0.5)) * reach
+    local rayEnd = camPos + camera.viewportToWorldVector(v2(0.5, 0.5)) * reach
     nearby.asyncCastRenderingRay(
         async:callback(function(result)
             hintScan.busy = false
             if result.hit and result.hitObject
                 and result.hitObject.type == types.Apparatus then
-                showApparatusHint()
+                showApparatusHint(sneaking and 'Apparatus_Hint_Take' or 'Apparatus_Hint_Use')
             else
                 hideApparatusHint()
             end
@@ -795,7 +778,7 @@ local function onFrame()
         if math.abs(rightStick) > 0.2 then
             local layout = ctx.focusedScrollable.layout
             local pos = layout.content[1].props.position
-            layout.content[1].props.position = util.vector2(
+            layout.content[1].props.position = v2(
                 pos.x,
                 util.clamp(pos.y - rightStick * layout.userData.scrollStep / 4 * dt * 60, -layout.userData.scrollLimit, 0)
             )
