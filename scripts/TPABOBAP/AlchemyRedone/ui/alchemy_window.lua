@@ -176,6 +176,19 @@ function AlchemyWindow:loadState()
     else
         self:setDimensions(dims)
     end
+    --clamp the restored window to the screen: dimensions saved on a larger
+    --resolution can load with the title bar and resize grip out of reach
+    local layerSize = ui.layers[ui.layers.indexOf('Windows')].size
+    local props = self.element.layout.props
+    local size = v2(math.min(props.size.x, layerSize.x), math.min(props.size.y, layerSize.y))
+    local position = v2(
+        math.max(0, math.min(props.position.x, layerSize.x - size.x)),
+        math.max(0, math.min(props.position.y, layerSize.y - size.y)))
+    if size ~= props.size or position ~= props.position then
+        props.size = size
+        props.position = position
+        self.element:update()
+    end
 end
 
 function AlchemyWindow:saveState()
