@@ -23,9 +23,10 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 
 ---@class NearbySettings
 ---@field b_AllowNearbySources boolean?
----@field b_AllowCorpseIngredients boolean?
+---@field b_AllowOwnedApparatus boolean?
 ---@field b_AllowFactionOwned boolean?
 ---@field b_AllowOwnedContainerIngredients boolean?
+---@field b_AllowCorpseIngredients boolean?
 
 ---@class InterfaceSettings
 ---@field s_intReMode InterfaceReimaginedMode

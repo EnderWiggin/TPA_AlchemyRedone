@@ -79,17 +79,20 @@ SettingIngredientEffectMatchingAllDesc: |-
   Removes some tedium, since you already can test any 2 ingredients if they have matching effects by adding them to potion.
 
 NearbyGroupTitle: External Inventory Search & Use
-NearbySettingsName: "Allow Nearby Ingredients & Apparatus"
+NearbySettingsName: "Allow Nearby Apparatus & Ingredients"
 NearbySettingsDesc: Enables or disables all features below.
 
-SettingAllowCorpseIngredients: "Dead Bodies"
-SettingAllowCorpseIngredientsDesc: If set to true, you will be able to use ingredients from dead bodies.
+SettingAllowOwnedApparatus: "Owned - All Apparatus, Not Theft"
+SettingAllowOwnedApparatusDesc: If set to true, apparatus owned by others can be used regardless of ownership. Apparatus is used in place, never taken, so this is not theft.
 
 SettingAllowFactionOwned: "Owned - Faction Member, Not Theft"
 SettingAllowFactionOwnedDesc: If set to true, containers and apparatus owned by a faction you belong to count as yours when your rank permits. Using them is not theft.
 
 SettingAllowOwnedContainerIngredients: "Owned - Everything, {color_negative}Theft, Stealing{color_normal}"
 SettingAllowOwnedContainerIngredientsDesc: If set to true, everything owned by others becomes available, including containers where taking would be stealing. No crime is recorded.
+
+SettingAllowCorpseIngredients: "Corpse - Dead Bodies"
+SettingAllowCorpseIngredientsDesc: If set to true, you will be able to use ingredients from dead bodies.
 
 Apparatus_Hint_Use: |-
   Activate to Use
