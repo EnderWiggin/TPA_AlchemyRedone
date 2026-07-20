@@ -1155,9 +1155,36 @@ parts.selected = function(self, getId, onClick, tooltipFn)
         props = {},
         content = ui.content {
             {
-                template = T.Base.textNormal,
+                type = ui.TYPE.Flex,
                 props = {
-                    text = C.Strings.INGREDIENTS,
+                    horizontal = true,
+                    arrange = ui.ALIGNMENT.Center,
+                },
+                content = ui.content {
+                    {
+                        template = T.Base.textNormal,
+                        props = {
+                            text = C.Strings.INGREDIENTS,
+                        },
+                    },
+                    T.Base.intervalH(6),
+                    T.Special.interactive({
+                        name = 'btn-clear-selected',
+                        onClick = function() self.ctx.clearAllSelectedIngredients() end,
+                        tooltipFn = function()
+                            return T.Special.lineTooltip(l10n('TipClearSelected'), 'btn-clear-selected-tip')
+                        end,
+                    }, {
+                        type = ui.TYPE.Image,
+                        props = {
+                            resource = T.Base.createTexture(REVERT_PATH),
+                            size = v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE),
+                            color = C.Colors.DEFAULT,
+                        },
+                        userData = {
+                            colorable = true,
+                        },
+                    }, self.ctx),
                 },
             },
             T.Base.intervalV(3),
