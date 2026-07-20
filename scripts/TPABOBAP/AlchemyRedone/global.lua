@@ -8,7 +8,7 @@ local C = require("scripts.TPABOBAP.UIToolkit.constants")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local l10n = core.l10n('TPA_AlchemyRedone')
 
----@alias AlchemyPermissionCfg {enabled: boolean?, allowNearby: boolean?, allowCorpses: boolean?, allowOwned: boolean?, allowFaction: boolean?, allowOwnedApparatus: boolean?, sneaking: boolean?}
+---@alias AlchemyPermissionCfg {enabled: boolean?, allowNearby: boolean?, allowCorpses: boolean?, allowOwnedContainerIngredients: boolean?, allowFaction: boolean?, allowOwnedApparatus: boolean?, sneaking: boolean?}
 ---@alias AlchemyPermissionUpdateEvent {actor: openmw.Object, permissions: AlchemyPermissionCfg}
 
 ---@type table<string, AlchemyPermissionCfg>
@@ -28,6 +28,7 @@ m.activateApparatus = function(object, actor)
     if actor.type == T.Player then
         local cfg = m.getConfig(actor)
         if not cfg.enabled then return true end
+        if not cfg.allowNearby then return true end
         -- sneak-activate = engine default: pick the apparatus up
         if cfg.sneaking then return true end
         if m.isAllowedApparatus(object, actor, cfg) then
@@ -57,29 +58,31 @@ m.collectApparatus = function(actor, cfg, ...)
 
     for j = 1, #lists do
         local objectList = lists[j]
-        for i = 1, #objectList do
-            ---@type openmw.GObject
-            local apparatus = objectList[i]
-            local recordId = apparatus.recordId
-            local record = T.Apparatus.record(recordId)
-            if record and m.isAllowedApparatus(apparatus, actor, cfg) then
-                local quality = record.quality
-                local type = record.type
-                if (type == T.Apparatus.TYPE.Alembic and quality > qAlembic) then
-                    result.Alembic = recordId
-                    qAlembic = quality
-                end
-                if (type == T.Apparatus.TYPE.Calcinator and quality > qCalcinator) then
-                    result.Calcinator = recordId
-                    qCalcinator = quality
-                end
-                if (type == T.Apparatus.TYPE.MortarPestle and quality > qMortar) then
-                    result.Mortar = recordId
-                    qMortar = quality
-                end
-                if (type == T.Apparatus.TYPE.Retort and quality > qRetort) then
-                    result.Retort = recordId
-                    qRetort = quality
+        if objectList then
+            for i = 1, #objectList do
+                ---@type openmw.GObject
+                local apparatus = objectList[i]
+                local recordId = apparatus.recordId
+                local record = T.Apparatus.record(recordId)
+                if record and m.isAllowedApparatus(apparatus, actor, cfg) then
+                    local quality = record.quality
+                    local type = record.type
+                    if (type == T.Apparatus.TYPE.Alembic and quality > qAlembic) then
+                        result.Alembic = recordId
+                        qAlembic = quality
+                    end
+                    if (type == T.Apparatus.TYPE.Calcinator and quality > qCalcinator) then
+                        result.Calcinator = recordId
+                        qCalcinator = quality
+                    end
+                    if (type == T.Apparatus.TYPE.MortarPestle and quality > qMortar) then
+                        result.Mortar = recordId
+                        qMortar = quality
+                    end
+                    if (type == T.Apparatus.TYPE.Retort and quality > qRetort) then
+                        result.Retort = recordId
+                        qRetort = quality
+                    end
                 end
             end
         end
@@ -121,14 +124,14 @@ m.collectAlchemyInfo = function(actor)
     local cfg = m.getConfig(actor)
     local inventory = T.Player.inventory(actor)
     local apparatus = m.collectApparatus(actor, cfg,
-        actor.cell:getAll(T.Apparatus),
+        cfg.allowNearby and actor.cell:getAll(T.Apparatus) or nil,
         inventory:getAll(T.Apparatus)
     )
-    local sources = m.filterContainers(actor.cell:getAll(T.Container), function(container)
+    local sources =  cfg.allowNearby and m.filterContainers(actor.cell:getAll(T.Container), function(container)
         return m.isAllowedIngredientContainer(container, cfg, actor)
-    end)
+    end) or {}
 
-    if cfg.allowCorpses then
+    if cfg.allowNearby and cfg.allowCorpses then
         local corpses = m.filterContainers(actor.cell:getAll(T.NPC), m.isAllowedCorpseContainer)
         for i = 1, #corpses do
             table.insert(sources, corpses[i])
@@ -148,7 +151,7 @@ m.collectAlchemyInfo = function(actor)
                 table.insert(sources, carried[i])
             end
         end
-        if I.CCC_cont.getContainersNearbyPlayer then
+        if cfg.allowNearby and I.CCC_cont.getContainersNearbyPlayer then
             carried = I.CCC_cont.getContainersNearbyPlayer()
             for i = 1, #carried do
                 table.insert(sources, carried[i])
@@ -282,7 +285,7 @@ end
 ---@return boolean
 m.isAllowedApparatus = function(object, actor, cfg)
     -- apparatus is used in place, never taken, so owned apparatus is not theft
-    if cfg.allowOwned or cfg.allowOwnedApparatus then return true end
+    if cfg.allowOwnedApparatus then return true end
     if cfg.allowFaction then return m.isFreeToUse(object, actor) end
     return not m.isOwned(object)
 end
@@ -299,7 +302,7 @@ end
 ---@param actor openmw.GObject
 ---@return boolean
 m.isAllowedIngredientContainer = function(object, cfg, actor)
-    local usable = cfg.allowOwned == true
+    local usable = cfg.allowOwnedContainerIngredients == true
         or not m.isOwned(object)
         or (cfg.allowFaction == true and m.isFreeToUse(object, actor))
     return usable and m.isResolved(object)
@@ -315,12 +318,7 @@ end
 
 ---@param data AlchemyPermissionUpdateEvent
 local function onUpdatePermissions(data)
-    local p = data.permissions
-    -- master off = all extra sources off; unowned stays available
-    if p.allowNearby == false then
-        p.allowCorpses, p.allowFaction, p.allowOwned, p.allowOwnedApparatus = false, false, false, false
-    end
-    config[data.actor.id] = p
+    config[data.actor.id] = data.permissions
 end
 
 local function onUpdateSimScale(data)

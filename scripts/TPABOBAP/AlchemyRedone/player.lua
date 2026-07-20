@@ -43,7 +43,7 @@ local function updatePermissions()
             enabled = cfgPlayer.main.b_Enabled,
             allowNearby = cfgPlayer.nearby.b_AllowNearbySources,
             allowCorpses = cfgPlayer.nearby.b_AllowCorpseIngredients,
-            allowOwned = cfgPlayer.nearby.b_AllowOwnedContainerIngredients,
+            allowOwnedContainerIngredients = cfgPlayer.nearby.b_AllowOwnedContainerIngredients,
             allowFaction = cfgPlayer.nearby.b_AllowFactionOwned,
             allowOwnedApparatus = cfgPlayer.nearby.b_AllowOwnedApparatus,
             sneaking = sneaking,
@@ -657,7 +657,9 @@ end
 
 local hintScan = { last = 0, busy = false }
 local function updateApparatusHint()
-    if not cfgPlayer.ui.b_ShowUseHint
+    if not cfgPlayer.main.b_Enabled
+        or not cfgPlayer.nearby.b_AllowNearbySources
+        or not cfgPlayer.ui.b_ShowUseHint
         or I.UI.getMode() ~= nil
         or camera.getMode() == camera.MODE.Vanity
         or camera.getMode() == camera.MODE.Static then

@@ -79,9 +79,13 @@ SettingIngredientEffectMatchingAllDesc: |-
   If enabled, then when ingredient list is filtered by Matching effects, all matching effects will be considered, even ones not learned yet.
   Removes some tedium, since you already can test any 2 ingredients if they have matching effects by adding them to potion.
 
+# -------------- Nearby Block --------------
+
 NearbyGroupTitle: External Inventory Search & Use
 NearbySettingsName: "Allow Nearby Apparatus & Ingredients"
-NearbySettingsDesc: Enables or disables all features below.
+NearbySettingsDesc: |-
+  Enables use of apparatus placed in-world and ingredients from nearby containers.
+  If disabled, only apparatus and ingredients from your inventory can be used and you can't use apparatus placed in-world - they will be picked up on activate.
 
 SettingAllowOwnedApparatus: "Owned - All Apparatus, Not Theft"
 SettingAllowOwnedApparatusDesc: If set to true, apparatus owned by others can be used regardless of ownership. Apparatus is used in place, never taken, so this is not theft.
@@ -89,8 +93,8 @@ SettingAllowOwnedApparatusDesc: If set to true, apparatus owned by others can be
 SettingAllowFactionOwned: "Owned - Faction Member, Not Theft"
 SettingAllowFactionOwnedDesc: If set to true, containers and apparatus owned by a faction you belong to count as yours when your rank permits. Using them is not theft.
 
-SettingAllowOwnedContainerIngredients: "Owned - Everything, {color_negative}Theft, Stealing{color_normal}"
-SettingAllowOwnedContainerIngredientsDesc: If set to true, everything owned by others becomes available, including containers where taking would be stealing. No crime is recorded.
+SettingAllowOwnedContainerIngredients: "Owned - Container Ingredients, {color_negative}Theft, Stealing{color_normal}"
+SettingAllowOwnedContainerIngredientsDesc: If set to true, ingredients from containers where taking would be stealing are allowed. No crime is recorded.
 
 SettingAllowCorpseIngredients: "Corpse - Dead Bodies"
 SettingAllowCorpseIngredientsDesc: If set to true, you will be able to use ingredients from dead bodies.
