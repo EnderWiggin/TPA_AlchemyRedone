@@ -277,14 +277,25 @@ Templates.ingredientTooltip = function(id, actor)
     innerContent:add(BASE.intervalV(4))
 
 
+    local info = {}
     if itemRecord.weight > 0 then
-        innerContent:add(textNormal('weight',
-            constants.Strings.WEIGHT .. ': ' .. helpers.roundToPlaces(itemRecord.weight, 3)))
+        table.insert(info, constants.Strings.WEIGHT .. ': ' .. helpers.roundToPlaces(itemRecord.weight, 2))
     end
 
     local value = itemRecord.value
     if value > 0 and itemRecord.id ~= 'gold_001' then
-        innerContent:add(textNormal('value', constants.Strings.VALUE .. ': ' .. (value)))
+        table.insert(info, constants.Strings.VALUE .. ': ' .. value .. ' gp')
+    end
+
+    if #info > 0 then
+        innerContent:add({
+            name = 'info',
+            template = BASE.textNormal,
+            props = {
+                text = table.concat(info, '   '),
+                textColor = constants.Colors.DISABLED,
+            },
+        })
     end
 
     -- Handle effects for enchantments, potions, and ingredients.
@@ -327,7 +338,7 @@ Templates.ingredientTooltip = function(id, actor)
             name = 'effects',
             type = ui.TYPE.Flex,
             props = {
-                arrange = ui.ALIGNMENT.Center,
+                arrange = ui.ALIGNMENT.Start,
             },
             content = ui.content {
                 table.unpack(effectLayouts)
