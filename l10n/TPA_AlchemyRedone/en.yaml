@@ -35,6 +35,7 @@ AlchemyWindow_Toggle_Matching_Effect_Tooltip: |-
 
 TipNameReset: Reset name to default
 TipFilterReset: Clear filter text
+TipClearSelected: Clear selected ingredients
 FilterPlaceholder: Filter ingredients...
 
 All_Effects_Neutralized: All matching effects were neutralized by Alembic
