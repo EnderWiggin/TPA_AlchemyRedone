@@ -1382,7 +1382,8 @@ parts.resultingEffects = function(self)
                         {
                             template = T.Base.textParagraph,
                             props = {
-                                text = l10n('All_Effects_Neutralized'),
+                                -- neutralized here; nudge to the opposite mode where these effects apply
+                                text = l10n('All_Effects_Neutralized') .. l10n(self.isPoison and 'Neutralized_Try_Potions' or 'Neutralized_Try_Poisons'),
                                 textAlignH = ui.ALIGNMENT.Center,
                                 size = v2(BLOCK_WIDTH, 0),
                             }

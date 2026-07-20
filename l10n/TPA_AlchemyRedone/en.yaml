@@ -39,6 +39,8 @@ TipClearSelected: Clear selected ingredients
 FilterPlaceholder: Filter ingredients...
 
 All_Effects_Neutralized: All matching effects were neutralized by Alembic
+Neutralized_Try_Potions: ' -- try Potions'
+Neutralized_Try_Poisons: ' -- try Poisons'
 Cant_Use_Owned_Apparatus: You can't use someone else's {apparatus}!
 
 Potion_Name_Unknown: Unknown Effect
