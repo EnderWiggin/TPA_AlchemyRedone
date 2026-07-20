@@ -271,8 +271,8 @@ m.isFreeToUse = function(object, actor)
         return T.NPC.getFactionRank(actor, owner.factionId)
     end)
     if not ok or not rank or rank <= 0 then return false end
-    -- getFactionRank is 1-based, owner.factionRank is 0-based
-    return rank > (owner.factionRank or 0)
+    -- both 1-based (owner.factionRank via toLuaIndex; nil = no requirement)
+    return rank >= (owner.factionRank or 1)
 end
 
 ---Returns whether apparatus can be used by player
