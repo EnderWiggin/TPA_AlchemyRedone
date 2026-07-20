@@ -45,6 +45,7 @@ local function updatePermissions()
             allowCorpses = cfgPlayer.nearby.b_AllowCorpseIngredients,
             allowOwned = cfgPlayer.nearby.b_AllowOwnedContainerIngredients,
             allowFaction = cfgPlayer.nearby.b_AllowFactionOwned,
+            allowOwnedApparatus = cfgPlayer.nearby.b_AllowOwnedApparatus,
             sneaking = sneaking,
         }
     }

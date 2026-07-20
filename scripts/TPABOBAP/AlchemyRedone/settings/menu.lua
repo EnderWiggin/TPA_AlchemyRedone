@@ -112,10 +112,10 @@ I.Settings.registerGroup {
             default = true,
         },
         {
-            key = 'b_AllowCorpseIngredients',
+            key = 'b_AllowOwnedApparatus',
             renderer = 'checkbox',
-            name = 'SettingAllowCorpseIngredients',
-            description = 'SettingAllowCorpseIngredientsDesc',
+            name = 'SettingAllowOwnedApparatus',
+            description = 'SettingAllowOwnedApparatusDesc',
             default = false,
         },
         {
@@ -130,6 +130,13 @@ I.Settings.registerGroup {
             renderer = 'checkbox',
             name = l10n('SettingAllowOwnedContainerIngredients', C.TextColorParams),
             description = 'SettingAllowOwnedContainerIngredientsDesc',
+            default = false,
+        },
+        {
+            key = 'b_AllowCorpseIngredients',
+            renderer = 'checkbox',
+            name = 'SettingAllowCorpseIngredients',
+            description = 'SettingAllowCorpseIngredientsDesc',
             default = false,
         },
     },

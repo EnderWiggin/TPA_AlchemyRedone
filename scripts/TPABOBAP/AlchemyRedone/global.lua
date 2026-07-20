@@ -8,7 +8,7 @@ local C = require("scripts.TPABOBAP.UIToolkit.constants")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local l10n = core.l10n('TPA_AlchemyRedone')
 
----@alias AlchemyPermissionCfg {enabled: boolean?, allowNearby: boolean?, allowCorpses: boolean?, allowOwned: boolean?, allowFaction: boolean?, sneaking: boolean?}
+---@alias AlchemyPermissionCfg {enabled: boolean?, allowNearby: boolean?, allowCorpses: boolean?, allowOwned: boolean?, allowFaction: boolean?, allowOwnedApparatus: boolean?, sneaking: boolean?}
 ---@alias AlchemyPermissionUpdateEvent {actor: openmw.Object, permissions: AlchemyPermissionCfg}
 
 ---@type table<string, AlchemyPermissionCfg>
@@ -281,7 +281,8 @@ end
 ---@param cfg AlchemyPermissionCfg
 ---@return boolean
 m.isAllowedApparatus = function(object, actor, cfg)
-    if cfg.allowOwned then return true end
+    -- apparatus is used in place, never taken, so owned apparatus is not theft
+    if cfg.allowOwned or cfg.allowOwnedApparatus then return true end
     if cfg.allowFaction then return m.isFreeToUse(object, actor) end
     return not m.isOwned(object)
 end
@@ -317,7 +318,7 @@ local function onUpdatePermissions(data)
     local p = data.permissions
     -- master off = all extra sources off; unowned stays available
     if p.allowNearby == false then
-        p.allowCorpses, p.allowFaction, p.allowOwned = false, false, false
+        p.allowCorpses, p.allowFaction, p.allowOwned, p.allowOwnedApparatus = false, false, false, false
     end
     config[data.actor.id] = p
 end
