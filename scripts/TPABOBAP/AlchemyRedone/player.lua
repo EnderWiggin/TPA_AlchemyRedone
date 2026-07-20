@@ -584,6 +584,11 @@ m.getKnownEffectFlagsForItem = function(item)
     return {}
 end
 
+---@return LocalApparatusIds
+m.getActiveApparatus = function()
+    return m.wndAlchemy and ctx.data.apparatus or {}
+end
+
 ---@param id number
 local function onControllerButtonPress(id)
     if not cfgPlayer.main.b_Enabled then return end
@@ -833,6 +838,7 @@ local Interface = {
     unregisterPotionModifier = m.unregisterPotionModifier,
     --knowledge = knowledge, --Not sure if this is needed to be exported
     getKnownEffectFlagsForItem = m.getKnownEffectFlagsForItem,
+    getActiveApparatus = m.getActiveApparatus,
 }
 
 --- Requires both lua reload and save load to toggle.

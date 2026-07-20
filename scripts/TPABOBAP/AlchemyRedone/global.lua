@@ -41,8 +41,6 @@ m.activateApparatus = function(object, actor)
     return true
 end
 
----@alias LocalApparatusIds {Mortar: string?, Alembic: string?, Calcinator: string?, Retort: string?}
-
 ---@param actor openmw.GObject
 ---@param cfg AlchemyPermissionCfg
 ---@param ... ObjectList
