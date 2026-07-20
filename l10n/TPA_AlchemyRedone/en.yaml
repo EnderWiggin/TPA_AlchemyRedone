@@ -33,6 +33,30 @@ AlchemyWindow_Toggle_Matching_Effect_Tooltip: |-
   If enabled then only positive effects are shown when brewing potion.
   And only harmful effects are shown when brewing poison.
 
+Apparatus_Tooltip_Not_Present: Not Present
+
+Apparatus_Tooltip_Mortar: |-
+  Quality raises every effect's
+  strength, duration, and value.
+
+Apparatus_Tooltip_Alembic: |-
+  Potion: Tempers (weakens)
+  {color_header}harmful{color_normal} effects.
+
+Apparatus_Tooltip_Alembic_Poison: |-
+  Poison: Tempers (weakens)
+  {color_header}helpful{color_normal} effects.
+
+Apparatus_Tooltip_Calcinator: |-
+  Strengthens every effect,
+  {color_header}helpful{color_normal} and {color_header}harmful{color_normal} alike.
+
+Apparatus_Tooltip_Retort: |-
+  Potion: Boosts {color_header}helpful{color_normal} effects.
+
+Apparatus_Tooltip_Retort_Poison: |-
+  Poison: Boosts {color_header}harmful{color_normal} effects.
+
 TipNameReset: Reset name to default
 TipFilterReset: Clear filter text
 TipClearSelected: Clear selected ingredients
