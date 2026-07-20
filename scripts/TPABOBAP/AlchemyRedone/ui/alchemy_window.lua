@@ -1104,7 +1104,24 @@ parts.selected = function(self, getId, onClick, tooltipFn)
             for i = 1, #Slots do updateSelected(i) end
 
             auxUi.deepUpdate(element)
-        end
+        end,
+        -- brew result shown in place of the selected ingredients until hideNotice
+        showNotice = function(potionName, brewed, failed)
+            H.findLayoutByPath(element, path).props.visible = false
+            local notice = H.findLayoutByPath(element, { 'selected-box', 'padding', 'notice' })
+            notice.props.visible = true
+            H.findLayoutByPath(notice, { 'notice-name' }).props.text = potionName
+            H.findLayoutByPath(notice, { 'notice-brewed' }).props.text =
+                l10n('Brew_Notice_Brewed', { count = H.addSeparators(brewed) })
+            H.findLayoutByPath(notice, { 'notice-failed' }).props.text =
+                failed > 0 and l10n('Brew_Notice_Failed', { count = H.addSeparators(failed) }) or ''
+            element:update()
+        end,
+        hideNotice = function()
+            H.findLayoutByPath(element, path).props.visible = true
+            H.findLayoutByPath(element, { 'selected-box', 'padding', 'notice' }).props.visible = false
+            element:update()
+        end,
     }
 
     local box = {
@@ -1194,6 +1211,35 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                                     parts.namedEffects(Slots[4]),
                                     T.Base.intervalV(GAP_END),
                                 }
+                            },
+                        },
+                    },
+                    {
+                        name = 'notice',
+                        type = ui.TYPE.Flex,
+                        props = {
+                            arrange = ui.ALIGNMENT.Center,
+                            align = ui.ALIGNMENT.Center,
+                            autoSize = false,
+                            visible = false,
+                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
+                        },
+                        content = ui.content {
+                            {
+                                name = 'notice-name',
+                                template = T.Base.textHeader,
+                                props = { text = '' },
+                            },
+                            T.Base.intervalV(4),
+                            {
+                                name = 'notice-brewed',
+                                template = T.Base.textNormal,
+                                props = { text = '' },
+                            },
+                            {
+                                name = 'notice-failed',
+                                template = T.Base.textNormal,
+                                props = { text = '' },
                             },
                         },
                     }

@@ -65,6 +65,8 @@ FilterPlaceholder: Filter ingredients...
 All_Effects_Neutralized: All matching effects were neutralized by Alembic
 Neutralized_Try_Potions: ' -- try Potions'
 Neutralized_Try_Poisons: ' -- try Poisons'
+Brew_Notice_Brewed: 'Brewed: {count}'
+Brew_Notice_Failed: 'Failed: {count}'
 Cant_Use_Owned_Apparatus: You can't use someone else's {apparatus}!
 
 Potion_Name_Unknown: Unknown Effect
