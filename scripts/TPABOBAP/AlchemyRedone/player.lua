@@ -481,6 +481,11 @@ m.brewPotions = function(name, count, ingredients, isPoison)
                         isPoison = isPoison,
                     },
                 })
+            player:sendEvent('TPA_AlchemyRedone_PotionBrewed', {
+                potion = draft,
+                ingredients = ingredients,
+                isPoison = isPoison,
+            })
 
             processed = processed + 1
             if processed < brewed then
