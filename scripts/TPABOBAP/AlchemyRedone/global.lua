@@ -127,7 +127,7 @@ m.collectAlchemyInfo = function(actor)
         cfg.allowNearby and actor.cell:getAll(T.Apparatus) or nil,
         inventory:getAll(T.Apparatus)
     )
-    local sources =  cfg.allowNearby and m.filterContainers(actor.cell:getAll(T.Container), function(container)
+    local sources = cfg.allowNearby and m.filterContainers(actor.cell:getAll(T.Container), function(container)
         return m.isAllowedIngredientContainer(container, cfg, actor)
     end) or {}
 
@@ -343,7 +343,8 @@ I.Activation.addHandlerForType(T.Apparatus, m.activateApparatus)
 return {
     eventHandlers = {
         TPA_AlchemyRedone_CollectInfo = function(data)
-            data.actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(data.actor))
+            local event = data.callbackEvent or 'TPA_AlchemyRedone_Open'
+            data.actor:sendEvent(event, m.collectAlchemyInfo(data.actor))
         end,
         TPA_AlchemyRedone_FinalizePotions = m.finalizePotions,
         TPA_AlchemyRedone_DeductIngredients = m.deductIngredients,
