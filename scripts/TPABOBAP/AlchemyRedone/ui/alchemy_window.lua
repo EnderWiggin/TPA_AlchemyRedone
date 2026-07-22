@@ -871,6 +871,7 @@ local ICON_DEFAULTS = {
 parts.tools = function(self, getToolRecord)
     local element
     local path = { 'tools-box', 'padding', 'tools' }
+    local noticePath = { 'tools-box', 'padding', 'notice' }
 
     local TIP_W = util.round(T.Base.TEXT_SIZE * 15)
 
@@ -944,6 +945,23 @@ parts.tools = function(self, getToolRecord)
             updateTool(C.Strings.CALCINATOR, ApparatusTypes.Calcinator)
             updateTool(C.Strings.RETORT, ApparatusTypes.Retort)
 
+            element:update()
+        end,
+        -- brew result shown in place of the selected ingredients until hideNotice
+        showNotice = function(potionName, brewed, failed)
+            H.findLayoutByPath(element, path).props.visible = false
+            local notice = H.findLayoutByPath(element, noticePath)
+            notice.props.visible = true
+            H.findLayoutByPath(notice, { 'notice-name' }).props.text = potionName
+            H.findLayoutByPath(notice, { 'notice-brewed' }).props.text =
+                l10n('Brew_Notice_Brewed', { count = H.addSeparators(brewed) })
+            H.findLayoutByPath(notice, { 'notice-failed' }).props.text =
+                failed > 0 and l10n('Brew_Notice_Failed', { count = H.addSeparators(failed) }) or ''
+            element:update()
+        end,
+        hideNotice = function()
+            H.findLayoutByPath(element, path).props.visible = true
+            H.findLayoutByPath(element, noticePath).props.visible = false
             element:update()
         end,
     }
@@ -1024,6 +1042,35 @@ parts.tools = function(self, getToolRecord)
                                 }
                             },
                         },
+                    },
+                    {
+                        name = 'notice',
+                        type = ui.TYPE.Flex,
+                        props = {
+                            arrange = ui.ALIGNMENT.Center,
+                            align = ui.ALIGNMENT.Center,
+                            autoSize = false,
+                            visible = false,
+                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
+                        },
+                        content = ui.content {
+                            {
+                                name = 'notice-name',
+                                template = T.Base.textHeader,
+                                props = { text = '' },
+                            },
+                            T.Base.intervalV(4),
+                            {
+                                name = 'notice-brewed',
+                                template = T.Base.textNormal,
+                                props = { text = '' },
+                            },
+                            {
+                                name = 'notice-failed',
+                                template = T.Base.textNormal,
+                                props = { text = '' },
+                            },
+                        },
                     }
                 },
             }
@@ -1097,23 +1144,6 @@ parts.selected = function(self, getId, onClick, tooltipFn)
             for i = 1, #Slots do updateSelected(i) end
 
             auxUi.deepUpdate(element)
-        end,
-        -- brew result shown in place of the selected ingredients until hideNotice
-        showNotice = function(potionName, brewed, failed)
-            H.findLayoutByPath(element, path).props.visible = false
-            local notice = H.findLayoutByPath(element, { 'selected-box', 'padding', 'notice' })
-            notice.props.visible = true
-            H.findLayoutByPath(notice, { 'notice-name' }).props.text = potionName
-            H.findLayoutByPath(notice, { 'notice-brewed' }).props.text =
-                l10n('Brew_Notice_Brewed', { count = H.addSeparators(brewed) })
-            H.findLayoutByPath(notice, { 'notice-failed' }).props.text =
-                failed > 0 and l10n('Brew_Notice_Failed', { count = H.addSeparators(failed) }) or ''
-            element:update()
-        end,
-        hideNotice = function()
-            H.findLayoutByPath(element, path).props.visible = true
-            H.findLayoutByPath(element, { 'selected-box', 'padding', 'notice' }).props.visible = false
-            element:update()
         end,
     }
 
@@ -1207,35 +1237,6 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                             },
                         },
                     },
-                    {
-                        name = 'notice',
-                        type = ui.TYPE.Flex,
-                        props = {
-                            arrange = ui.ALIGNMENT.Center,
-                            align = ui.ALIGNMENT.Center,
-                            autoSize = false,
-                            visible = false,
-                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
-                        },
-                        content = ui.content {
-                            {
-                                name = 'notice-name',
-                                template = T.Base.textHeader,
-                                props = { text = '' },
-                            },
-                            T.Base.intervalV(4),
-                            {
-                                name = 'notice-brewed',
-                                template = T.Base.textNormal,
-                                props = { text = '' },
-                            },
-                            {
-                                name = 'notice-failed',
-                                template = T.Base.textNormal,
-                                props = { text = '' },
-                            },
-                        },
-                    }
                 },
             }
         }
@@ -1476,7 +1477,8 @@ parts.resultingEffects = function(self)
                             template = T.Base.textParagraph,
                             props = {
                                 -- neutralized here; nudge to the opposite mode where these effects apply
-                                text = l10n('All_Effects_Neutralized') .. l10n(self.isPoison and 'Neutralized_Try_Potions' or 'Neutralized_Try_Poisons'),
+                                text = l10n('All_Effects_Neutralized') ..
+                                    l10n(self.isPoison and 'Neutralized_Try_Potions' or 'Neutralized_Try_Poisons'),
                                 textAlignH = ui.ALIGNMENT.Center,
                                 size = v2(BLOCK_WIDTH, 0),
                             }

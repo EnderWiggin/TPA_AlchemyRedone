@@ -498,7 +498,7 @@ m.brewPotions = function(name, count, ingredients, isPoison)
         until processed >= brewed
 
         if m.wndAlchemy then
-            m.wndAlchemy.selected.showNotice(getName(), brewed, count - brewed)
+            m.wndAlchemy.tools.showNotice(getName(), brewed, count - brewed)
             noticeExpireAt = core.getRealTime() + NOTICE_DURATION
         else
             local msg = core.getGMST(A.PotionErrors.OK)
@@ -519,7 +519,7 @@ m.brewPotions = function(name, count, ingredients, isPoison)
         core.sendGlobalEvent('TPA_AlchemyRedone_FinalizePotions', data)
     elseif errorCode == A.PotionErrors.FAIL then -- Brewing was attempted, but failed
         if m.wndAlchemy then
-            m.wndAlchemy.selected.showNotice(getName(), 0, count)
+            m.wndAlchemy.tools.showNotice(getName(), 0, count)
             noticeExpireAt = core.getRealTime() + NOTICE_DURATION
         else
             ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
@@ -728,7 +728,7 @@ local function onFrame()
 
     if noticeExpireAt and core.getRealTime() >= noticeExpireAt then
         noticeExpireAt = nil
-        if m.wndAlchemy then m.wndAlchemy.selected.hideNotice() end
+        if m.wndAlchemy then m.wndAlchemy.tools.hideNotice() end
     end
 
     if ctx.focusedInteractiveDelayed ~= nil then
