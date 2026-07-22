@@ -888,20 +888,6 @@ parts.tools = function(self, getToolRecord)
         }
         rows:add(T.Base.intervalV(4))
         rows:add({
-            template = T.Base.textNormal,
-            props = {
-                text = record
-                    and C.Strings.WEIGHT .. ': ' .. H.roundToPlaces(record.weight, 2)
-                        .. '   ' .. C.Strings.VALUE .. ': ' .. record.value .. ' gp'
-                    or l10n('Apparatus_Tooltip_Not_Present'),
-                textColor = C.Colors.DISABLED,
-                autoSize = false,
-                size = v2(TIP_W, T.Base.TEXT_SIZE + 2),
-                textAlignH = ui.ALIGNMENT.Center,
-            },
-        })
-        rows:add(T.Base.intervalV(4))
-        rows:add({
             template = T.Base.textParagraph,
             props = {
                 text = l10n('Apparatus_Tooltip_' .. key .. suffix, C.TextColorParams),
@@ -909,6 +895,13 @@ parts.tools = function(self, getToolRecord)
                 textAlignH = ui.ALIGNMENT.Center,
             },
         })
+
+        local info = T.Special.valueWeightInfo(record.value, record.weight)
+        if info then
+            rows:add(T.Base.intervalV(8))
+            rows:add(info)
+        end
+
         return T.Special.tooltip(4, ui.content {
             {
                 type = ui.TYPE.Flex,

@@ -277,27 +277,6 @@ Templates.ingredientTooltip = function(id, actor)
     innerContent:add(BASE.intervalV(4))
 
 
-    local info = {}
-    if itemRecord.weight > 0 then
-        table.insert(info, constants.Strings.WEIGHT .. ': ' .. helpers.roundToPlaces(itemRecord.weight, 2))
-    end
-
-    local value = itemRecord.value
-    if value > 0 and itemRecord.id ~= 'gold_001' then
-        table.insert(info, constants.Strings.VALUE .. ': ' .. value .. ' gp')
-    end
-
-    if #info > 0 then
-        innerContent:add({
-            name = 'info',
-            template = BASE.textNormal,
-            props = {
-                text = table.concat(info, '   '),
-                textColor = constants.Colors.DISABLED,
-            },
-        })
-    end
-
     -- Handle effects for enchantments, potions, and ingredients.
     local effectsToShow = helpers.getTooltipIngredientEffectEntries(itemRecord, actor)
 
@@ -346,6 +325,12 @@ Templates.ingredientTooltip = function(id, actor)
         })
     end
 
+    local info = Templates.valueWeightInfo(itemRecord.value, itemRecord.weight)
+    if info then
+        innerContent:add(BASE.intervalV(8))
+        innerContent:add(info)
+    end
+
     if #innerContent == 2 then
         innerContent[2] = nil -- remove extra interval if no details
     end
@@ -363,6 +348,56 @@ Templates.ingredientTooltip = function(id, actor)
     }, id)
 
     return layout
+end
+
+---@param value number
+---@param weight number
+---@return openmw.ui.Layout|nil
+Templates.valueWeightInfo = function(value, weight)
+    local flexContent = ui.content {}
+    value = util.round(value)
+    if value > 0 then
+        flexContent:add({
+            type = ui.TYPE.Image,
+            props = {
+                size = v2(1, 1) * BASE.TEXT_SIZE,
+                resource = BASE.createTexture('icons/gold.dds'),
+            }
+        })
+        flexContent:add({ name = 'value', template = BASE.textNormal, props = { text = ' ' .. helpers.addSeparators(value) } })
+    end
+
+    weight = helpers.roundToPlaces(weight, 2)
+    if weight > 0 then
+        if #flexContent > 0 then
+            flexContent:add(BASE.intervalH(8))
+        end
+        flexContent:add({
+            type = ui.TYPE.Image,
+            props = {
+                size = v2(1, 1) * BASE.TEXT_SIZE,
+                resource = BASE.createTexture('icons/weight.dds'),
+            }
+        })
+        flexContent:add({ name = 'weight', template = BASE.textNormal, props = { text = ' ' .. helpers.addSeparators(weight) } })
+    end
+
+    if #flexContent > 0 then
+        return {
+            name = 'info',
+            type = ui.TYPE.Flex,
+            props = {
+                horizontal = true,
+                align = ui.ALIGNMENT.End,
+                arrange = ui.ALIGNMENT.Center,
+            },
+            external = {
+                stretch = 1,
+            },
+            content = flexContent
+        }
+    end
+    return nil
 end
 
 ---@param id string
