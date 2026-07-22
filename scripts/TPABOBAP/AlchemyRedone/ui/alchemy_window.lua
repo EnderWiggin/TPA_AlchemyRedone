@@ -115,7 +115,7 @@ function AlchemyWindow:init(ctx)
     }, self.ctx)
 
     local tools
-    tools, self.tools = parts.tools(function(type) return self:getToolRecord(type) end)
+    tools, self.tools = parts.tools(self, function(type) return self:getToolRecord(type) end)
 
     local selected
     selected, self.selected = parts.selected(self,
@@ -868,9 +868,61 @@ local ICON_DEFAULTS = {
 }
 
 ---@param getToolRecord fun(type:number):openmw.types.ApparatusRecord?
-parts.tools = function(getToolRecord)
+parts.tools = function(self, getToolRecord)
     local element
     local path = { 'tools-box', 'padding', 'tools' }
+
+    local TIP_W = util.round(T.Base.TEXT_SIZE * 15)
+
+    local function toolTip(record, label, key, suffix)
+        local rows = ui.content {
+            {
+                template = T.Base.textHeader,
+                props = {
+                    text = record and record.name or label,
+                    autoSize = false,
+                    size = v2(TIP_W, T.Base.TEXT_SIZE + 2),
+                    textAlignH = ui.ALIGNMENT.Center,
+                },
+            },
+        }
+        rows:add(T.Base.intervalV(4))
+        rows:add({
+            template = T.Base.textNormal,
+            props = {
+                text = record
+                    and C.Strings.WEIGHT .. ': ' .. H.roundToPlaces(record.weight, 2)
+                        .. '   ' .. C.Strings.VALUE .. ': ' .. record.value .. ' gp'
+                    or l10n('Apparatus_Tooltip_Not_Present'),
+                textColor = C.Colors.DISABLED,
+                autoSize = false,
+                size = v2(TIP_W, T.Base.TEXT_SIZE + 2),
+                textAlignH = ui.ALIGNMENT.Center,
+            },
+        })
+        rows:add(T.Base.intervalV(4))
+        rows:add({
+            template = T.Base.textParagraph,
+            props = {
+                text = l10n('Apparatus_Tooltip_' .. key .. suffix, C.TextColorParams),
+                size = v2(TIP_W, 0),
+                textAlignH = ui.ALIGNMENT.Center,
+            },
+        })
+        return T.Special.tooltip(4, ui.content {
+            {
+                type = ui.TYPE.Flex,
+                content = rows,
+            }
+        }, 'tool-tip-' .. key)
+    end
+
+    local function header(name, type, key, hasModes)
+        return parts.namedHeader(name, self.ctx, function()
+            local suffix = hasModes and self.isPoison and '_Poison' or ''
+            return toolTip(getToolRecord(type), name, key, suffix)
+        end)
+    end
 
     local wdg = {
         update = function()
@@ -948,13 +1000,13 @@ parts.tools = function(getToolRecord)
                                 },
                                 content = ui.content {
                                     T.Base.intervalV(GAP_END),
-                                    parts.namedHeader(C.Strings.MORTAR),
+                                    header(C.Strings.MORTAR, ApparatusTypes.MortarPestle, 'Mortar'),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedHeader(C.Strings.ALEMBIC),
+                                    header(C.Strings.ALEMBIC, ApparatusTypes.Alembic, 'Alembic', true),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedHeader(C.Strings.CALCINATOR),
+                                    header(C.Strings.CALCINATOR, ApparatusTypes.Calcinator, 'Calcinator'),
                                     T.Base.intervalV(GAP_MID),
-                                    parts.namedHeader(C.Strings.RETORT),
+                                    header(C.Strings.RETORT, ApparatusTypes.Retort, 'Retort', true),
                                     T.Base.intervalV(GAP_END),
                                 }
                             },
@@ -1052,7 +1104,24 @@ parts.selected = function(self, getId, onClick, tooltipFn)
             for i = 1, #Slots do updateSelected(i) end
 
             auxUi.deepUpdate(element)
-        end
+        end,
+        -- brew result shown in place of the selected ingredients until hideNotice
+        showNotice = function(potionName, brewed, failed)
+            H.findLayoutByPath(element, path).props.visible = false
+            local notice = H.findLayoutByPath(element, { 'selected-box', 'padding', 'notice' })
+            notice.props.visible = true
+            H.findLayoutByPath(notice, { 'notice-name' }).props.text = potionName
+            H.findLayoutByPath(notice, { 'notice-brewed' }).props.text =
+                l10n('Brew_Notice_Brewed', { count = H.addSeparators(brewed) })
+            H.findLayoutByPath(notice, { 'notice-failed' }).props.text =
+                failed > 0 and l10n('Brew_Notice_Failed', { count = H.addSeparators(failed) }) or ''
+            element:update()
+        end,
+        hideNotice = function()
+            H.findLayoutByPath(element, path).props.visible = true
+            H.findLayoutByPath(element, { 'selected-box', 'padding', 'notice' }).props.visible = false
+            element:update()
+        end,
     }
 
     local box = {
@@ -1144,6 +1213,35 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                                 }
                             },
                         },
+                    },
+                    {
+                        name = 'notice',
+                        type = ui.TYPE.Flex,
+                        props = {
+                            arrange = ui.ALIGNMENT.Center,
+                            align = ui.ALIGNMENT.Center,
+                            autoSize = false,
+                            visible = false,
+                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
+                        },
+                        content = ui.content {
+                            {
+                                name = 'notice-name',
+                                template = T.Base.textHeader,
+                                props = { text = '' },
+                            },
+                            T.Base.intervalV(4),
+                            {
+                                name = 'notice-brewed',
+                                template = T.Base.textNormal,
+                                props = { text = '' },
+                            },
+                            {
+                                name = 'notice-failed',
+                                template = T.Base.textNormal,
+                                props = { text = '' },
+                            },
+                        },
                     }
                 },
             }
@@ -1215,14 +1313,16 @@ parts.namedTitle = function(name)
     }
 end
 
-parts.namedHeader = function(name)
-    return {
+parts.namedHeader = function(name, ctx, tooltipFn)
+    local layout = {
         name     = name,
         template = T.Base.textHeader,
         props    = {
             text = '',
         },
     }
+    if not tooltipFn then return layout end
+    return S.interactive({ tooltipFn = tooltipFn, name = name }, layout, ctx)
 end
 
 parts.namedActiveHeader = function(name, ctx, getId, onClick, tooltipFn)
@@ -1382,7 +1482,8 @@ parts.resultingEffects = function(self)
                         {
                             template = T.Base.textParagraph,
                             props = {
-                                text = l10n('All_Effects_Neutralized'),
+                                -- neutralized here; nudge to the opposite mode where these effects apply
+                                text = l10n('All_Effects_Neutralized') .. l10n(self.isPoison and 'Neutralized_Try_Potions' or 'Neutralized_Try_Poisons'),
                                 textAlignH = ui.ALIGNMENT.Center,
                                 size = v2(BLOCK_WIDTH, 0),
                             }

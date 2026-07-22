@@ -35,14 +35,6 @@ Templates.TEX = {
 ---@param ctx WindowContext
 ---@return any
 Templates.interactive = function(props, element, ctx)
-    local function absToRel(absPos)
-        local layerSize = ui.layers[ui.layers.indexOf('Notification')].size
-        return v2(
-            absPos.x / layerSize.x,
-            absPos.y / layerSize.y
-        )
-    end
-
     local function createTooltip()
         if not props.tooltipFn then return nil end
 
@@ -55,7 +47,7 @@ Templates.interactive = function(props, element, ctx)
         ctx.activeTooltip = ui.create(tip)
         ctx.activeTooltip.layout.name = props.name
         if lastMousePos then
-            ctx.activeTooltip.layout.props.anchor = v2(absToRel(lastMousePos).x, 0)
+            ctx.activeTooltip.layout.props.anchor = v2(0, 0)
             ctx.activeTooltip.layout.props.position = v2(lastMousePos.x, lastMousePos.y + 32)
         end
         ctx.activeTooltip:update()
@@ -161,11 +153,12 @@ Templates.interactive = function(props, element, ctx)
             if ctx.activeTooltip then
                 ctx.activeTooltip.layout.props.visible = true
                 local distToBottom = ui.layers[ui.layers.indexOf('Notification')].size.y - (e.position.y - e.offset.y)
+                -- anchor left so the tooltip opens rightward, never over the hovered list; y still flips up near the bottom edge
                 if distToBottom < ui.layers[ui.layers.indexOf('Notification')].size.y / 2 then
-                    ctx.activeTooltip.layout.props.anchor = v2(absToRel(e.position).x, 1)
+                    ctx.activeTooltip.layout.props.anchor = v2(0, 1)
                     ctx.activeTooltip.layout.props.position = v2(e.position.x, e.position.y - 32)
                 else
-                    ctx.activeTooltip.layout.props.anchor = v2(absToRel(e.position).x, 0)
+                    ctx.activeTooltip.layout.props.anchor = v2(0, 0)
                     ctx.activeTooltip.layout.props.position = v2(e.position.x, e.position.y + 32)
                 end
                 ctx.activeTooltip:update()
@@ -284,14 +277,25 @@ Templates.ingredientTooltip = function(id, actor)
     innerContent:add(BASE.intervalV(4))
 
 
+    local info = {}
     if itemRecord.weight > 0 then
-        innerContent:add(textNormal('weight',
-            constants.Strings.WEIGHT .. ': ' .. helpers.roundToPlaces(itemRecord.weight, 3)))
+        table.insert(info, constants.Strings.WEIGHT .. ': ' .. helpers.roundToPlaces(itemRecord.weight, 2))
     end
 
     local value = itemRecord.value
     if value > 0 and itemRecord.id ~= 'gold_001' then
-        innerContent:add(textNormal('value', constants.Strings.VALUE .. ': ' .. (value)))
+        table.insert(info, constants.Strings.VALUE .. ': ' .. value .. ' gp')
+    end
+
+    if #info > 0 then
+        innerContent:add({
+            name = 'info',
+            template = BASE.textNormal,
+            props = {
+                text = table.concat(info, '   '),
+                textColor = constants.Colors.DISABLED,
+            },
+        })
     end
 
     -- Handle effects for enchantments, potions, and ingredients.
@@ -334,7 +338,7 @@ Templates.ingredientTooltip = function(id, actor)
             name = 'effects',
             type = ui.TYPE.Flex,
             props = {
-                arrange = ui.ALIGNMENT.Center,
+                arrange = ui.ALIGNMENT.Start,
             },
             content = ui.content {
                 table.unpack(effectLayouts)

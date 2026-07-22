@@ -420,6 +420,9 @@ local function getLeastIngredientAmount(ingredients)
     return min
 end
 
+local NOTICE_DURATION = 3.0
+local noticeExpireAt = nil
+
 ---@param name NameOrGetter
 ---@param count integer
 ---@param ingredients string[]
@@ -494,11 +497,16 @@ m.brewPotions = function(name, count, ingredients, isPoison)
             end
         until processed >= brewed
 
-        local msg = core.getGMST(A.PotionErrors.OK)
-        if brewed > 1 then
-            msg = msg .. ' ' .. getName() .. ' (' .. H.addSeparators(brewed) .. ')'
+        if m.wndAlchemy then
+            m.wndAlchemy.selected.showNotice(getName(), brewed, count - brewed)
+            noticeExpireAt = core.getRealTime() + NOTICE_DURATION
+        else
+            local msg = core.getGMST(A.PotionErrors.OK)
+            if brewed > 1 then
+                msg = msg .. ' ' .. getName() .. ' (' .. H.addSeparators(brewed) .. ')'
+            end
+            ui.showMessage(msg)
         end
-        ui.showMessage(msg)
         ambient.playSound('potion success', { scale = false })
         ---@type FinalizePotionsData
         local data = {
@@ -510,7 +518,12 @@ m.brewPotions = function(name, count, ingredients, isPoison)
         }
         core.sendGlobalEvent('TPA_AlchemyRedone_FinalizePotions', data)
     elseif errorCode == A.PotionErrors.FAIL then -- Brewing was attempted, but failed
-        ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
+        if m.wndAlchemy then
+            m.wndAlchemy.selected.showNotice(getName(), 0, count)
+            noticeExpireAt = core.getRealTime() + NOTICE_DURATION
+        else
+            ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
+        end
         ambient.playSound('potion fail', { scale = false })
         ---@type FinalizePotionsData
         local data = {
@@ -712,6 +725,11 @@ local function onFrame()
     end
     updateApparatusHint()
     if I.UI.getMode() ~= I.UI.MODE.Alchemy then return end
+
+    if noticeExpireAt and core.getRealTime() >= noticeExpireAt then
+        noticeExpireAt = nil
+        if m.wndAlchemy then m.wndAlchemy.selected.hideNotice() end
+    end
 
     if ctx.focusedInteractiveDelayed ~= nil then
         if ctx.focusedInteractiveDelayed == false then
