@@ -9,6 +9,8 @@
 ---@field registerPotionModifier fun(modId: string, mod:TPA_AlchemyRedone.PotionModifier) `mod` should either return new draft record, or modify passed one
 ---@field unregisterPotionModifier fun(modId: string) removes potion modifier
 ---@field getKnownEffectFlagsForItem fun(item: openmw.Object): boolean[]
+---@field getKnownEffectFlagsForPotion fun(recordId: string): boolean[]
+---@field getKnownEffectFlagsForIngredient fun(recordId: string): boolean[]
 ---@field getActiveApparatus fun(): LocalApparatusIds returns object that contains record ids of currently active apparatus
 
 ---@class PotionModifierOpts

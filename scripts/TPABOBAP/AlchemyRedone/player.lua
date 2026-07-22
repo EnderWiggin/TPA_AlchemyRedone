@@ -590,6 +590,14 @@ m.getKnownEffectFlagsForItem = function(item)
     return {}
 end
 
+m.getKnownEffectFlagsForPotion = function(recordId)
+    return A.getKnownEffectFlagsForPotion(recordId, player)
+end
+
+m.getKnownEffectFlagsForIngredient = function(recordId)
+    return A.getKnownEffectFlagsForIngredient(recordId, player)
+end
+
 ---@return LocalApparatusIds
 m.getActiveApparatus = function()
     return m.wndAlchemy and ctx.data.apparatus or {}
@@ -844,8 +852,9 @@ local Interface = {
     isEnabled = function() return cfgPlayer.main.b_Enabled end,
     registerPotionModifier = m.registerPotionModifier,
     unregisterPotionModifier = m.unregisterPotionModifier,
-    --knowledge = knowledge, --Not sure if this is needed to be exported
     getKnownEffectFlagsForItem = m.getKnownEffectFlagsForItem,
+    getKnownEffectFlagsForPotion = m.getKnownEffectFlagsForPotion,
+    getKnownEffectFlagsForIngredient = m.getKnownEffectFlagsForIngredient,
     getActiveApparatus = m.getActiveApparatus,
 }
 
