@@ -897,7 +897,7 @@ parts.tools = function(self, getToolRecord)
             },
         })
 
-        local info = T.Special.valueWeightInfo(record.value, record.weight)
+        local info = record and T.Special.valueWeightInfo(record.value, record.weight)
         if info then
             rows:add(T.Base.intervalV(8))
             rows:add(info)
