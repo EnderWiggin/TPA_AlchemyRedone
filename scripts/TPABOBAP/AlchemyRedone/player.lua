@@ -585,13 +585,49 @@ end
 ---@param item GameObject
 ---@param layout openmw.ui.Layout
 ---@return openmw.ui.Layout?
-m.modifyTooltip = function(item, layout)
+m.modifyIETooltip = function(item, layout)
     if not cfgGlobal.rework.b_Enabled or not cfgPlayer.main.b_Enabled then return end
     if item.type == types.Potion or item.type == types.Ingredient then
         local effects = H.findLayoutByPathSafe(layout, { 'padding', 'tooltip', 'effects' })
         if not effects then return end
         effects.content = T.Alchemy.getIEMagicEffectsContent(item, player)
     end
+end
+
+---@param tip SharedTooltip.TipContext
+m.modifySharedTooltip = function(tip)
+    ---@type boolean[]
+    local knowledge
+    ---@type openmw.ui.Layout
+    local group
+    ---@type table[]
+    local effects
+    ---@type boolean|'potion'
+    local isAlchemy = true
+
+    if tip.info.ingredientEffects then
+        effects = tip.info.ingredientEffects
+        group = tip.flex.content['ingredientEffects']
+        knowledge = m.getKnownEffectFlagsForIngredient(tip.record.id)
+    end
+
+    if tip.info.potionEffects then
+        effects = tip.info.potionEffects
+        group = tip.flex.content['potionEffects']
+        knowledge = m.getKnownEffectFlagsForPotion(tip.record.id)
+        isAlchemy = 'potion'
+    end
+
+    if not group then return end
+    for i = 1, #effects do
+        local effect = effects[i]
+        if effect then
+            effect.known = knowledge[i]
+        end
+    end
+
+    group.content = ui.content({})
+    tip.printEffects(group, effects, isAlchemy)
 end
 
 m.getKnownEffectFlagsForItem = function(item)
@@ -832,7 +868,11 @@ local function onUpdate()
         needsInitialization = false
 
         if I.InventoryExtender then
-            I.InventoryExtender.registerTooltipModifier('alchemy-redone', m.modifyTooltip)
+            I.InventoryExtender.registerTooltipModifier('alchemy-redone', m.modifyIETooltip)
+        end
+
+        if I.SharedTooltip then
+            I.SharedTooltip.registerModifier { id = 'TPA_AlchemyRedone', priority = 0, func = m.modifySharedTooltip }
         end
 
         updatePermissions()
