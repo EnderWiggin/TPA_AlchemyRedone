@@ -160,7 +160,7 @@ m.closeWindow = function()
     end
 
     if ctx.activeTooltip then
-        auxUi.deepDestroy(ctx.activeTooltip)
+        pcall(auxUi.deepDestroy, ctx.activeTooltip)
         ctx.activeTooltip = nil
     end
 
