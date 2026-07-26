@@ -62,6 +62,7 @@ local GAP_MID
 local GAP_ICON
 local GAP_EFFECT
 local VERT_GAP
+local COLUMN_GAP
 
 --every tweakable dimension, one row per layout profile; font-dependent values scale in updateSizes
 local PROFILE = {
@@ -70,7 +71,8 @@ local PROFILE = {
         minWidthPad = 160,
         minHeight = 695,
         minHeightFontMult = 23,
-        vertGap = 15,
+        vertGap = 10,
+        columnGap = 15,
         iconRatio = 1.5,
         gapIcon = 3,
         gapEffect = 8,
@@ -82,7 +84,8 @@ local PROFILE = {
         minWidthPad = 60,
         minHeight = 551,
         minHeightFontMult = 19,
-        vertGap = 5,
+        vertGap = 10,
+        columnGap = 5,
         iconRatio = 1.5,
         gapIcon = 1,
         gapEffect = 2,
@@ -101,6 +104,7 @@ local function updateSizes()
     BLOCK_WIDTH = util.round(P.blockWidth * INNER_TEXT / 16)
     MIN_SIZE = v2(2 * BLOCK_WIDTH + P.minWidthPad, P.minHeight + fontDiff * P.minHeightFontMult)
     VERT_GAP = P.vertGap
+    COLUMN_GAP = P.columnGap
 
     ICON_SZ = util.round(INNER_TEXT * P.iconRatio)
     GAP_ICON = P.gapIcon
@@ -649,7 +653,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
                                         self.resultingEffects.element,
                                     },
                                 },
-                                T.Base.intervalH(VERT_GAP),
+                                T.Base.intervalH(COLUMN_GAP),
                                 {
                                     name = 'right',
                                     type = ui.TYPE.Flex,
@@ -708,7 +712,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
                                 horizontal = true,
                                 anchor = v2(0, 1),
                                 relativePosition = v2(0, 1),
-                                position = v2(BLOCK_WIDTH + 14 + VERT_GAP, 0),
+                                position = v2(BLOCK_WIDTH + 14 + COLUMN_GAP, 0),
                                 arrange = ui.ALIGNMENT.Center,
                             },
                             content = ui.content {
