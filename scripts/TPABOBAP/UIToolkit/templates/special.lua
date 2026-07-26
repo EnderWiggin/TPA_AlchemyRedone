@@ -406,11 +406,11 @@ Templates.magicEffectTooltip = function(id)
     return Templates.paragraphTooltip(helpers.getMagicEffectDescription(id), id, { textAlignH = ui.ALIGNMENT.Center })
 end
 
-Templates.effectIcon = function(effectId)
+Templates.effectIcon = function(effectId, sz)
     local layout = {
         type = ui.TYPE.Image,
         props = {
-            size = v2(1, 1) * BASE.TEXT_SIZE,
+            size = v2(1, 1) * (sz or BASE.TEXT_SIZE),
             resource = BASE.effectIconTexture(effectId),
         },
     }

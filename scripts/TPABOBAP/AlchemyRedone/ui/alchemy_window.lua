@@ -54,6 +54,7 @@ local MIN_SIZE = v2(800, 695)
 local isCompact = cfgPlayer.ui.b_CompactMode
 
 local BLOCK_WIDTH = 300
+local INNER_TEXT = 16
 local ICON_SZ
 local GAP_END
 local GAP_MID
@@ -69,6 +70,7 @@ local PROFILE = {
         minHeight = 695,
         minHeightFontMult = 23,
         vertGap = 15,
+        fontOffset = 0,
         iconRatio = 1.5,
         gapIcon = 3,
         gapEffect = 8,
@@ -81,6 +83,7 @@ local PROFILE = {
         minHeight = 551,
         minHeightFontMult = 19,
         vertGap = 5,
+        fontOffset = -2,
         iconRatio = 1.5,
         gapIcon = 3,
         gapEffect = 8,
@@ -91,16 +94,17 @@ local PROFILE = {
 local P = PROFILE.default
 
 local function updateSizes()
-    local fontRatio = T.Base.TEXT_SIZE / 16
     local fontDiff = T.Base.TEXT_SIZE - 16
     P = cfgPlayer.ui.b_CompactMode and PROFILE.compact or PROFILE.default
-    BLOCK_WIDTH = util.round(P.blockWidth * fontRatio)
+    --box contents render at INNER_TEXT; box titles and the right pane keep T.Base.TEXT_SIZE
+    INNER_TEXT = math.max(12, T.Base.TEXT_SIZE + P.fontOffset)
+    BLOCK_WIDTH = util.round(P.blockWidth * INNER_TEXT / 16)
     MIN_SIZE = v2(2 * BLOCK_WIDTH + P.minWidthPad, P.minHeight + fontDiff * P.minHeightFontMult)
     VERT_GAP = P.vertGap
 
-    ICON_SZ = util.round(T.Base.TEXT_SIZE * P.iconRatio)
+    ICON_SZ = util.round(INNER_TEXT * P.iconRatio)
     GAP_ICON = P.gapIcon
-    GAP_END = util.round((ICON_SZ - T.Base.TEXT_SIZE) / 2)
+    GAP_END = util.round((ICON_SZ - INNER_TEXT) / 2)
     GAP_MID = 2 * GAP_END + GAP_ICON
     GAP_EFFECT = P.gapEffect
 end
@@ -112,10 +116,10 @@ local function minInnerHeight()
     local boxV = 2 * omwConstants.border + 10
     local slotBoxH = ICON_SZ * 4 + GAP_ICON * 3 + boxV
     local effectCount = P.effectRows
-    local naming = 2 * T.Base.TEXT_SIZE + 3 + 2 * (omwConstants.border + omwConstants.padding)
+    local naming = T.Base.TEXT_SIZE + INNER_TEXT + 3 + 2 * (omwConstants.border + omwConstants.padding)
     local tools = T.Base.TEXT_SIZE + 2 + 3 + slotBoxH
     local selected = T.Base.TEXT_SIZE + 3 + slotBoxH
-    local result = T.Base.TEXT_SIZE + 3 + T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
+    local result = T.Base.TEXT_SIZE + 3 + INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
     return naming + tools + selected + result + 3 * VERT_GAP + 20
 end
 
@@ -875,7 +879,8 @@ parts.naming = function(defaultText, ctx)
                                         name = 'textEdit',
                                         template = T.Base.textEditLine,
                                         props = {
-                                            size = v2(BLOCK_WIDTH - 20, T.Base.TEXT_SIZE),
+                                            size = v2(BLOCK_WIDTH - 20, INNER_TEXT),
+                                            textSize = INNER_TEXT,
                                             text = name,
                                             textColor = C.Colors.DEFAULT_LIGHT,
                                         },
@@ -1377,6 +1382,7 @@ parts.namedHeader = function(name, ctx, tooltipFn)
         template = T.Base.textHeader,
         props    = {
             text = '',
+            textSize = INNER_TEXT,
         },
     }
     if not tooltipFn then return layout end
@@ -1389,6 +1395,7 @@ parts.namedActiveHeader = function(name, ctx, getId, onClick, tooltipFn)
         template = T.Base.textNormal,
         props    = {
             text = '',
+            textSize = INNER_TEXT,
         },
         userData = {
             colorable = true,
@@ -1408,12 +1415,13 @@ parts.namedText = function(name)
         template = T.Base.textNormal,
         props = {
             text = '',
+            textSize = INNER_TEXT,
         },
     }
 end
 
 parts.namedIcon = function(name, sz)
-    sz = sz or T.Base.TEXT_SIZE
+    sz = sz or INNER_TEXT
     return {
         name = name,
         type = ui.TYPE.Image,
@@ -1559,12 +1567,12 @@ parts.resultingEffects = function(self)
                     local isVisible = not known or known[i]
                     local content = ui.content {}
                     if isVisible then
-                        content:add(T.Special.effectIcon(effect.id))
+                        content:add(T.Special.effectIcon(effect.id, INNER_TEXT))
                         content:add(T.Base.intervalH(4))
                         local effectText = full and H.createSpellEffectString(effect) or H.getMagicEffectString(effect)
-                        content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = effectText or '?' } })
+                        content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = effectText or '?', textSize = INNER_TEXT } })
                     else
-                        content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = '?' } })
+                        content:add({ name = 'effect_text', template = T.Base.textNormal, props = { text = '?', textSize = INNER_TEXT } })
                     end
 
                     local effectLayout = {
@@ -1602,7 +1610,7 @@ parts.resultingEffects = function(self)
                     }
                 })
             end
-            effects.props.size = v2(BLOCK_WIDTH, T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1))
+            effects.props.size = v2(BLOCK_WIDTH, INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1))
 
             auxUi.deepUpdate(element)
         end,
