@@ -1029,7 +1029,7 @@ parts.tools = function(self, getToolRecord)
                         props = {
                             horizontal = true,
                             arrange = ui.ALIGNMENT.Start,
-                            align = ui.ALIGNMENT.Center,
+                            align = ui.ALIGNMENT.Start,
                             autoSize = false,
                             size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
                         },
@@ -1071,7 +1071,7 @@ parts.tools = function(self, getToolRecord)
                                     T.Base.intervalV(GAP_END),
                                 }
                             },
-                            T.Base.intervalH(10),
+                            { props = {}, external = { grow = 1 } },
                             {
                                 name = 'quality',
                                 type = ui.TYPE.Flex,
@@ -1225,7 +1225,7 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                         props = {
                             horizontal = true,
                             arrange = ui.ALIGNMENT.Start,
-                            align = ui.ALIGNMENT.Center,
+                            align = ui.ALIGNMENT.Start,
                             autoSize = false,
                             size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
                         },
@@ -1279,7 +1279,7 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                                     T.Base.intervalV(GAP_END),
                                 }
                             },
-                            T.Base.intervalH(10),
+                            { props = {}, external = { grow = 1 } },
                             {
                                 name = 'effects',
                                 type = ui.TYPE.Flex,
