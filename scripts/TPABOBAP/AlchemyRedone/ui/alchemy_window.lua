@@ -55,6 +55,7 @@ local isCompact = cfgPlayer.ui.b_CompactMode
 
 local BLOCK_WIDTH = 300
 local INNER_TEXT = 16
+local TITLE_TEXT = 16
 local ICON_SZ
 local GAP_END
 local GAP_MID
@@ -70,7 +71,6 @@ local PROFILE = {
         minHeight = 695,
         minHeightFontMult = 23,
         vertGap = 15,
-        fontOffset = 0,
         iconRatio = 1.5,
         gapIcon = 3,
         gapEffect = 8,
@@ -83,11 +83,10 @@ local PROFILE = {
         minHeight = 551,
         minHeightFontMult = 19,
         vertGap = 5,
-        fontOffset = -2,
         iconRatio = 1.5,
-        gapIcon = 3,
-        gapEffect = 8,
-        effectRows = 4,
+        gapIcon = 1,
+        gapEffect = 2,
+        effectRows = 8,
         tableMargin = v2(20, 122),
     },
 }
@@ -96,8 +95,9 @@ local P = PROFILE.default
 local function updateSizes()
     local fontDiff = T.Base.TEXT_SIZE - 16
     P = cfgPlayer.ui.b_CompactMode and PROFILE.compact or PROFILE.default
-    --box contents render at INNER_TEXT; box titles and the right pane keep T.Base.TEXT_SIZE
-    INNER_TEXT = math.max(12, T.Base.TEXT_SIZE + P.fontOffset)
+    --size tiers from the shared templates: contents/tables/tooltips at INNER_TEXT, headings at TITLE_TEXT
+    INNER_TEXT = T.Base.CONTENT_TEXT
+    TITLE_TEXT = T.Base.TITLE_TEXT
     BLOCK_WIDTH = util.round(P.blockWidth * INNER_TEXT / 16)
     MIN_SIZE = v2(2 * BLOCK_WIDTH + P.minWidthPad, P.minHeight + fontDiff * P.minHeightFontMult)
     VERT_GAP = P.vertGap
@@ -116,10 +116,10 @@ local function minInnerHeight()
     local boxV = 2 * omwConstants.border + 10
     local slotBoxH = ICON_SZ * 4 + GAP_ICON * 3 + boxV
     local effectCount = P.effectRows
-    local naming = T.Base.TEXT_SIZE + INNER_TEXT + 3 + 2 * (omwConstants.border + omwConstants.padding)
-    local tools = T.Base.TEXT_SIZE + 2 + 3 + slotBoxH
-    local selected = T.Base.TEXT_SIZE + 3 + slotBoxH
-    local result = T.Base.TEXT_SIZE + 3 + INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
+    local naming = TITLE_TEXT + INNER_TEXT + 3 + 2 * (omwConstants.border + omwConstants.padding)
+    local tools = TITLE_TEXT + 2 + 3 + slotBoxH
+    local selected = TITLE_TEXT + 3 + slotBoxH
+    local result = TITLE_TEXT + 3 + INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
     return naming + tools + selected + result + 3 * VERT_GAP + 20
 end
 
@@ -241,6 +241,7 @@ function AlchemyWindow:loadState()
         local h = minInnerHeight() + chrome
         pos = v2(pos.x, pos.y + (sz.y - h) / 2)
         self:setPositionAndSize(pos, v2(sz.x, h))
+        sz = v2(sz.x, h)
     end
 end
 
@@ -275,7 +276,7 @@ function AlchemyWindow:updateSize()
     self.effectTable.layout.userData.resize(tableSz)
 
     local topLine = H.findLayoutByPath(right, { 'top-lane' })
-    topLine.props.size = v2(tableSz.x + 10, T.Base.TEXT_SIZE)
+    topLine.props.size = v2(tableSz.x + 10, TITLE_TEXT)
     self.filter.setSize(tableSz.x)
 end
 
@@ -660,7 +661,7 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
                                             name = 'top-lane',
                                             type = ui.TYPE.Widget,
                                             props = {
-                                                size = v2(0, T.Base.TEXT_SIZE),
+                                                size = v2(0, TITLE_TEXT),
                                             },
                                             content = ui.content {
                                                 self.tableSelector.element,
@@ -836,7 +837,7 @@ parts.naming = function(defaultText, ctx)
         type = ui.TYPE.Image,
         props = {
             resource = T.Base.createTexture(REVERT_PATH),
-            size = v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE),
+            size = v2(INNER_TEXT, INNER_TEXT),
             color = C.Colors.DEFAULT,
         },
         userData = {
@@ -855,6 +856,7 @@ parts.naming = function(defaultText, ctx)
                 template = T.Base.textNormal,
                 props = {
                     text = C.Strings.NAME,
+                    textSize = TITLE_TEXT,
                 },
             },
             T.Base.intervalV(3),
@@ -928,7 +930,7 @@ parts.tools = function(self, getToolRecord)
     local path = { 'tools-box', 'padding', 'tools' }
     local noticePath = { 'tools-box', 'padding', 'notice' }
 
-    local TIP_W = util.round(T.Base.TEXT_SIZE * 15)
+    local TIP_W = util.round(INNER_TEXT * 15)
 
     local function toolTip(record, label, key, suffix)
         local rows = ui.content {
@@ -937,7 +939,7 @@ parts.tools = function(self, getToolRecord)
                 props = {
                     text = record and record.name or label,
                     autoSize = false,
-                    size = v2(TIP_W, T.Base.TEXT_SIZE + 2),
+                    size = v2(TIP_W, INNER_TEXT + 2),
                     textAlignH = ui.ALIGNMENT.Center,
                 },
             },
@@ -1139,12 +1141,13 @@ parts.tools = function(self, getToolRecord)
         content = ui.content {
             {
                 type = ui.TYPE.Widget,
-                props = { size = v2(BLOCK_WIDTH + 14, T.Base.TEXT_SIZE + 2) },
+                props = { size = v2(BLOCK_WIDTH + 14, TITLE_TEXT + 2) },
                 content = ui.content {
                     {
                         template = T.Base.textNormal,
                         props = {
                             text = C.Strings.APPARATUS,
+                            textSize = TITLE_TEXT,
                         },
                     },
                     {
@@ -1326,6 +1329,7 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                         template = T.Base.textNormal,
                         props = {
                             text = C.Strings.INGREDIENTS,
+                            textSize = TITLE_TEXT,
                         },
                     },
                     T.Base.intervalH(6),
@@ -1339,7 +1343,7 @@ parts.selected = function(self, getId, onClick, tooltipFn)
                         type = ui.TYPE.Image,
                         props = {
                             resource = T.Base.createTexture(REVERT_PATH),
-                            size = v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE),
+                            size = v2(TITLE_TEXT, TITLE_TEXT),
                             color = C.Colors.DEFAULT,
                         },
                         userData = {
@@ -1482,7 +1486,7 @@ parts.resultingEffects = function(self)
                 name = 'value-icon',
                 type = ui.TYPE.Image,
                 props = {
-                    size = v2(1, 1) * T.Base.TEXT_SIZE,
+                    size = v2(1, 1) * INNER_TEXT,
                     resource = T.Base.createTexture('icons/gold.dds'),
                 }
             }
@@ -1503,7 +1507,7 @@ parts.resultingEffects = function(self)
                 name = 'weight-icon',
                 type = ui.TYPE.Image,
                 props = {
-                    size = v2(1, 1) * T.Base.TEXT_SIZE,
+                    size = v2(1, 1) * INNER_TEXT,
                     resource = T.Base.createTexture('icons/weight.dds'),
                 }
             }
@@ -1652,6 +1656,7 @@ parts.resultingEffects = function(self)
                 template = T.Base.textNormal,
                 props = {
                     text = C.Strings.CREATED_EFFECTS,
+                    textSize = TITLE_TEXT,
                 },
             },
             T.Base.intervalV(3),
@@ -1712,7 +1717,7 @@ parts.countBlock = function()
                                 name = 'textEdit',
                                 template = T.Base.textEditLine,
                                 props = {
-                                    size = v2(60, T.Base.TEXT_SIZE),
+                                    size = v2(60, INNER_TEXT),
                                     text = tostring(value),
                                     textColor = C.Colors.DEFAULT_LIGHT,
                                     textAlignH = ui.ALIGNMENT.Center,
@@ -1751,7 +1756,7 @@ parts.filterInput = function(wnd)
         getText = function() return filterValue end,
         setSize = function(width)
             local txt = H.findLayoutByPath(element, path)
-            txt.props.size = v2(width - T.Base.TEXT_SIZE - 7, T.Base.TEXT_SIZE)
+            txt.props.size = v2(width - INNER_TEXT - 7, INNER_TEXT)
             element:update()
         end,
     }
@@ -1767,7 +1772,7 @@ parts.filterInput = function(wnd)
         type = ui.TYPE.Image,
         props = {
             resource = T.Base.createTexture(REVERT_PATH),
-            size = v2(T.Base.TEXT_SIZE, T.Base.TEXT_SIZE),
+            size = v2(INNER_TEXT, INNER_TEXT),
             color = C.Colors.DEFAULT,
         },
         userData = {
@@ -1795,7 +1800,7 @@ parts.filterInput = function(wnd)
                                 name = 'textEdit',
                                 template = T.Base.textEditLine,
                                 props = {
-                                    size = v2(BLOCK_WIDTH - 2, T.Base.TEXT_SIZE),
+                                    size = v2(BLOCK_WIDTH - 2, INNER_TEXT),
                                     text = isEmpty() and placeholder or filterValue,
                                     textColor = isEmpty() and C.Colors.DISABLED or C.Colors.DEFAULT_LIGHT,
                                 },
@@ -1870,7 +1875,8 @@ parts.typeSelector = function(wnd)
     }, {
         template = T.Base.textNormal,
         props = {
-            text = l10n('Label_Potion')
+            text = l10n('Label_Potion'),
+            textSize = TITLE_TEXT,
         },
         userData = {
             colorable = true,
@@ -1887,7 +1893,8 @@ parts.typeSelector = function(wnd)
     }, {
         template = T.Base.textNormal,
         props = {
-            text = l10n('Label_Poison')
+            text = l10n('Label_Poison'),
+            textSize = TITLE_TEXT,
         },
         userData = {
             colorable = true,
@@ -1908,7 +1915,8 @@ parts.typeSelector = function(wnd)
             {
                 template = T.Base.textHeader,
                 props = {
-                    text = '|'
+                    text = '|',
+                    textSize = TITLE_TEXT,
                 },
             },
             T.Base.intervalH(5),
@@ -1970,7 +1978,8 @@ parts.tableSelector = function(wnd)
     }, {
         template = T.Base.textNormal,
         props = {
-            text = C.Strings.INGREDIENTS
+            text = C.Strings.INGREDIENTS,
+            textSize = TITLE_TEXT,
         },
         userData = {
             colorable = true,
@@ -1987,7 +1996,8 @@ parts.tableSelector = function(wnd)
     }, {
         template = T.Base.textNormal,
         props = {
-            text = C.Strings.EFFECTS
+            text = C.Strings.EFFECTS,
+            textSize = TITLE_TEXT,
         },
         userData = {
             colorable = true,
@@ -2010,7 +2020,8 @@ parts.tableSelector = function(wnd)
             {
                 template = T.Base.textHeader,
                 props = {
-                    text = '|'
+                    text = '|',
+                    textSize = TITLE_TEXT,
                 },
             },
             T.Base.intervalH(5),
@@ -2068,6 +2079,7 @@ parts.filterMatchingToggle = function(wnd)
         template = T.Base.textNormal,
         props = {
             text = l10n('Label_Matching'),
+            textSize = TITLE_TEXT,
             textAlignH = ui.ALIGNMENT.End,
         },
         userData = {
