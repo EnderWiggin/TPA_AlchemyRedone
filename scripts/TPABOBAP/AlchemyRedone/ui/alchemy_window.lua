@@ -123,7 +123,7 @@ local function minInnerHeight()
     local naming = TITLE_TEXT + INNER_TEXT + 3 + 2 * (omwConstants.border + omwConstants.padding)
     local tools = TITLE_TEXT + 2 + 3 + slotBoxH
     local selected = TITLE_TEXT + 3 + slotBoxH
-    local result = TITLE_TEXT + 3 + INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
+    local result = TITLE_TEXT + 2 + 3 + INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
     return naming + tools + selected + result + 3 * VERT_GAP + 20
 end
 
@@ -697,13 +697,15 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
                     },
                 },
                 {
+                    --right-pane lane only: spanning the full width would sit over the
+                    --result box bottom rows and swallow their hover events
                     type = ui.TYPE.Widget,
                     props = {
                         anchor = v2(0, 1),
                         relativePosition = v2(0, 1),
                         relativeSize = v2(1, 0),
-                        position = v2(10, -10),
-                        size = v2(-20, 50),
+                        position = v2(10 + BLOCK_WIDTH + 14 + COLUMN_GAP, -10),
+                        size = v2(-(20 + BLOCK_WIDTH + 14 + COLUMN_GAP), 50),
                     },
                     content = ui.content {
                         {
@@ -712,15 +714,12 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
                                 horizontal = true,
                                 anchor = v2(0, 1),
                                 relativePosition = v2(0, 1),
-                                position = v2(BLOCK_WIDTH + 14 + COLUMN_GAP, 0),
                                 arrange = ui.ALIGNMENT.Center,
                             },
                             content = ui.content {
                                 self.btnCreate,
                                 T.Base.intervalH(10),
                                 counting,
-                                T.Base.intervalH(15),
-                                self.resultingEffects.info,
                             },
                         },
                         {
@@ -1641,7 +1640,7 @@ parts.resultingEffects = function(self)
                             autoSize = false,
                             arrange = ui.ALIGNMENT.Start,
                             align = ui.ALIGNMENT.Start,
-                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
+                            size = v2(BLOCK_WIDTH, INNER_TEXT * P.effectRows + GAP_EFFECT * (P.effectRows - 1)),
                         },
                         content = ui.content {},
                     }
@@ -1656,11 +1655,25 @@ parts.resultingEffects = function(self)
         props = {},
         content = ui.content {
             {
-                name = 'title',
-                template = T.Base.textNormal,
-                props = {
-                    text = C.Strings.CREATED_EFFECTS,
-                    textSize = TITLE_TEXT,
+                type = ui.TYPE.Widget,
+                props = { size = v2(BLOCK_WIDTH + 14, TITLE_TEXT + 2) },
+                content = ui.content {
+                    {
+                        name = 'title',
+                        template = T.Base.textNormal,
+                        props = {
+                            text = C.Strings.CREATED_EFFECTS,
+                            textSize = TITLE_TEXT,
+                        },
+                    },
+                    {
+                        type = ui.TYPE.Container,
+                        props = {
+                            anchor = v2(1, 0),
+                            relativePosition = v2(1, 0),
+                        },
+                        content = ui.content { info },
+                    },
                 },
             },
             T.Base.intervalV(3),
@@ -1669,7 +1682,6 @@ parts.resultingEffects = function(self)
     }
 
     wdg.element = element
-    wdg.info = info
     return wdg
 end
 
