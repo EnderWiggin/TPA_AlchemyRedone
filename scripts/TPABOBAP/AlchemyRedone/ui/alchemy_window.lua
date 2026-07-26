@@ -78,6 +78,7 @@ local PROFILE = {
         gapEffect = 8,
         effectRows = 8,
         tableMargin = v2(35, 140),
+        startWidthPad = 0,
     },
     compact = {
         blockWidth = 310,
@@ -91,6 +92,8 @@ local PROFILE = {
         gapEffect = 2,
         effectRows = 8,
         tableMargin = v2(20, 122),
+        startWidthPad = 58,
+        startPos = { x = 0.315, y = 0 },
     },
 }
 local P = PROFILE.default
@@ -103,6 +106,11 @@ local function updateSizes()
     TITLE_TEXT = T.Base.TITLE_TEXT
     BLOCK_WIDTH = util.round(P.blockWidth * INNER_TEXT / 16)
     MIN_SIZE = v2(2 * BLOCK_WIDTH + P.minWidthPad, P.minHeight + fontDiff * P.minHeightFontMult)
+    --never demand a minimum larger than the screen layer itself (high GUI scale shrinks the logical layer)
+    local okL, lsz = pcall(function() return ui.layers[ui.layers.indexOf('Windows')].size end)
+    if okL and lsz then
+        MIN_SIZE = v2(math.min(MIN_SIZE.x, lsz.x - 24), math.min(MIN_SIZE.y, lsz.y - 24))
+    end
     VERT_GAP = P.vertGap
     COLUMN_GAP = P.columnGap
 
@@ -239,13 +247,18 @@ function AlchemyWindow:loadState()
     end
     self:setPositionAndSize(pos, sz)
     local chrome = sz.y - self.element.layout.userData.getInnerSize().y
-    self.element.layout.userData.minHeight = minInnerHeight() + chrome
+    self.element.layout.userData.minHeight = math.min(minInnerHeight() + chrome, layerSize.y - 24)
     if not dims then
-        --first open defaults to the smallest window, recentered for the shorter height
-        local h = minInnerHeight() + chrome
-        pos = v2(pos.x, pos.y + (sz.y - h) / 2)
-        self:setPositionAndSize(pos, v2(sz.x, h))
-        sz = v2(sz.x, h)
+        --snap-fit start: size derives from content (fonts), position from the profile as a layer fraction
+        local h = math.min(minInnerHeight() + chrome, layerSize.y - 24)
+        local w = math.min(MIN_SIZE.x + P.startWidthPad, layerSize.x - 24)
+        if P.startPos then
+            pos = v2(layerSize.x * P.startPos.x, layerSize.y * P.startPos.y)
+        else
+            pos = v2(pos.x + (sz.x - w) / 2, pos.y + (sz.y - h) / 2)
+        end
+        self:setPositionAndSize(pos, v2(w, h))
+        sz = v2(w, h)
     end
 end
 
@@ -297,7 +310,10 @@ function AlchemyWindow:update(deep)
     updateSizes()
     local chrome = self.element.layout.props.size.y - self.element.layout.userData.getInnerSize().y
     self.element.layout.userData.minWidth = MIN_SIZE.x
-    self.element.layout.userData.minHeight = minInnerHeight() + chrome
+    local okL, lsz = pcall(function() return ui.layers[ui.layers.indexOf('Windows')].size end)
+    local minH = minInnerHeight() + chrome
+    if okL and lsz then minH = math.min(minH, lsz.y - 24) end
+    self.element.layout.userData.minHeight = minH
     self:updateMatchingEffects()
 
     if deep then
