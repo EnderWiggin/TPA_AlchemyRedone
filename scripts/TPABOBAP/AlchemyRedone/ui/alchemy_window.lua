@@ -206,6 +206,12 @@ function AlchemyWindow:loadState()
     self:setPositionAndSize(pos, sz)
     local chrome = sz.y - self.element.layout.userData.getInnerSize().y
     self.element.layout.userData.minHeight = minInnerHeight() + chrome
+    if not dims then
+        --first open defaults to the smallest window, recentered for the shorter height
+        local h = minInnerHeight() + chrome
+        pos = v2(pos.x, pos.y + (sz.y - h) / 2)
+        self:setPositionAndSize(pos, v2(sz.x, h))
+    end
 end
 
 function AlchemyWindow:saveState()
