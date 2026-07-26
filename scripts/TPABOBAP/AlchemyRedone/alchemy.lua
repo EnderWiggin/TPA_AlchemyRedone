@@ -148,9 +148,14 @@ Alchemy.updateBrewedPotionKnowledge = function(potion, ingredients, actor)
         for i = 1, #effects do
             local k = Alchemy.containsEffect(record.effects, effects[i])
             if k then
-                local prev = type(prevKnown) == "table" and prevKnown[i] or prevKnown
-                knowledge[k] = known[i] or prev
-                if not knowledge[i] then
+                local prev
+                if type(prevKnown) == "table" then
+                    prev = prevKnown[i]
+                else
+                    prev = prevKnown
+                end
+                knowledge[k] = known[i] or prev or false
+                if not knowledge[k] then
                     all = false
                 end
             end
