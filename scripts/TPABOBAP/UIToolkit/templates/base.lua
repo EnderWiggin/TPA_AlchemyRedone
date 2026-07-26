@@ -28,6 +28,8 @@ local BORDER_THICKNESS_THICK = omwConstants.thickBorder
 
 local Templates = {}
 
+local COMPACT_TEXT_CAP = 16
+
 local function updateConfig()
     local mode = cfgPlayer.ui.s_intReMode
     if mode == constants.InterfaceReimaginedMode.Auto then
@@ -40,17 +42,25 @@ local function updateConfig()
 
     local sz = cfgPlayer.ui.n_TextSize
     if not sz or sz <= 0 then sz = omwConstants.textNormalSize end
+    --three size tiers: TEXT_SIZE (menu base), TITLE_TEXT (headings), CONTENT_TEXT (contents, tables, tooltips)
+    --compact caps the base and lowers the tiers; all render code reads tiers, never the mode
+    local compact = cfgPlayer.ui.b_CompactMode
+    if compact then sz = math.min(sz, COMPACT_TEXT_CAP) end
 
     Templates.TEXT_SIZE = sz
-    Templates.textNormal.props.textSize = sz
-    Templates.textHeader.props.textSize = sz
-    Templates.textParagraph.props.textSize = sz
-    Templates.textEditLine.props.textSize = sz
+    Templates.TITLE_TEXT = compact and math.max(13, sz - 1) or sz
+    Templates.CONTENT_TEXT = compact and math.max(12, sz - 2) or sz
+    Templates.textNormal.props.textSize = Templates.CONTENT_TEXT
+    Templates.textHeader.props.textSize = Templates.CONTENT_TEXT
+    Templates.textParagraph.props.textSize = Templates.CONTENT_TEXT
+    Templates.textEditLine.props.textSize = Templates.CONTENT_TEXT
 end
 storage.playerSection(CFG.SECTION.MENU.Interface):subscribe(async:callback(updateConfig))
 
 --Templates.TEXT_SIZE = configPlayer.window.i_TextSizeOverride > 0 and configPlayer.window.i_TextSizeOverride or omwConstants.textNormalSize
 Templates.TEXT_SIZE = omwConstants.textNormalSize
+Templates.TITLE_TEXT = omwConstants.textNormalSize
+Templates.CONTENT_TEXT = omwConstants.textNormalSize
 
 Templates.TEXTURES = {}
 Templates.createTexture = function(path, size, offset)
@@ -761,6 +771,7 @@ Templates.window = function(title, content, ctx, opts)
                                 template = intRe and Templates.textHeader or Templates.textNormal,
                                 props = {
                                     text = title,
+                                    textSize = Templates.TITLE_TEXT,
                                 }
                             },
                             Templates.intervalH(8),

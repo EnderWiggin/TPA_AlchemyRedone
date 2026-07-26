@@ -91,7 +91,7 @@ local function renderFavoriteEffect(effect, width, height)
                 template = T.Base.textNormal,
                 props = {
                     text = '*',
-                    textSize = T.Base.TEXT_SIZE * 2,
+                    textSize = T.Base.CONTENT_TEXT * 2,
                     textColor = C.Colors.YELLOW,
                     textAlignH = ui.ALIGNMENT.Center,
                     textAlignV = ui.ALIGNMENT.Center,
@@ -108,13 +108,13 @@ m.makeIngredientTable = function(wnd)
     local ctx = wnd.ctx
     ---@type AlchemyData
     local data = wnd.data
-    local rowHeight = 1.5 * (T.Base.TEXT_SIZE + 2)
-    local effectWidth = 4 * (T.Base.TEXT_SIZE + 3)
+    local rowHeight = 1.5 * (T.Base.CONTENT_TEXT + 2)
+    local effectWidth = 4 * (T.Base.CONTENT_TEXT + 3)
 
     local function renderEffects(ingredient, width, height)
         local record = types.Ingredient.record(ingredient.id)
         local effects = record and record.effects or {}
-        local sz = T.Base.TEXT_SIZE
+        local sz = T.Base.CONTENT_TEXT
         local content = ui.content {}
         local known = A.getKnownEffectFlagsForIngredient(record, player)
         local nonMatching = data.nonMatching
@@ -206,7 +206,7 @@ end
 m.makeEffectTable = function(wnd)
     ---@type AlchemyContext
     local ctx = wnd.ctx
-    local rowHeight = 1.5 * (T.Base.TEXT_SIZE + 2)
+    local rowHeight = 1.5 * (T.Base.CONTENT_TEXT + 2)
 
     return Table.create(ctx, {
         columns = {
