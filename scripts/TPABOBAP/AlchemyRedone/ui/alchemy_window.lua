@@ -60,23 +60,49 @@ local GAP_MID
 local GAP_ICON
 local GAP_EFFECT
 local VERT_GAP
+
+--every tweakable dimension, one row per layout profile; font-dependent values scale in updateSizes
+local PROFILE = {
+    default = {
+        blockWidth = 310,
+        minWidthPad = 160,
+        minHeight = 695,
+        minHeightFontMult = 23,
+        vertGap = 15,
+        iconRatio = 1.5,
+        gapIcon = 3,
+        gapEffect = 8,
+        effectRows = 8,
+        tableMargin = v2(35, 140),
+    },
+    compact = {
+        blockWidth = 310,
+        minWidthPad = 60,
+        minHeight = 551,
+        minHeightFontMult = 19,
+        vertGap = 5,
+        iconRatio = 1.5,
+        gapIcon = 3,
+        gapEffect = 8,
+        effectRows = 4,
+        tableMargin = v2(20, 122),
+    },
+}
+local P = PROFILE.default
+
 local function updateSizes()
     local fontRatio = T.Base.TEXT_SIZE / 16
     local fontDiff = T.Base.TEXT_SIZE - 16
-    BLOCK_WIDTH = util.round(310 * fontRatio)
-    if cfgPlayer.ui.b_CompactMode then
-        MIN_SIZE = v2(2 * BLOCK_WIDTH + 60, 551 + fontDiff * 19)
-        VERT_GAP = 5
-    else
-        MIN_SIZE = v2(2 * BLOCK_WIDTH + 160, 695 + fontDiff * 23)
-        VERT_GAP = 15
-    end
+    P = cfgPlayer.ui.b_CompactMode and PROFILE.compact or PROFILE.default
+    BLOCK_WIDTH = util.round(P.blockWidth * fontRatio)
+    MIN_SIZE = v2(2 * BLOCK_WIDTH + P.minWidthPad, P.minHeight + fontDiff * P.minHeightFontMult)
+    VERT_GAP = P.vertGap
 
-    ICON_SZ = util.round(T.Base.TEXT_SIZE * 1.5)
-    GAP_ICON = 3
+    ICON_SZ = util.round(T.Base.TEXT_SIZE * P.iconRatio)
+    GAP_ICON = P.gapIcon
     GAP_END = util.round((ICON_SZ - T.Base.TEXT_SIZE) / 2)
     GAP_MID = 2 * GAP_END + GAP_ICON
-    GAP_EFFECT = 8
+    GAP_EFFECT = P.gapEffect
 end
 
 updateSizes()
@@ -85,7 +111,7 @@ updateSizes()
 local function minInnerHeight()
     local boxV = 2 * omwConstants.border + 10
     local slotBoxH = ICON_SZ * 4 + GAP_ICON * 3 + boxV
-    local effectCount = cfgPlayer.ui.b_CompactMode and 4 or 8
+    local effectCount = P.effectRows
     local naming = 2 * T.Base.TEXT_SIZE + 3 + 2 * (omwConstants.border + omwConstants.padding)
     local tools = T.Base.TEXT_SIZE + 2 + 3 + slotBoxH
     local selected = T.Base.TEXT_SIZE + 3 + slotBoxH
@@ -224,7 +250,6 @@ end
 
 function AlchemyWindow:updateSize()
     if not self.element or not self.element.layout then return end
-    local compact = cfgPlayer.ui.b_CompactMode
     local inner = self.element.layout.userData.getInnerSize()
     local c = self.element.layout.props.position
     local sz = self.element.layout.props.size
@@ -241,7 +266,7 @@ function AlchemyWindow:updateSize()
     local right = H.findLayoutByPath(self.element, { 'foreground', 'body', 'content', 'main', 'panel', 'right' })
     local rsz = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
 
-    local tableSz = rsz - (compact and v2(20, 122) or v2(35, 140))
+    local tableSz = rsz - P.tableMargin
     self.itemTable.layout.userData.resize(tableSz)
     self.effectTable.layout.userData.resize(tableSz)
 
@@ -1495,7 +1520,7 @@ parts.resultingEffects = function(self)
             for i = 1, #effects.content do
                 auxUi.deepDestroy(effects.content[i])
             end
-            local effectCount = cfgPlayer.ui.b_CompactMode and 4 or 8
+            local effectCount = P.effectRows
             effects.content = ui.content {}
 
             local matching = self.data.matching
