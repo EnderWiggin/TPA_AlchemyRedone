@@ -16,7 +16,7 @@ local KnowledgeThreshold = {
 local IngredientThreshold = {
     default = 25,
     min = 10,
-    max = 50,
+    max = 100,
 }
 
 local IngredientMaxTaste = {
