@@ -9,6 +9,7 @@ local async = require('openmw.async')
 local player = require('openmw.self')
 local auxUi = require('openmw_aux.ui')
 local storage = require('openmw.storage')
+local omwConstants = require('scripts.omw.mwui.constants')
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 
 local settings = storage.playerSection(CFG.SECTION.PLAYER.WINDOW)
@@ -79,6 +80,18 @@ local function updateSizes()
 end
 
 updateSizes()
+
+--smallest inner height where the create row bottom lines up with the result box bottom border
+local function minInnerHeight()
+    local boxV = 2 * omwConstants.border + 10
+    local slotBoxH = ICON_SZ * 4 + GAP_ICON * 3 + boxV
+    local effectCount = cfgPlayer.ui.b_CompactMode and 4 or 8
+    local naming = 2 * T.Base.TEXT_SIZE + 3 + 2 * (omwConstants.border + omwConstants.padding)
+    local tools = T.Base.TEXT_SIZE + 2 + 3 + slotBoxH
+    local selected = T.Base.TEXT_SIZE + 3 + slotBoxH
+    local result = T.Base.TEXT_SIZE + 3 + T.Base.TEXT_SIZE * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
+    return naming + tools + selected + result + 3 * VERT_GAP + 20
+end
 
 ---@param ctx AlchemyContext
 function AlchemyWindow:init(ctx)
@@ -191,6 +204,8 @@ function AlchemyWindow:loadState()
         pos = position
     end
     self:setPositionAndSize(pos, sz)
+    local chrome = sz.y - self.element.layout.userData.getInnerSize().y
+    self.element.layout.userData.minHeight = minInnerHeight() + chrome
 end
 
 function AlchemyWindow:saveState()
@@ -240,8 +255,9 @@ end
 function AlchemyWindow:update(deep)
     if not self.element then return end
     updateSizes()
+    local chrome = self.element.layout.props.size.y - self.element.layout.userData.getInnerSize().y
     self.element.layout.userData.minWidth = MIN_SIZE.x
-    self.element.layout.userData.minHeight = MIN_SIZE.y
+    self.element.layout.userData.minHeight = minInnerHeight() + chrome
     self:updateMatchingEffects()
 
     if deep then
