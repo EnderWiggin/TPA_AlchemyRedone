@@ -25,7 +25,19 @@ local RepeatStep = {
 
 local FontSize = {
     default = 0,
-    min = 0,
+    min = -10,
+    max = 24,
+}
+
+local FontSizeTitle = {
+    default = -1,
+    min = -10,
+    max = 24,
+}
+
+local FontSizeContent = {
+    default = -2,
+    min = -10,
     max = 24,
 }
 
@@ -169,7 +181,7 @@ I.Settings.registerGroup {
             key = 'b_CompactMode',
             renderer = 'checkbox',
             name = 'SettingCompactMode',
-            description = 'SettingCompactModeDesc',
+            description = l10n('SettingCompactModeDesc', C.TextColorParams),
             default = false,
         },
         {
@@ -182,6 +194,30 @@ I.Settings.registerGroup {
                 integer = true,
                 min = FontSize.min,
                 max = FontSize.max,
+            }
+        },
+        {
+            key = 'n_TextSizeTitle',
+            renderer = 'number',
+            name = 'SettingTextSizeTitle',
+            description = l10n('SettingTextSizeTitleDesc', H.mergeTables(C.TextColorParams, FontSizeTitle)),
+            default = FontSizeTitle.default,
+            argument = {
+                integer = true,
+                min = FontSizeTitle.min,
+                max = FontSizeTitle.max,
+            }
+        },
+        {
+            key = 'n_TextSizeContent',
+            renderer = 'number',
+            name = 'SettingTextSizeContent',
+            description = l10n('SettingTextSizeContentDesc', H.mergeTables(C.TextColorParams, FontSizeContent)),
+            default = FontSizeContent.default,
+            argument = {
+                integer = true,
+                min = FontSizeContent.min,
+                max = FontSizeContent.max,
             }
         },
         {

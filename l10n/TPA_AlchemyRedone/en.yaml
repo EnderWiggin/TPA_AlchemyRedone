@@ -185,7 +185,7 @@ InterfaceReimaginedMode_Off: "Off "
 SettingCompactMode: Compact Mode
 SettingCompactModeDesc: |-
   Makes the window smaller.
-  Can be wonky if brewed potion has more than 4 effects, unless resized manually.
+  Generic text maximum size is capped at {color_header}16{color_normal} and enables other text size overrides.
 
 SettingNumberSeparators: Show thousand separators
 ConfigNumberSeparators_None: None
@@ -194,7 +194,20 @@ ConfigNumberSeparators_Space: Space
 
 SettingTextSize: Text Size
 SettingTextSizeDesc: |-
-  Override text size. Set to {color_header}0{color_normal} to use default size.
+  Override generic text size.
+  Set to {color_header}0{color_normal} to use default size. Set to negative to be relative to default text size.
+  Range is [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}], default is {color_header}{default}{color_normal}.
+
+SettingTextSizeTitle: Compact Title Text Size
+SettingTextSizeTitleDesc: |-
+  In {color_header}Compact Mode{color_normal} overrides text size for titles. 
+  Set to {color_header}0{color_normal} to use default size. Set to negative to be relative to generic text size.
+  Range is [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}], default is {color_header}{default}{color_normal}.
+
+SettingTextSizeContent: Compact Content Text Size
+SettingTextSizeContentDesc: |-
+  In {color_header}Compact Mode{color_normal} overrides text size for effect lists and tooltip lines. 
+  Set to {color_header}0{color_normal} to use default size. Set to negative to be relative to generic text size.
   Range is [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}], default is {color_header}{default}{color_normal}.
 
 SettingShowUseHint: Show Usage Hint

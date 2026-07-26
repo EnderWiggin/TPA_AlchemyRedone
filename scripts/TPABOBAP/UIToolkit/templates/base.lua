@@ -39,28 +39,41 @@ local function updateConfig()
     elseif mode == constants.InterfaceReimaginedMode.ON then
         intRe = true
     end
-
-    local sz = cfgPlayer.ui.n_TextSize
-    if not sz or sz <= 0 then sz = omwConstants.textNormalSize end
     --three size tiers: TEXT_SIZE (menu base), TITLE_TEXT (headings), CONTENT_TEXT (contents, tables, tooltips)
     --compact caps the base and lowers the tiers; all render code reads tiers, never the mode
     local compact = cfgPlayer.ui.b_CompactMode
+    local sz = cfgPlayer.ui.n_TextSize or 0
+
+    if sz <= 0 then sz = omwConstants.textNormalSize + sz end
     if compact then sz = math.min(sz, COMPACT_TEXT_CAP) end
 
+    local szt = cfgPlayer.ui.n_TextSizeTitle or 0
+    if not compact then
+        szt = sz
+    elseif szt <= 0 then
+        szt = math.max(13, sz + szt)
+    end
+
+    local szc = cfgPlayer.ui.n_TextSizeContent or 0
+    if not compact then
+        szc = sz
+    elseif szc <= 0 then
+        szc = math.max(13, sz + szc)
+    end
+
     Templates.TEXT_SIZE = sz
-    Templates.TITLE_TEXT = compact and math.max(13, sz - 1) or sz
-    Templates.CONTENT_TEXT = compact and math.max(12, sz - 2) or sz
-    Templates.textNormal.props.textSize = Templates.CONTENT_TEXT
-    Templates.textHeader.props.textSize = Templates.CONTENT_TEXT
-    Templates.textParagraph.props.textSize = Templates.CONTENT_TEXT
-    Templates.textEditLine.props.textSize = Templates.CONTENT_TEXT
+    Templates.TEXT_SIZE_TITLE = szt
+    Templates.TEXT_SIZE_CONTENT = szc
+    Templates.textNormal.props.textSize = Templates.TEXT_SIZE_CONTENT
+    Templates.textHeader.props.textSize = Templates.TEXT_SIZE_CONTENT
+    Templates.textParagraph.props.textSize = Templates.TEXT_SIZE_CONTENT
+    Templates.textEditLine.props.textSize = Templates.TEXT_SIZE_CONTENT
 end
 storage.playerSection(CFG.SECTION.MENU.Interface):subscribe(async:callback(updateConfig))
 
---Templates.TEXT_SIZE = configPlayer.window.i_TextSizeOverride > 0 and configPlayer.window.i_TextSizeOverride or omwConstants.textNormalSize
 Templates.TEXT_SIZE = omwConstants.textNormalSize
-Templates.TITLE_TEXT = omwConstants.textNormalSize
-Templates.CONTENT_TEXT = omwConstants.textNormalSize
+Templates.TEXT_SIZE_TITLE = omwConstants.textNormalSize
+Templates.TEXT_SIZE_CONTENT = omwConstants.textNormalSize
 
 Templates.TEXTURES = {}
 Templates.createTexture = function(path, size, offset)
@@ -771,7 +784,7 @@ Templates.window = function(title, content, ctx, opts)
                                 template = intRe and Templates.textHeader or Templates.textNormal,
                                 props = {
                                     text = title,
-                                    textSize = Templates.TITLE_TEXT,
+                                    textSize = Templates.TEXT_SIZE_TITLE,
                                 }
                             },
                             Templates.intervalH(8),

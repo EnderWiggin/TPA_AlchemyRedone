@@ -102,8 +102,8 @@ local function updateSizes()
     local fontDiff = T.Base.TEXT_SIZE - 16
     P = cfgPlayer.ui.b_CompactMode and PROFILE.compact or PROFILE.default
     --size tiers from the shared templates: contents/tables/tooltips at INNER_TEXT, headings at TITLE_TEXT
-    INNER_TEXT = T.Base.CONTENT_TEXT
-    TITLE_TEXT = T.Base.TITLE_TEXT
+    INNER_TEXT = T.Base.TEXT_SIZE_CONTENT
+    TITLE_TEXT = T.Base.TEXT_SIZE_TITLE
     BLOCK_WIDTH = util.round(P.blockWidth * INNER_TEXT / 16)
     MIN_SIZE = v2(2 * BLOCK_WIDTH + P.minWidthPad, P.minHeight + fontDiff * P.minHeightFontMult)
     --never demand a minimum larger than the screen layer itself (high GUI scale shrinks the logical layer)

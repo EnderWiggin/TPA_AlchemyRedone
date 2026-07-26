@@ -710,7 +710,7 @@ local function showApparatusHint(text)
     hideApparatusHint()
     hint.text = text
     local layout = T.Special.lineTooltip(l10n(text), 'alchemy-usage-hint',
-        { textAlignH = ui.ALIGNMENT.Center, })
+        { textAlignH = ui.ALIGNMENT.Center, textSize = T.Base.TEXT_SIZE, })
     layout.layer = 'HUD'
     layout.props.relativePosition = v2(0.5, 0.55)
     layout.props.anchor = v2(0.5, 0.5)

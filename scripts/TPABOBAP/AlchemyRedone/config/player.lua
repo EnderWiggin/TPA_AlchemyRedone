@@ -32,6 +32,8 @@ local C = require('scripts.TPABOBAP.UIToolkit.constants')
 ---@field s_intReMode InterfaceReimaginedMode
 ---@field b_CompactMode boolean?
 ---@field n_TextSize integer?
+---@field n_TextSizeTitle integer?
+---@field n_TextSizeContent integer?
 ---@field s_NumberSeparators string?
 ---@field b_ShowUseHint boolean?
 
