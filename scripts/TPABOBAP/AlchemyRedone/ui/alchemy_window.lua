@@ -656,11 +656,15 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
                                 horizontal = true,
                                 anchor = v2(0, 1),
                                 relativePosition = v2(0, 1),
+                                position = v2(BLOCK_WIDTH + 14 + VERT_GAP, 0),
+                                arrange = ui.ALIGNMENT.Center,
                             },
                             content = ui.content {
-                                counting,
-                                T.Base.intervalH(10),
                                 self.btnCreate,
+                                T.Base.intervalH(10),
+                                counting,
+                                T.Base.intervalH(15),
+                                self.resultingEffects.info,
                             },
                         },
                         {
@@ -1597,12 +1601,11 @@ parts.resultingEffects = function(self)
             },
             T.Base.intervalV(3),
             box,
-            T.Base.intervalV(5),
-            info
         }
     }
 
     wdg.element = element
+    wdg.info = info
     return wdg
 end
 
