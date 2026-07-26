@@ -114,9 +114,6 @@ function AlchemyWindow:init(ctx)
         onClick = function() I.UI.removeMode(I.UI.MODE.Alchemy) end
     }, self.ctx)
 
-    local tools
-    tools, self.tools = parts.tools(self, function(type) return self:getToolRecord(type) end)
-
     local selected
     selected, self.selected = parts.selected(self,
         function(n)
@@ -149,6 +146,9 @@ function AlchemyWindow:init(ctx)
     self.toggleFilterMatching = parts.filterMatchingToggle(self)
 
     self.potionTypeSelector = parts.typeSelector(self)
+
+    local tools
+    tools, self.tools = parts.tools(self, function(type) return self:getToolRecord(type) end)
 
     local content = self:makeContent(naming, tools, selected, counting, btnCancel)
 
@@ -663,7 +663,6 @@ function AlchemyWindow:makeContent(naming, tools, selected, counting, btnCancel)
                                 self.btnCreate,
                             },
                         },
-                        self.potionTypeSelector.element,
                         {
                             type = ui.TYPE.Container,
                             props = {
@@ -1083,9 +1082,23 @@ parts.tools = function(self, getToolRecord)
         props = {},
         content = ui.content {
             {
-                template = T.Base.textNormal,
-                props = {
-                    text = C.Strings.APPARATUS,
+                type = ui.TYPE.Widget,
+                props = { size = v2(BLOCK_WIDTH + 14, T.Base.TEXT_SIZE + 2) },
+                content = ui.content {
+                    {
+                        template = T.Base.textNormal,
+                        props = {
+                            text = C.Strings.APPARATUS,
+                        },
+                    },
+                    {
+                        type = ui.TYPE.Container,
+                        props = {
+                            anchor = v2(1, 0),
+                            relativePosition = v2(1, 0),
+                        },
+                        content = ui.content { self.potionTypeSelector.element },
+                    },
                 },
             },
             T.Base.intervalV(3),
@@ -1828,11 +1841,8 @@ parts.typeSelector = function(wnd)
         type = ui.TYPE.Flex,
         props = {
             horizontal = true,
-            anchor = v2(0.5, 1),
-            relativePosition = v2(0.5, 1),
             align = ui.ALIGNMENT.Center,
             arrange = ui.ALIGNMENT.Center,
-            position = v2(0, -3)
         },
         content = ui.content {
             potion,
