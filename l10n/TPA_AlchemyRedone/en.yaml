@@ -36,20 +36,16 @@ AlchemyWindow_Toggle_Matching_Effect_Tooltip: |-
 Apparatus_Tooltip_Not_Present: Not Present
 
 Apparatus_Tooltip_Mortar: |-
-  Quality raises every effect's
-  strength, duration, and value.
+  Quality raises strength, duration, and value of all effects.
 
 Apparatus_Tooltip_Alembic: |-
-  Potion: Tempers (weakens)
-  {color_header}harmful{color_normal} effects.
+  Potion: decreases strength of {color_header}harmful{color_normal} effects.
 
 Apparatus_Tooltip_Alembic_Poison: |-
-  Poison: Tempers (weakens)
-  {color_header}helpful{color_normal} effects.
+  Poison: decreases strength of {color_header}helpful{color_normal} effects.
 
 Apparatus_Tooltip_Calcinator: |-
-  Strengthens every effect,
-  {color_header}helpful{color_normal} and {color_header}harmful{color_normal} alike.
+  Strengthens all effects, {color_header}helpful{color_normal} and {color_header}harmful{color_normal} alike.
 
 Apparatus_Tooltip_Retort: |-
   Potion: Boosts {color_header}helpful{color_normal} effects.
