@@ -210,7 +210,7 @@ function Window:onOpened(wnd, data)
     self.itemTable = self:makeIngredientList()
     self:updateIngredientList()
 
-    self.content = self:makeContent()
+    self.content, self.rightPanel = self:makeContent()
     wnd:setContent(self.content)
 
     self:onResized(wnd:getInnerSize())
@@ -234,15 +234,12 @@ function Window:onResized(inner)
     if self.lastSz and self.lastSz == inner then return end
     self.lastSz = inner
 
-    local content = self.content[1]
-    content.props.size = inner
-
-    local right = H.findLayoutByPath(content, { 'main', 'panel', 'right' })
+    local right = self.rightPanel
     local rsz = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
 
     local tableSz = rsz - P.tableMargin
     if self.showEffects then
-        --self.effectTable.layout.userData.resize(tableSz)
+        --self.effectTable.layout.userData.resize(tableSz)  --TODO: implement
     else
         self.itemTable:setSize(tableSz)
     end
@@ -250,134 +247,127 @@ function Window:onResized(inner)
     local topLine = H.findLayoutByPath(right, { 'top-lane' })
     topLine.props.size = v2(tableSz.x + 10, TITLE_TEXT)
     self.filter:setSize(tableSz.x + 5)
+    I.UIToolkit.queueUpdate(right)
 end
 
----@return openmw.ui.Content
+---@return openmw.ui.Content, openmw.ui.Element
 function Window:makeContent()
+    local right = ui.create {
+        name = 'right',
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = false,
+        },
+        content = ui.content {
+            {
+                name = 'top-lane',
+                type = ui.TYPE.Widget,
+                props = {
+                    size = v2(0, TITLE_TEXT),
+                },
+                content = ui.content {
+                    self.tableSelector.element,
+                    self.toggleFilterMatching.element,
+                },
+            },
+            T.intervalV(3),
+            {
+                name = 'ingredients-box',
+                template = T.boxSolid,
+                props = {},
+                content = ui.content {
+                    {
+                        name = 'padding',
+                        template = T.padding(5),
+                        content = ui.content {
+                            self.itemTable.element,
+                            --self.effectTable, --TODO: implement
+                        }
+                    },
+                }
+            },
+            T.intervalV(5),
+            self.filter.element,
+        },
+    }
     return ui.content {
-       {
-            name = 'content',
-            type = ui.TYPE.Widget,
+        ui.create {
+            name = 'main',
+            type = ui.TYPE.Flex,
             props = {
-                size = self.wnd:getInnerSize()
+                horizontal = false,
+                position = v2(10, 10)
             },
             content = ui.content {
                 {
-                    name = 'main',
+                    name = 'panel',
                     type = ui.TYPE.Flex,
                     props = {
-                        horizontal = false,
-                        position = v2(10, 10)
+                        horizontal = true,
                     },
                     content = ui.content {
-                        {
-                            name = 'panel',
+                        ui.create {
+                            name = 'left',
                             type = ui.TYPE.Flex,
                             props = {
-                                horizontal = true,
+                                horizontal = false,
                             },
                             content = ui.content {
-                                {
-                                    name = 'left',
-                                    type = ui.TYPE.Flex,
-                                    props = {
-                                        horizontal = false,
-                                    },
-                                    content = ui.content {
-                                        self:makeNaming(),
-                                        T.intervalV(VERT_GAP),
-                                        self.tools.element,
-                                        T.intervalV(VERT_GAP),
-                                        self.selected.element,
-                                        T.intervalV(VERT_GAP),
-                                        self.resultingEffects.element,
-                                    },
-                                },
-                                T.intervalH(COLUMN_GAP),
-                                {
-                                    name = 'right',
-                                    type = ui.TYPE.Flex,
-                                    props = {
-                                        horizontal = false,
-                                    },
-                                    content = ui.content {
-                                        {
-                                            name = 'top-lane',
-                                            type = ui.TYPE.Widget,
-                                            props = {
-                                                size = v2(0, TITLE_TEXT),
-                                            },
-                                            content = ui.content {
-                                                self.tableSelector.element,
-                                                self.toggleFilterMatching.element,
-                                            },
-                                        },
-                                        T.intervalV(3),
-                                        {
-                                            name = 'ingredients-box',
-                                            template = T.boxSolid,
-                                            props = {},
-                                            content = ui.content {
-                                                {
-                                                    name = 'padding',
-                                                    template = T.padding(5),
-                                                    content = ui.content {
-                                                        self.itemTable.element,
-                                                        --self.effectTable,
-                                                    }
-                                                },
-                                            }
-                                        },
-                                        T.intervalV(5),
-                                        self.filter.element,
-                                    },
-                                },
-                            }
+                                self:makeNaming(),
+                                T.intervalV(VERT_GAP),
+                                self.tools.element,
+                                T.intervalV(VERT_GAP),
+                                self.selected.element,
+                                T.intervalV(VERT_GAP),
+                                self.resultingEffects.element,
+                            },
                         },
+                        T.intervalH(COLUMN_GAP),
+                        right,
+                    }
+                },
+            },
+        },
+        {
+            --right-pane lane only: spanning the full width would sit over the
+            --result box bottom rows and swallow their hover events
+            type = ui.TYPE.Widget,
+            props = {
+                anchor = v2(0, 1),
+                relativePosition = v2(0, 1),
+                relativeSize = v2(1, 0),
+                position = v2(10 + BLOCK_WIDTH + 14 + COLUMN_GAP, -10),
+                size = v2(-(20 + BLOCK_WIDTH + 14 + COLUMN_GAP), 50),
+            },
+            content = ui.content {
+                {
+                    type = ui.TYPE.Flex,
+                    props = {
+                        horizontal = true,
+                        anchor = v2(0, 1),
+                        relativePosition = v2(0, 1),
+                        arrange = ui.ALIGNMENT.Center,
+                    },
+                    content = ui.content {
+                        --self.btnCreate, --TODO: implement
+                        T.intervalH(10),
+                        --counting, --TODO: implement
                     },
                 },
                 {
-                    --right-pane lane only: spanning the full width would sit over the
-                    --result box bottom rows and swallow their hover events
-                    type = ui.TYPE.Widget,
+                    type = ui.TYPE.Container,
                     props = {
-                        anchor = v2(0, 1),
-                        relativePosition = v2(0, 1),
-                        relativeSize = v2(1, 0),
-                        position = v2(10 + BLOCK_WIDTH + 14 + COLUMN_GAP, -10),
-                        size = v2(-(20 + BLOCK_WIDTH + 14 + COLUMN_GAP), 50),
+                        anchor = v2(1, 1),
+                        relativePosition = v2(1, 1),
+                        --position = v2(-10, 0),
                     },
                     content = ui.content {
-                        {
-                            type = ui.TYPE.Flex,
-                            props = {
-                                horizontal = true,
-                                anchor = v2(0, 1),
-                                relativePosition = v2(0, 1),
-                                arrange = ui.ALIGNMENT.Center,
-                            },
-                            content = ui.content {
-                                --self.btnCreate,
-                                T.intervalH(10),
-                                --counting,
-                            },
-                        },
-                        {
-                            type = ui.TYPE.Container,
-                            props = {
-                                anchor = v2(1, 1),
-                                relativePosition = v2(1, 1),
-                                --position = v2(-10, 0),
-                            },
-                            content = ui.content {
-                                --btnCancel,
-                            },
-                        },
+                        --btnCancel, --TODO: implement
                     },
                 },
             },
-        }
-    }
+        },
+    }, right
 end
 
 ---@return openmw.ui.Element
@@ -1541,7 +1531,7 @@ function Window:onPotionTypeUpdated()
 end
 
 function Window:updateData()
-    -- parts.setInteractiveState(self.btnCreate, false, false)
+    -- parts.setInteractiveState(self.btnCreate, false, false)  --TODO: implement
     self.allIngredients = M.getAllIngredients(self.data)
     if self.showEffects then
         self:updateEffectList()
