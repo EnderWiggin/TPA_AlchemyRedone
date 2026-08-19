@@ -16,55 +16,53 @@ local ListItemBase = require('scripts.UIToolkit.components.list_items.base_item'
 
 
 local UNKNOWN_EFFECT = Base.createTexture('icons/TPABOBAP/AlchemyRedone/unknown-effect.png')
----@class UIToolkit.ListData.Ingredient : UIToolkit.ListData.Base
+---@class AlchemyRedone.ListData.Ingredient : UIToolkit.ListData.Base
 ---@field count integer
+---@field name string
+---@field searchText string
+---@field isActive fun():boolean
 
----@class AlchemyRedone.ListItemIngredient: UIToolkit.ListItem.Base<UIToolkit.ListData.Ingredient>
+---@class AlchemyRedone.ListItemIngredient: UIToolkit.ListItem.Base<AlchemyRedone.ListData.Ingredient>
 local ListItemIngredient = Class(ListItemBase)
 
 ---@param data AlchemyData
 ---@param rowHeight number
 ---@param effectWidth number
----@param isActive fun(id:string):boolean
-function ListItemIngredient:init(data, rowHeight, effectWidth, isActive)
+function ListItemIngredient:init(data, rowHeight, effectWidth)
     self.data = data
     self.rowHeight = rowHeight
     self.effectWidth = effectWidth
-    self.isActive = isActive
 end
 
-local function renderIngredientIcon(ingredient, width, height)
+---@param ingredient string
+---@param sz number
+---@return openmw.ui.Element
+local function renderIngredientIcon(ingredient, sz)
     local record = types.Ingredient.record(ingredient)
-    local sz = math.min(width, height)
-    return {
-        name = 'Icon',
+    return ui.create {
+        name = 'icon',
+        type = ui.TYPE.Image,
         props = {
-            size = v2(width, height),
-        },
-        content = ui.content {
-            {
-                name = 'icon',
-                type = ui.TYPE.Image,
-                props = {
-                    resource = record and Base.createTexture(record.icon),
-                    anchor = v2(0.5, 0.5),
-                    relativePosition = v2(0.5, 0.5),
-                    size = v2(sz, sz),
-                }
-            },
+            resource = record and Base.createTexture(record.icon),
+            size = v2(sz, sz),
         }
     }
 end
 
-function ListItemIngredient:renderEffects(ingredient, width, height)
+---@param ingredient string
+---@param width number
+---@param size openmw.util.Vector2
+---@param active boolean
+---@return openmw.ui.Element
+function ListItemIngredient:renderEffects(ingredient, width, size, active)
     local data = self.data
-    local record = types.Ingredient.record(ingredient.id)
+    local record = types.Ingredient.record(ingredient)
     local effects = record and record.effects or {}
     local sz = Base.TEXT_SIZE_CONTENT
     local content = ui.content {}
     local known = A.getKnownEffectFlagsForIngredient(record, player)
     local nonMatching = data.nonMatching
-    local notActive = not ingredient.activeFn()
+    local notActive = not active
     local brightKey = {}
     local knownKey = {}
 
@@ -93,55 +91,91 @@ function ListItemIngredient:renderEffects(ingredient, width, height)
         end
     end
     return {
-        name = 'Effects',
+        name = 'effects',
         props = {
-            size = v2(width, height),
+            position = v2(size.x - self.effectWidth, 0),
+            size = v2(width, size.y),
         },
         content = content,
         userData = {
+            --TODO: don't think this is actually used?
             brightKey = table.concat(brightKey, ':'),
             knownKey = table.concat(knownKey, ':'),
         }
     }
 end
 
----@param data UIToolkit.ListData.Ingredient
+---@param data AlchemyRedone.ListData.Ingredient
 ---@param size openmw.util.Vector2
----@return UIToolkit.Component
-function ListItemIngredient:makeComponent(data, size)
-    local component = Component:new()
-    local icon = renderIngredientIcon(data.id, self.rowHeight, self.rowHeight)
+---@return openmw.ui.Element
+function ListItemIngredient:makeNewElement(data, size)
+    local active = data.isActive()
+    local icon = renderIngredientIcon(data.id, self.rowHeight)
     local text = {
+        name = 'text',
         template = T.text(),
         props = {
             position = v2(self.rowHeight + 5, 0),
             size = v2(size.x - self.rowHeight - 5 - self.effectWidth, size.y),
             textAlignV = ui.ALIGNMENT.Center,
             autoSize = false,
-            text = data.name, --data.id .. ' (' .. data.count .. ')'
+            text = data.name,
         },
         userData = { colorable = true },
     }
 
-    local effects = self:renderEffects(data, self.effectWidth, size.y)
-    effects.props.position = v2(size.x - self.effectWidth, 0)
+    local effects = self:renderEffects(data.id, self.effectWidth, size, active)
 
-    local active = false
-    if self.isActive then
-        active = self.isActive(data.id)
-    end
-
-    component:init(ui.create {
-        props = {
-            size = size,
-        },
+    return ui.create {
+        name = 'ingredient:' .. data.id,
+        props = { size = size, },
         content = ui.content { icon, text, effects },
         userData = { active = active }
-    })
+    }
+end
+
+---@param data AlchemyRedone.ListData.Ingredient
+---@param size openmw.util.Vector2
+---@param old openmw.ui.Element
+function ListItemIngredient:updateElement(data, size, old)
+    ---@type openmw.ui.Content
+    local content = old.layout.content
+    ---@type openmw.ui.Layout
+    local layout
+    local props
+
+    --update text size and position
+    layout = content[2]
+    props = layout.props
+    props.position = v2(self.rowHeight + 5, 0)
+    props.size = v2(size.x - self.rowHeight - 5 - self.effectWidth, size.y)
+
+    --update effect position
+    layout = content[3]
+    props = layout.props
+    props.position = v2(size.x - self.effectWidth, 0)
+
+    old.layout.props.size = size
+    I.UIToolkit.queueUpdate(old)
+end
+
+---@param data AlchemyRedone.ListData.Ingredient
+---@param size openmw.util.Vector2
+---@param old UIToolkit.Component?
+---@return UIToolkit.Component
+function ListItemIngredient:makeComponent(data, size, old)
+    local component = old or Component:new()
+
+    if component:isDestroyed() then
+        component:init(self:makeNewElement(data, size))
+    else
+        self:updateElement(data, size, component.element)
+    end
+
     return component
 end
 
----@param data UIToolkit.ListData.Ingredient
+---@param data AlchemyRedone.ListData.Ingredient
 ---@return UTKTooltips.Tooltip?
 function ListItemIngredient:getTooltip(data)
     ---@type UTKTooltips.Tooltip

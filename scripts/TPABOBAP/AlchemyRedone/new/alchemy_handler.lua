@@ -75,8 +75,8 @@ local COLUMN_GAP
 --every tweakable dimension, one row per layout profile; font-dependent values scale in updateSizes
 local PROFILE = {
     default = {
-        blockWidth = 310,
-        minWidthPad = 160,
+        blockWidth = 330,
+        minWidthPad = 135,
         minHeight = 695,
         minHeightFontMult = 23,
         vertGap = 10,
@@ -85,11 +85,11 @@ local PROFILE = {
         gapIcon = 3,
         gapEffect = 8,
         effectRows = 8,
-        tableMargin = v2(45, 148),
+        tableMargin = v2(20, 140),
         startWidthPad = 0,
     },
     compact = {
-        blockWidth = 310,
+        blockWidth = 330,
         minWidthPad = 60,
         minHeight = 551,
         minHeightFontMult = 19,
@@ -99,12 +99,24 @@ local PROFILE = {
         gapIcon = 1,
         gapEffect = 2,
         effectRows = 8,
-        tableMargin = v2(25, 130),
+        tableMargin = v2(20, 122),
         startWidthPad = 58,
         startPos = { x = 0.315, y = 0 },
     },
 }
 local P = PROFILE.default
+
+local function minInnerHeight()
+    local sizes = I.UIToolkit.getTheme().Sizes
+    local boxV = 2 * sizes.border + 10
+    local slotBoxH = ICON_SZ * 4 + GAP_ICON * 3 + boxV
+    local effectCount = P.effectRows
+    local naming = TITLE_TEXT + INNER_TEXT + 3 + 2 * (sizes.border + sizes.padding)
+    local tools = TITLE_TEXT + 2 + 3 + slotBoxH
+    local selected = TITLE_TEXT + 3 + slotBoxH
+    local result = TITLE_TEXT + 2 + 3 + INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
+    return naming + tools + selected + result + 3 * VERT_GAP + 55
+end
 
 local function updateSizes()
     local fontDiff = Base.TEXT_SIZE - 16
@@ -113,11 +125,11 @@ local function updateSizes()
     INNER_TEXT = Base.TEXT_SIZE_CONTENT
     TITLE_TEXT = Base.TEXT_SIZE_TITLE
     BLOCK_WIDTH = util.round(P.blockWidth * INNER_TEXT / 16)
-    MIN_SIZE = v2(2 * BLOCK_WIDTH + P.minWidthPad, P.minHeight + fontDiff * P.minHeightFontMult)
+    local minWidth = 2 * BLOCK_WIDTH + P.minWidthPad
     --never demand a minimum larger than the screen layer itself (high GUI scale shrinks the logical layer)
     local okL, lsz = pcall(function() return ui.layers[ui.layers.indexOf('Windows')].size end)
     if okL and lsz then
-        MIN_SIZE = v2(math.min(MIN_SIZE.x, lsz.x - 24), math.min(MIN_SIZE.y, lsz.y - 24))
+        minWidth = math.min(minWidth, lsz.x - 24)
     end
     VERT_GAP = P.vertGap
     COLUMN_GAP = P.columnGap
@@ -127,9 +139,8 @@ local function updateSizes()
     GAP_END = util.round((ICON_SZ - INNER_TEXT) / 2)
     GAP_MID = 2 * GAP_END + GAP_ICON
     GAP_EFFECT = P.gapEffect
+    MIN_SIZE = v2(minWidth, minInnerHeight())
 end
-
-updateSizes()
 
 ---@class AlchemyRedone.Window: UIToolkit.WindowHandler
 ---@field new fun():AlchemyRedone.Window
@@ -151,9 +162,7 @@ function Window:onOpened(wnd, data)
 
     ---@type AlchemyRedone.ListItemIngredient
     local provider = ListItemIngredient:new()
-    provider:init(self.data, rowHeight, effectWidth, function(id)
-        return M.ingredientSelected(id, self.data.selected)
-    end)
+    provider:init(self.data, rowHeight, effectWidth)
     self.ingredientProvider = provider
 
     --Show effects or ingredients?
@@ -246,6 +255,7 @@ function Window:onResized(inner)
 
     local topLine = H.findLayoutByPath(right, { 'top-lane' })
     topLine.props.size = v2(tableSz.x + 10, TITLE_TEXT)
+    self.filter.element.layout.props.position = v2(0, TITLE_TEXT + 20 + tableSz.y)
     self.filter:setSize(tableSz.x + 5)
     I.UIToolkit.queueUpdate(right)
 end
@@ -254,9 +264,9 @@ end
 function Window:makeContent()
     local right = ui.create {
         name = 'right',
-        type = ui.TYPE.Flex,
+        type = ui.TYPE.Container,
         props = {
-            horizontal = false,
+            position = v2(BLOCK_WIDTH + COLUMN_GAP, 0),
         },
         content = ui.content {
             {
@@ -270,11 +280,12 @@ function Window:makeContent()
                     self.toggleFilterMatching.element,
                 },
             },
-            T.intervalV(3),
             {
                 name = 'ingredients-box',
                 template = T.boxSolid,
-                props = {},
+                props = {
+                    position = v2(0, TITLE_TEXT + 3)
+                },
                 content = ui.content {
                     {
                         name = 'padding',
@@ -286,47 +297,36 @@ function Window:makeContent()
                     },
                 }
             },
-            T.intervalV(5),
             self.filter.element,
         },
     }
     return ui.content {
         ui.create {
             name = 'main',
-            type = ui.TYPE.Flex,
+            type = ui.TYPE.Container,
             props = {
-                horizontal = false,
                 position = v2(10, 10)
             },
             content = ui.content {
-                {
-                    name = 'panel',
+                ui.create {
+                    name = 'left',
                     type = ui.TYPE.Flex,
                     props = {
-                        horizontal = true,
+                        horizontal = false,
                     },
                     content = ui.content {
-                        ui.create {
-                            name = 'left',
-                            type = ui.TYPE.Flex,
-                            props = {
-                                horizontal = false,
-                            },
-                            content = ui.content {
-                                self:makeNaming(),
-                                T.intervalV(VERT_GAP),
-                                self.tools.element,
-                                T.intervalV(VERT_GAP),
-                                self.selected.element,
-                                T.intervalV(VERT_GAP),
-                                self.resultingEffects.element,
-                            },
-                        },
-                        T.intervalH(COLUMN_GAP),
-                        right,
-                    }
+                        self:makeNaming(),
+                        T.intervalV(VERT_GAP),
+                        self.tools.element,
+                        T.intervalV(VERT_GAP),
+                        self.selected.element,
+                        T.intervalV(VERT_GAP),
+                        self.resultingEffects.element,
+                    },
                 },
-            },
+                T.intervalH(COLUMN_GAP),
+                right,
+            }
         },
         {
             --right-pane lane only: spanning the full width would sit over the
@@ -336,8 +336,8 @@ function Window:makeContent()
                 anchor = v2(0, 1),
                 relativePosition = v2(0, 1),
                 relativeSize = v2(1, 0),
-                position = v2(10 + BLOCK_WIDTH + 14 + COLUMN_GAP, -10),
-                size = v2(-(20 + BLOCK_WIDTH + 14 + COLUMN_GAP), 50),
+                position = v2(10 + BLOCK_WIDTH + COLUMN_GAP, -10),
+                size = v2(-(20 + BLOCK_WIDTH + COLUMN_GAP), 50),
             },
             content = ui.content {
                 {
@@ -688,11 +688,13 @@ function Window:makeTools()
 
 
     local function header(name, type, key, hasModes)
-        return M.namedHeader(name, function()
+        local e = M.namedHeader(name, function()
             local suffix = hasModes and self.isPoison and '_Poison' or ''
             local record = self:getToolRecord(type)
             return toolTip(record, name, key, suffix)
         end)
+        e.layout.external = { grow = 1 }
+        return e
     end
 
     local wdg = {
@@ -700,13 +702,13 @@ function Window:makeTools()
             local tools = H.findLayoutByPath(element, path)
             local function updateTool(name, type)
                 local record = self:getToolRecord(type)
-                local layout = H.findLayoutByPath(tools, { 'name', name })
+                local layout = H.findLayoutByPath(tools, { name, 'name' })
                 layout.props.text = record and record.name or STRINGS.NONE
 
-                layout = H.findLayoutByPath(tools, { 'quality', name })
+                layout = H.findLayoutByPath(tools, { name, 'quality' })
                 layout.props.text = record and 'x' .. H.roundToPlaces(record.quality, 2) or ''
 
-                layout = H.findLayoutByPath(tools, { 'icon', name })
+                layout = H.findLayoutByPath(tools, { name, 'icon' })
                 local tex = ICON_DEFAULTS[name]
                 local color = COLORS.GRAY
                 if record and record.icon then
@@ -742,6 +744,24 @@ function Window:makeTools()
             element:update()
         end,
     }
+    local function makeRow(name, type, key)
+        return {
+            name = name,
+            type = ui.TYPE.Flex,
+            props = {
+                horizontal = true,
+                autoSize = false,
+                arrange = ui.ALIGNMENT.Center,
+                size = v2(BLOCK_WIDTH - 10, ICON_SZ),
+            },
+            content = ui.content {
+                M.namedIcon('icon', ICON_SZ),
+                T.intervalH(10),
+                header('name', type, key),
+                M.namedText('quality'),
+            },
+        }
+    end
     local box = {
         name = 'tools-box',
         template = T.boxSolid,
@@ -754,70 +774,20 @@ function Window:makeTools()
                         name = 'tools',
                         type = ui.TYPE.Flex,
                         props = {
-                            horizontal = true,
+                            horizontal = false,
                             arrange = ui.ALIGNMENT.Start,
                             align = ui.ALIGNMENT.Start,
                             autoSize = false,
-                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
+                            size = v2(BLOCK_WIDTH - 10, ICON_SZ * 4 + GAP_ICON * 3),
                         },
                         content = ui.content {
-                            {
-                                name = 'icon',
-                                type = ui.TYPE.Flex,
-                                props = {
-                                    horizontal = false,
-                                    arrange = ui.ALIGNMENT.Center,
-                                },
-                                content = ui.content {
-                                    M.namedIcon(STRINGS.MORTAR, ICON_SZ),
-                                    T.intervalV(GAP_ICON),
-                                    M.namedIcon(STRINGS.ALEMBIC, ICON_SZ),
-                                    T.intervalV(GAP_ICON),
-                                    M.namedIcon(STRINGS.CALCINATOR, ICON_SZ),
-                                    T.intervalV(GAP_ICON),
-                                    M.namedIcon(STRINGS.RETORT, ICON_SZ),
-                                }
-                            },
-                            T.intervalH(10),
-                            {
-                                name = 'name',
-                                type = ui.TYPE.Flex,
-                                props = {
-                                    horizontal = false,
-                                    arrange = ui.ALIGNMENT.Start,
-                                },
-                                content = ui.content {
-                                    T.intervalV(GAP_END),
-                                    header(STRINGS.MORTAR, ApparatusTypes.MortarPestle, 'Mortar'),
-                                    T.intervalV(GAP_MID),
-                                    header(STRINGS.ALEMBIC, ApparatusTypes.Alembic, 'Alembic', true),
-                                    T.intervalV(GAP_MID),
-                                    header(STRINGS.CALCINATOR, ApparatusTypes.Calcinator, 'Calcinator'),
-                                    T.intervalV(GAP_MID),
-                                    header(STRINGS.RETORT, ApparatusTypes.Retort, 'Retort', true),
-                                    T.intervalV(GAP_END),
-                                }
-                            },
-                            { props = {}, external = { grow = 1 } },
-                            {
-                                name = 'quality',
-                                type = ui.TYPE.Flex,
-                                props = {
-                                    horizontal = false,
-                                    arrange = ui.ALIGNMENT.Start,
-                                },
-                                content = ui.content {
-                                    T.intervalV(GAP_END),
-                                    M.namedText(STRINGS.MORTAR),
-                                    T.intervalV(GAP_MID),
-                                    M.namedText(STRINGS.ALEMBIC),
-                                    T.intervalV(GAP_MID),
-                                    M.namedText(STRINGS.CALCINATOR),
-                                    T.intervalV(GAP_MID),
-                                    M.namedText(STRINGS.RETORT),
-                                    T.intervalV(GAP_END),
-                                }
-                            },
+                            makeRow(STRINGS.MORTAR, ApparatusTypes.MortarPestle, 'Mortar'),
+                            T.intervalV(GAP_ICON),
+                            makeRow(STRINGS.ALEMBIC, ApparatusTypes.Alembic, 'Alembic'),
+                            T.intervalV(GAP_ICON),
+                            makeRow(STRINGS.CALCINATOR, ApparatusTypes.Calcinator, 'Calcinator'),
+                            T.intervalV(GAP_ICON),
+                            makeRow(STRINGS.RETORT, ApparatusTypes.Retort, 'Retort'),
                         },
                     },
                     {
@@ -828,7 +798,7 @@ function Window:makeTools()
                             align = ui.ALIGNMENT.Center,
                             autoSize = false,
                             visible = false,
-                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
+                            size = v2(BLOCK_WIDTH - 10, ICON_SZ * 4 + GAP_ICON * 3),
                         },
                         content = ui.content {
                             {
@@ -861,7 +831,7 @@ function Window:makeTools()
         content = ui.content {
             {
                 type = ui.TYPE.Widget,
-                props = { size = v2(BLOCK_WIDTH + 14, TITLE_TEXT + 2) },
+                props = { size = v2(BLOCK_WIDTH, TITLE_TEXT + 2) },
                 content = ui.content {
                     {
                         template = T.text(),
@@ -909,8 +879,8 @@ function Window:makeSelected()
             local selected = H.findLayoutByPath(element, path)
             local function updateSelected(n)
                 local record, amount = self:getSelectedIngredientRecord(n)
-                local name = H.findLayoutByPath(selected, { 'name', Slots[n] })
-                local icon = H.findLayoutByPath(selected, { 'icon', Slots[n] })
+                local name = H.findLayoutByPath(selected, { Slots[n], 'name' })
+                local icon = H.findLayoutByPath(selected, { Slots[n], 'icon' })
 
                 if record and amount > 0 then
                     local effects = record.effects
@@ -918,7 +888,7 @@ function Window:makeSelected()
                     icon.props.resource = I.UIToolkit.texture(record.icon)
                     local known = A.getKnownEffectFlagsForIngredient(record, player)
                     for i = 1, 4 do
-                        icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
+                        icon = H.findLayoutByPath(selected, { Slots[n], 'effects', 'effect_' .. i })
                         if #effects >= i and effects[i] then
                             local effect = effects[i]
                             if known[i] then
@@ -937,7 +907,7 @@ function Window:makeSelected()
                     icon.props.resource = nil
 
                     for i = 1, 4 do
-                        icon = H.findLayoutByPath(selected, { 'effects', Slots[n], 'effect_' .. i })
+                        icon = H.findLayoutByPath(selected, { Slots[n], 'effects', 'effect_' .. i })
                         icon.props.resource = nil
                     end
                 end
@@ -948,7 +918,28 @@ function Window:makeSelected()
             auxUi.deepUpdate(element)
         end,
     }
-
+    local function makeRow(index)
+        local name = M.namedActiveHeader('name', function() return getId(index) end,
+            function() onClick(index) end,
+            function() return tooltipFn(index) end)
+        name.layout.external = { grow = 1 }
+        return {
+            name = Slots[index],
+            type = ui.TYPE.Flex,
+            props = {
+                horizontal = true,
+                autoSize = false,
+                arrange = ui.ALIGNMENT.Center,
+                size = v2(BLOCK_WIDTH - 10, ICON_SZ),
+            },
+            content = ui.content {
+                M.namedIcon('icon', ICON_SZ),
+                T.intervalH(10),
+                name,
+                M.namedEffects('effects'),
+            },
+        }
+    end
     local box = {
         name = 'selected-box',
         template = T.boxSolid,
@@ -961,78 +952,20 @@ function Window:makeSelected()
                         name = 'selected',
                         type = ui.TYPE.Flex,
                         props = {
-                            horizontal = true,
+                            horizontal = false,
                             arrange = ui.ALIGNMENT.Start,
                             align = ui.ALIGNMENT.Start,
                             autoSize = false,
-                            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3),
+                            size = v2(BLOCK_WIDTH - 10, ICON_SZ * 4 + GAP_ICON * 3),
                         },
                         content = ui.content {
-                            {
-                                name = 'icon',
-                                type = ui.TYPE.Flex,
-                                props = {
-                                    horizontal = false,
-                                    arrange = ui.ALIGNMENT.Center,
-                                },
-                                content = ui.content {
-                                    M.namedIcon(Slots[1], ICON_SZ),
-                                    T.intervalV(GAP_ICON),
-                                    M.namedIcon(Slots[2], ICON_SZ),
-                                    T.intervalV(GAP_ICON),
-                                    M.namedIcon(Slots[3], ICON_SZ),
-                                    T.intervalV(GAP_ICON),
-                                    M.namedIcon(Slots[4], ICON_SZ),
-                                }
-                            },
-                            T.intervalH(10),
-                            {
-                                name = 'name',
-                                type = ui.TYPE.Flex,
-                                props = {
-                                    horizontal = false,
-                                    arrange = ui.ALIGNMENT.Start,
-                                },
-                                content = ui.content {
-                                    T.intervalV(GAP_END),
-                                    M.namedActiveHeader(Slots[1], function() return getId(1) end,
-                                        function() onClick(1) end,
-                                        function() return tooltipFn(1) end),
-                                    T.intervalV(GAP_MID),
-                                    M.namedActiveHeader(Slots[2], function() return getId(2) end,
-                                        function() onClick(2) end,
-                                        function() return tooltipFn(2) end),
-                                    T.intervalV(GAP_MID),
-                                    M.namedActiveHeader(Slots[3], function() return getId(3) end,
-                                        function() onClick(3) end,
-                                        function() return tooltipFn(3) end),
-                                    T.intervalV(GAP_MID),
-                                    M.namedActiveHeader(Slots[4], function() return getId(4) end,
-                                        function() onClick(4) end,
-                                        function() return tooltipFn(4) end),
-                                    T.intervalV(GAP_END),
-                                }
-                            },
-                            { props = {}, external = { grow = 1 } },
-                            {
-                                name = 'effects',
-                                type = ui.TYPE.Flex,
-                                props = {
-                                    horizontal = false,
-                                    arrange = ui.ALIGNMENT.Start,
-                                },
-                                content = ui.content {
-                                    T.intervalV(GAP_END),
-                                    M.namedEffects(Slots[1]),
-                                    T.intervalV(GAP_MID),
-                                    M.namedEffects(Slots[2]),
-                                    T.intervalV(GAP_MID),
-                                    M.namedEffects(Slots[3]),
-                                    T.intervalV(GAP_MID),
-                                    M.namedEffects(Slots[4]),
-                                    T.intervalV(GAP_END),
-                                }
-                            },
+                            makeRow(1),
+                            T.intervalV(GAP_ICON),
+                            makeRow(2),
+                            T.intervalV(GAP_ICON),
+                            makeRow(3),
+                            T.intervalV(GAP_ICON),
+                            makeRow(4),
                         },
                     },
                 },
@@ -1179,7 +1112,7 @@ function Window:makeResultingEffects()
                                 text = l10n('All_Effects_Neutralized') ..
                                     l10n(self.isPoison and 'Neutralized_Try_Potions' or 'Neutralized_Try_Poisons'),
                                 textAlignH = ui.ALIGNMENT.Center,
-                                size = v2(BLOCK_WIDTH, 0),
+                                size = v2(BLOCK_WIDTH - 10, 0),
                             }
                         }
                     )
@@ -1237,7 +1170,7 @@ function Window:makeResultingEffects()
                     }
                 })
             end
-            effects.props.size = v2(BLOCK_WIDTH, INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1))
+            effects.props.size = v2(BLOCK_WIDTH - 10, INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1))
 
             auxUi.deepUpdate(element)
         end,
@@ -1260,7 +1193,7 @@ function Window:makeResultingEffects()
                             autoSize = false,
                             arrange = ui.ALIGNMENT.Start,
                             align = ui.ALIGNMENT.Start,
-                            size = v2(BLOCK_WIDTH, INNER_TEXT * P.effectRows + GAP_EFFECT * (P.effectRows - 1)),
+                            size = v2(BLOCK_WIDTH - 10, INNER_TEXT * P.effectRows + GAP_EFFECT * (P.effectRows - 1)),
                         },
                         content = ui.content {},
                     }
@@ -1276,7 +1209,7 @@ function Window:makeResultingEffects()
         content = ui.content {
             {
                 type = ui.TYPE.Widget,
-                props = { size = v2(BLOCK_WIDTH + 14, TITLE_TEXT + 2) },
+                props = { size = v2(BLOCK_WIDTH, TITLE_TEXT + 2) },
                 content = ui.content {
                     {
                         name = 'title',
@@ -1582,6 +1515,7 @@ end
 function M.getAllIngredients(data)
     if not data.sources then return {} end
 
+    ---@type AlchemyRedone.ListData.Ingredient[]
     local result = {}
     for id, count in pairs(data.ingredients) do
         local record = types.Ingredient.record(id)
@@ -1591,7 +1525,7 @@ function M.getAllIngredients(data)
             count = count,
             name = name,
             searchText = M.getIngredientSearchText(record, player),
-            activeFn = function()
+            isActive = function()
                 if data and data.selected then
                     for i = 1, 4 do
                         local recordId = data.selected[i]
