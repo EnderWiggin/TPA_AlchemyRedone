@@ -223,7 +223,7 @@ function Window:onOpened(wnd, data)
         text = C.Strings.CREATE,
         name = 'btnCreate',
         onClick = function() self:createPotion() end, --TODO: implement
-        canClick = function() return not self.btnCreate:disabled() end,
+        canClick = function() return not self.btnCreate:isDisabled() end,
     }
 
     self.btnCancel = I.UIToolkit.Components.textButton {
@@ -547,10 +547,10 @@ function Window:makeTableSelector()
         effects:update()
 
         if self.itemTable then
-            self.itemTable:visible(not self.showEffects)
+            self.itemTable:setVisible(not self.showEffects)
         end
         if self.effectTable then
-            --self.effectTable:visible(self.showEffects)
+            --self.effectTable:setVisible(self.showEffects)
         end
 
         self:updateIngredientList()
@@ -1452,7 +1452,7 @@ function Window:onPotionTypeUpdated()
 end
 
 function Window:updateData()
-    -- parts.setInteractiveState(self.btnCreate, false, false)  --TODO: implement
+    self.btnCreate:setDisabled(false)
     self.allIngredients = M.getAllIngredients(self.data)
     if self.showEffects then
         self:updateEffectList()
@@ -1483,7 +1483,7 @@ function Window:onIngredientSelectionChanged()
         local id = items[i].id
         local view = self.ingredientProvider:getCachedComponent(id)
         if view then
-            view:active(M.ingredientSelected(id, selected))
+            view:setActive(M.ingredientSelected(id, selected))
         end
     end
     self.resultingEffects.update()
