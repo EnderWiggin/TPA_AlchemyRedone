@@ -36,6 +36,11 @@ function ListItemIngredient:init(data, textSize)
     self.textSize = textSize
 end
 
+---@return number
+function ListItemIngredient:getItemHeight()
+    return self.rowHeight
+end
+
 ---@param ingredient string
 ---@param sz number
 ---@return openmw.ui.Element
@@ -52,11 +57,9 @@ local function renderIngredientIcon(ingredient, sz)
 end
 
 ---@param ingredient string
----@param width number
----@param size openmw.util.Vector2
 ---@param active boolean
 ---@return openmw.ui.Element
-function ListItemIngredient:renderEffects(ingredient, width, size, active)
+function ListItemIngredient:renderEffects(ingredient, active)
     local data = self.data
     local record = types.Ingredient.record(ingredient)
     local effects = record and record.effects or {}
@@ -95,8 +98,7 @@ function ListItemIngredient:renderEffects(ingredient, width, size, active)
     return {
         name = 'effects',
         props = {
-            position = v2(size.x - self.effectWidth, 0),
-            size = v2(width, size.y),
+            size = v2(self.effectWidth, self.rowHeight),
         },
         content = content,
         userData = {
@@ -108,73 +110,44 @@ function ListItemIngredient:renderEffects(ingredient, width, size, active)
 end
 
 ---@param data AlchemyRedone.ListData.Ingredient
----@param size openmw.util.Vector2
 ---@return openmw.ui.Element
-function ListItemIngredient:makeNewElement(data, size)
+function ListItemIngredient:makeNewElement(data)
     local active = data.isActive()
     local icon = renderIngredientIcon(data.id, self.rowHeight)
     local text = {
         name = 'text',
         template = T.text(),
         props = {
-            position = v2(self.rowHeight + 5, 0),
-            size = v2(size.x - self.rowHeight - 5 - self.effectWidth, size.y),
+            size = v2(0, self.rowHeight),
             textAlignV = ui.ALIGNMENT.Center,
             autoSize = false,
             textSize = self.textSize,
             text = data.name,
         },
+        external = { grow = 1 },
         userData = { colorable = true },
     }
 
-    local effects = self:renderEffects(data.id, self.effectWidth, size, active)
+    local effects = self:renderEffects(data.id, active)
 
     return ui.create {
         name = 'ingredient:' .. data.id,
-        props = { size = size, },
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = true,
+            autoSize = false,
+            relativeSize = v2(1, 1),
+        },
         content = ui.content { icon, text, effects },
         userData = { active = active }
     }
 end
 
 ---@param data AlchemyRedone.ListData.Ingredient
----@param size openmw.util.Vector2
----@param old openmw.ui.Element
-function ListItemIngredient:updateElement(data, size, old)
-    ---@type openmw.ui.Content
-    local content = old.layout.content
-    ---@type openmw.ui.Layout
-    local layout
-    local props
-
-    --update text size and position
-    layout = content[2]
-    props = layout.props
-    props.position = v2(self.rowHeight + 5, 0)
-    props.size = v2(size.x - self.rowHeight - 5 - self.effectWidth, size.y)
-
-    --update effect position
-    layout = content[3]
-    props = layout.props
-    props.position = v2(size.x - self.effectWidth, 0)
-
-    old.layout.props.size = size
-    I.UIToolkit.queueUpdate(old)
-end
-
----@param data AlchemyRedone.ListData.Ingredient
----@param size openmw.util.Vector2
----@param old UIToolkit.Component?
 ---@return UIToolkit.Component
-function ListItemIngredient:makeComponent(data, size, old)
-    local component = old or Component:new()
-
-    if component:isDestroyed() then
-        component:init(self:makeNewElement(data, size))
-    else
-        self:updateElement(data, size, component.element)
-    end
-
+function ListItemIngredient:makeComponent(data)
+    local component = Component:new()
+    component:init(self:makeNewElement(data))
     return component
 end
 
