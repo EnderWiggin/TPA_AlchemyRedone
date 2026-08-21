@@ -511,7 +511,7 @@ local function openWindow()
     if not hasData then
         core.sendGlobalEvent('TPA_AlchemyRedone_CollectInfo', { actor = player })
     end
-    I.UIToolkit.WindowManager.open(WND_NAME, ctx.data)
+    I.UIToolkit.WindowManager.open(WND_NAME, ctx)
 end
 
 local function closeWindow()
@@ -628,9 +628,7 @@ local function onUpdate()
             I.SharedTooltip.registerModifier { id = 'TPA_AlchemyRedone', priority = 0, func = m.modifySharedTooltip }
         end
 
-        print('---', 'INIT')
         I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
-        print('---', 'INIT', 'registered')
         I.UIToolkit.WindowManager.register(WND_NAME, {
             title = core.getGMST('sSkillAlchemy'),
             handler = function()

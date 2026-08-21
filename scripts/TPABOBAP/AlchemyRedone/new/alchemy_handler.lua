@@ -86,7 +86,7 @@ local PROFILE = {
         gapIcon = 3,
         gapEffect = 8,
         effectRows = 8,
-        tableMargin = v2(0, 110),
+        tableMargin = v2(0, 100),
         startWidthPad = 0,
     },
     compact = {
@@ -116,7 +116,7 @@ local function minInnerHeight()
     local tools = TITLE_TEXT + 2 + 3 + slotBoxH
     local selected = TITLE_TEXT + 3 + slotBoxH
     local result = TITLE_TEXT + 2 + 3 + INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
-    return naming + tools + selected + result + 3 * VERT_GAP + 65
+    return naming + tools + selected + result + 3 * VERT_GAP + 56
 end
 
 local function updateSizes()
@@ -150,10 +150,11 @@ end
 local Window = Class()
 
 ---@param wnd UIToolkit.Window
----@param data AlchemyData
-function Window:onOpened(wnd, data)
+---@param ctx AlchemyContext
+function Window:onOpened(wnd, ctx)
     self.wnd = wnd
-    self.data = data
+    self.data = ctx.data
+    self.ctx = ctx
 
     updateSizes()
     wnd:setMinSize(MIN_SIZE)
@@ -203,6 +204,8 @@ function Window:onOpened(wnd, data)
     self.filter
         :setWidth(0)
         :updateProps { relativeSize = v2(1, 0) }
+
+    self.counting = self:makeCountBlock()
 
     self.resultingEffects = self:makeResultingEffects()
     self.resultingEffects.update()
@@ -320,7 +323,7 @@ function Window:makeContent()
                         content = ui.content {
                             self.btnCreate.element,
                             T.intervalH(10),
-                            --counting, --TODO: implement
+                            self.counting.element,
                         },
                     },
                     self.btnCancel.element,
@@ -352,7 +355,7 @@ function Window:makeContent()
                         self.resultingEffects.element,
                     },
                 },
-                T.intervalH(COLUMN_GAP),
+                --T.intervalH(COLUMN_GAP),
                 right,
             }
         },
@@ -636,10 +639,11 @@ end
 
 function Window:makeTools()
     local element
-    local path = { 'tools-box', 'padding', 'tools' }
-    local noticePath = { 'tools-box', 'padding', 'notice' }
+    local path = { 'tools-box', 'tools' }
+    local noticePath = { 'tools-box', 'notice' }
 
     local TIP_W = util.round(INNER_TEXT * 15)
+    local PAD = 5
 
     ---@return UTKTooltips.Tooltip
     local function toolTip(record, label, key, suffix)
@@ -741,7 +745,8 @@ function Window:makeTools()
                 horizontal = true,
                 autoSize = false,
                 arrange = ui.ALIGNMENT.Center,
-                size = v2(BLOCK_WIDTH - 10, ICON_SZ),
+                size = v2(0, ICON_SZ),
+                relativeSize = v2(1, 0),
             },
             content = ui.content {
                 M.namedIcon('icon', ICON_SZ),
@@ -753,61 +758,58 @@ function Window:makeTools()
     end
     local box = {
         name = 'tools-box',
-        template = T.boxSolid,
+        template = T.border { padding = PAD },
+        props = {
+            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3 + 2 * PAD),
+        },
         content = ui.content {
             {
-                name = 'padding',
-                template = T.padding(5),
+                name = 'tools',
+                type = ui.TYPE.Flex,
+                props = {
+                    horizontal = false,
+                    arrange = ui.ALIGNMENT.Start,
+                    align = ui.ALIGNMENT.Start,
+                    autoSize = false,
+                    relativeSize = v2(1, 1)
+                },
+                content = ui.content {
+                    makeRow(STRINGS.MORTAR, ApparatusTypes.MortarPestle, 'Mortar'),
+                    T.intervalV(GAP_ICON),
+                    makeRow(STRINGS.ALEMBIC, ApparatusTypes.Alembic, 'Alembic'),
+                    T.intervalV(GAP_ICON),
+                    makeRow(STRINGS.CALCINATOR, ApparatusTypes.Calcinator, 'Calcinator'),
+                    T.intervalV(GAP_ICON),
+                    makeRow(STRINGS.RETORT, ApparatusTypes.Retort, 'Retort'),
+                },
+            },
+            {
+                name = 'notice',
+                type = ui.TYPE.Flex,
+                props = {
+                    arrange = ui.ALIGNMENT.Center,
+                    align = ui.ALIGNMENT.Center,
+                    autoSize = false,
+                    visible = false,
+                    size = v2(BLOCK_WIDTH - 10, ICON_SZ * 4 + GAP_ICON * 3),
+                },
                 content = ui.content {
                     {
-                        name = 'tools',
-                        type = ui.TYPE.Flex,
-                        props = {
-                            horizontal = false,
-                            arrange = ui.ALIGNMENT.Start,
-                            align = ui.ALIGNMENT.Start,
-                            autoSize = false,
-                            size = v2(BLOCK_WIDTH - 10, ICON_SZ * 4 + GAP_ICON * 3),
-                        },
-                        content = ui.content {
-                            makeRow(STRINGS.MORTAR, ApparatusTypes.MortarPestle, 'Mortar'),
-                            T.intervalV(GAP_ICON),
-                            makeRow(STRINGS.ALEMBIC, ApparatusTypes.Alembic, 'Alembic'),
-                            T.intervalV(GAP_ICON),
-                            makeRow(STRINGS.CALCINATOR, ApparatusTypes.Calcinator, 'Calcinator'),
-                            T.intervalV(GAP_ICON),
-                            makeRow(STRINGS.RETORT, ApparatusTypes.Retort, 'Retort'),
-                        },
+                        name = 'notice-name',
+                        template = T.header(),
+                        props = { text = '' },
+                    },
+                    T.intervalV(4),
+                    {
+                        name = 'notice-brewed',
+                        template = T.text(),
+                        props = { text = '' },
                     },
                     {
-                        name = 'notice',
-                        type = ui.TYPE.Flex,
-                        props = {
-                            arrange = ui.ALIGNMENT.Center,
-                            align = ui.ALIGNMENT.Center,
-                            autoSize = false,
-                            visible = false,
-                            size = v2(BLOCK_WIDTH - 10, ICON_SZ * 4 + GAP_ICON * 3),
-                        },
-                        content = ui.content {
-                            {
-                                name = 'notice-name',
-                                template = T.header(),
-                                props = { text = '' },
-                            },
-                            T.intervalV(4),
-                            {
-                                name = 'notice-brewed',
-                                template = T.text(),
-                                props = { text = '' },
-                            },
-                            {
-                                name = 'notice-failed',
-                                template = T.text(),
-                                props = { text = '' },
-                            },
-                        },
-                    }
+                        name = 'notice-failed',
+                        template = T.text(),
+                        props = { text = '' },
+                    },
                 },
             }
         }
@@ -1226,6 +1228,53 @@ function Window:makeResultingEffects()
     return wdg
 end
 
+local function validatePotionCount(text)
+    local number = tonumber(text)
+    if not number then
+        return false
+    else
+        return true, math.max(1, number)
+    end
+end
+
+function Window:makeCountBlock()
+    ---@type UIToolkit.TextEdit<number>
+    local edit = I.UIToolkit.Components.textEdit {
+        default = 1,
+        validate = validatePotionCount,
+        textSize = INNER_TEXT,
+        width = 70,
+        textAlignH = ui.ALIGNMENT.Center,
+        showClearButton = true,
+    }
+    local wdg = {
+        setValue = function(v) edit:setValue(v) end,
+        getCount = function() return edit:getValue() end,
+    }
+
+    local textButton = I.UIToolkit.Components.textButton
+    local btnMinus = textButton { text = "-", name = 'btn-minus', onClick = function() edit:setValue(edit:getValue() - 1) end }
+    local btnPlus = textButton { text = "+", name = 'btn-plus', onClick = function() edit:setValue(edit:getValue() + 1) end }
+
+    local element = ui.create {
+        name = 'potion-count',
+        type = ui.TYPE.Flex,
+        props = {
+            horizontal = true,
+            arrange = ui.ALIGNMENT.Center,
+        },
+        content = ui.content {
+            btnMinus.element,
+            T.intervalH(3),
+            edit.element,
+            T.intervalH(3),
+            btnPlus.element,
+        }
+    }
+    wdg.element = element
+    return wdg
+end
+
 ---@return UIToolkit.ItemList
 function Window:makeIngredientList()
     local list = I.UIToolkit.Components.itemList {
@@ -1271,12 +1320,9 @@ function Window:getTempPotionStats()
     local ingredients = self:getSelectedIngredientList()
     local draft, errorCode, knowledge = A.getPotionStats('temp', ingredients, self.data.apparatus, player,
         { isPoison = self.isPoison })
-    --[[
     if errorCode == A.PotionErrors.OK then
-        --TODO: apply modifiers
         draft = self.ctx.applyMods(draft, ingredients, { isPoison = self.isPoison, isPreview = true })
     end
-    ]]
     return draft, errorCode, knowledge
 end
 
@@ -1443,6 +1489,14 @@ function Window:updateDefaultName()
     self.naming:setPlaceholder(self:getDefaultPotionName())
 end
 
+---@return string
+function Window:getPotionName()
+    local name = self.naming:isEmpty()
+        and self.naming:getPlaceholder()
+        or self.naming:getValue()
+    return name or ''
+end
+
 function Window:onPotionTypeUpdated()
     self.resultingEffects.update()
     self:updateDefaultName()
@@ -1493,6 +1547,25 @@ function Window:clearAllSelectedIngredients()
     if self.data and self.data.selected then
         self.data.selected = {}
         self:onIngredientSelectionChanged()
+    end
+end
+
+function Window:createPotion()
+    self.btnCreate:setDisabled(true)
+    ---@type NameOrGetter
+    local name = self.naming:isEmpty()
+        and function() return self:getDefaultPotionName() end
+        or self.naming:getValue() or ''
+
+    local aborted = self.ctx.brewPotions(
+        name,
+        self.counting.getCount(),
+        self:getSelectedIngredientList(),
+        self.isPoison
+    )
+
+    if aborted then
+        self.btnCreate:setDisabled(false)
     end
 end
 
@@ -1576,6 +1649,7 @@ function M.namedText(name)
         props = {
             text = '',
             textSize = INNER_TEXT,
+            textAlignV = ui.ALIGNMENT.Center,
         },
     }
 end
@@ -1587,6 +1661,7 @@ function M.namedHeader(name, tooltipFn)
         props    = {
             text = '',
             textSize = INNER_TEXT,
+            textAlignV = ui.ALIGNMENT.Center,
         },
     }
     if not tooltipFn then return layout end
