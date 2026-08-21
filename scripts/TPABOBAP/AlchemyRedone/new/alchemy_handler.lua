@@ -68,8 +68,6 @@ local BLOCK_WIDTH = 300
 local INNER_TEXT = 16
 local TITLE_TEXT = 16
 local ICON_SZ
-local GAP_END
-local GAP_MID
 local GAP_ICON
 local GAP_EFFECT
 local VERT_GAP
@@ -79,9 +77,7 @@ local COLUMN_GAP
 local PROFILE = {
     default = {
         blockWidth = 350,
-        minWidthPad = 135,
-        minHeight = 695,
-        minHeightFontMult = 23,
+        additionalWidth = 0,
         vertGap = 10,
         columnGap = 15,
         iconRatio = 1.5,
@@ -89,21 +85,17 @@ local PROFILE = {
         gapEffect = 8,
         effectRows = 8,
         tableMargin = v2(0, 100),
-        startWidthPad = 0,
     },
     compact = {
         blockWidth = 330,
-        minWidthPad = 60,
-        minHeight = 551,
-        minHeightFontMult = 19,
+        additionalWidth = 30,
         vertGap = 10,
         columnGap = 5,
         iconRatio = 1.5,
         gapIcon = 1,
         gapEffect = 2,
         effectRows = 8,
-        tableMargin = v2(20, 122),
-        startWidthPad = 58,
+        tableMargin = v2(0, 95),
         startPos = { x = 0.315, y = 0 },
     },
 }
@@ -122,26 +114,24 @@ local function minInnerHeight()
 end
 
 local function updateSizes()
-    local fontDiff = Base.TEXT_SIZE - 16
     P = cfgPlayer.ui.b_CompactMode and PROFILE.compact or PROFILE.default
     --size tiers from the shared templates: contents/tables/tooltips at INNER_TEXT, headings at TITLE_TEXT
     INNER_TEXT = Base.TEXT_SIZE_CONTENT
     TITLE_TEXT = Base.TEXT_SIZE_TITLE
     BLOCK_WIDTH = util.round(P.blockWidth * INNER_TEXT / 16)
-    local minWidth = 2 * BLOCK_WIDTH + P.minWidthPad
+    COLUMN_GAP = P.columnGap
+    local minWidth = 2 * BLOCK_WIDTH + 2 * INNER_PAD + COLUMN_GAP + P.additionalWidth
     --never demand a minimum larger than the screen layer itself (high GUI scale shrinks the logical layer)
     local okL, lsz = pcall(function() return ui.layers[ui.layers.indexOf('Windows')].size end)
     if okL and lsz then
         minWidth = math.min(minWidth, lsz.x - 24)
     end
     VERT_GAP = P.vertGap
-    COLUMN_GAP = P.columnGap
     BORDER = I.UIToolkit.getTheme().Sizes.border
 
     ICON_SZ = util.round(INNER_TEXT * P.iconRatio)
     GAP_ICON = P.gapIcon
     GAP_END = util.round((ICON_SZ - INNER_TEXT) / 2)
-    GAP_MID = 2 * GAP_END + GAP_ICON
     GAP_EFFECT = P.gapEffect
     MIN_SIZE = v2(minWidth, minInnerHeight())
 end
@@ -162,12 +152,9 @@ function Window:onOpened(wnd, ctx)
     updateSizes()
     wnd:setMinSize(MIN_SIZE)
 
-    local rowHeight = 1.5 * (Base.TEXT_SIZE_CONTENT + 2)
-    local effectWidth = 4 * (Base.TEXT_SIZE_CONTENT + 3)
-
     ---@type AlchemyRedone.ListItemIngredient
     local provider = ListItemIngredient:new()
-    provider:init(self.data, rowHeight, effectWidth)
+    provider:init(self.data, INNER_TEXT)
     self.ingredientProvider = provider
 
     --Show effects or ingredients?
@@ -1168,7 +1155,8 @@ function Window:makeResultingEffects()
         name = 'result-box',
         template = T.border { padding = CONTENT_PAD },
         props = {
-            size = v2(BLOCK_WIDTH, INNER_TEXT * P.effectRows + GAP_EFFECT * (P.effectRows - 1) + 2 * (CONTENT_PAD + BORDER))
+            size = v2(BLOCK_WIDTH,
+                INNER_TEXT * P.effectRows + GAP_EFFECT * (P.effectRows - 1) + 2 * (CONTENT_PAD + BORDER))
         },
         content = ui.content { {
             name = 'effect-list',

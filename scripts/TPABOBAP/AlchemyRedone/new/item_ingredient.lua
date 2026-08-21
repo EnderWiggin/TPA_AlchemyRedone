@@ -26,12 +26,14 @@ local UNKNOWN_EFFECT = Base.createTexture('icons/TPABOBAP/AlchemyRedone/unknown-
 local ListItemIngredient = Class(ListItemBase)
 
 ---@param data AlchemyData
----@param rowHeight number
----@param effectWidth number
-function ListItemIngredient:init(data, rowHeight, effectWidth)
+---@param textSize number
+function ListItemIngredient:init(data, textSize)
+    local rowHeight = 1.5 * (textSize + 2)
+    local effectWidth = 4 * (textSize + 3)
     self.data = data
     self.rowHeight = rowHeight
     self.effectWidth = effectWidth
+    self.textSize = textSize
 end
 
 ---@param ingredient string
@@ -119,6 +121,7 @@ function ListItemIngredient:makeNewElement(data, size)
             size = v2(size.x - self.rowHeight - 5 - self.effectWidth, size.y),
             textAlignV = ui.ALIGNMENT.Center,
             autoSize = false,
+            textSize = self.textSize,
             text = data.name,
         },
         userData = { colorable = true },
