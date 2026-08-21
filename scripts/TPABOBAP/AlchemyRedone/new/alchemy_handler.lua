@@ -61,6 +61,7 @@ local COLORS = {
     GRAY = util.color.rgb(0.5, 0.5, 0.5),
 }
 
+local INNER_PAD = 10
 local BLOCK_WIDTH = 300
 local INNER_TEXT = 16
 local TITLE_TEXT = 16
@@ -85,7 +86,7 @@ local PROFILE = {
         gapIcon = 3,
         gapEffect = 8,
         effectRows = 8,
-        tableMargin = v2(20, 140),
+        tableMargin = v2(0, 110),
         startWidthPad = 0,
     },
     compact = {
@@ -115,7 +116,7 @@ local function minInnerHeight()
     local tools = TITLE_TEXT + 2 + 3 + slotBoxH
     local selected = TITLE_TEXT + 3 + slotBoxH
     local result = TITLE_TEXT + 2 + 3 + INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1) + boxV
-    return naming + tools + selected + result + 3 * VERT_GAP + 55
+    return naming + tools + selected + result + 3 * VERT_GAP + 65
 end
 
 local function updateSizes()
@@ -192,13 +193,16 @@ function Window:onOpened(wnd, data)
     })
 
     ---@type UIToolkit.TextEdit<string>
-    self.filter = I.UIToolkit.Components.textEdit({
+    self.filter = I.UIToolkit.Components.textEdit {
         default = '',
         textSize = INNER_TEXT,
         placeholder = l10n('FilterPlaceholder'),
         onValueChanged = function() self:updateIngredientList() end,
         showClearButton = true,
-    })
+    }
+    self.filter
+        :setWidth(0)
+        :updateProps { relativeSize = v2(1, 0) }
 
     self.resultingEffects = self:makeResultingEffects()
     self.resultingEffects.update()
@@ -215,6 +219,22 @@ function Window:onOpened(wnd, data)
     self.selected = self:makeSelected()
     self.selected.update()
 
+    self.btnCreate = I.UIToolkit.Components.textButton {
+        text = C.Strings.CREATE,
+        name = 'btnCreate',
+        onClick = function() self:createPotion() end, --TODO: implement
+        canClick = function() return not self.btnCreate:disabled() end,
+    }
+
+    self.btnCancel = I.UIToolkit.Components.textButton {
+        text = C.Strings.CANCEL,
+        name = 'btnCancel',
+        onClick = function() I.UI.removeMode(I.UI.MODE.Alchemy) end,
+    }
+    self.btnCancel:updateProps {
+        anchor = v2(1, 1),
+        relativePosition = v2(1, 1),
+    }
 
     self.itemTable = self:makeIngredientList()
     self:updateIngredientList()
@@ -244,7 +264,8 @@ function Window:onResized(inner)
     self.lastSz = inner
 
     local right = self.rightPanel
-    local rsz = v2(inner.x - BLOCK_WIDTH - 30, inner.y)
+    local rsz = v2(inner.x - BLOCK_WIDTH - 2 * INNER_PAD - COLUMN_GAP, inner.y - 2 * INNER_PAD)
+    right.layout.props.size = rsz
 
     local tableSz = rsz - P.tableMargin
     if self.showEffects then
@@ -253,10 +274,6 @@ function Window:onResized(inner)
         self.itemTable:setSize(tableSz)
     end
 
-    local topLine = H.findLayoutByPath(right, { 'top-lane' })
-    topLine.props.size = v2(tableSz.x + 10, TITLE_TEXT)
-    self.filter.element.layout.props.position = v2(0, TITLE_TEXT + 20 + tableSz.y)
-    self.filter:setSize(tableSz.x + 5)
     I.UIToolkit.queueUpdate(right)
 end
 
@@ -264,7 +281,7 @@ end
 function Window:makeContent()
     local right = ui.create {
         name = 'right',
-        type = ui.TYPE.Container,
+        type = ui.TYPE.Widget,
         props = {
             position = v2(BLOCK_WIDTH + COLUMN_GAP, 0),
         },
@@ -274,30 +291,41 @@ function Window:makeContent()
                 type = ui.TYPE.Widget,
                 props = {
                     size = v2(0, TITLE_TEXT),
+                    relativeSize = v2(1, 0)
                 },
                 content = ui.content {
                     self.tableSelector.element,
                     self.toggleFilterMatching.element,
                 },
             },
+            self.itemTable.element,
             {
-                name = 'ingredients-box',
-                template = T.boxSolid,
+                name = 'bottom-block',
                 props = {
-                    position = v2(0, TITLE_TEXT + 3)
+                    size = v2(0, 70),
+                    relativeSize = v2(1, 0),
+                    anchor = v2(1, 1),
+                    relativePosition = v2(1, 1),
                 },
                 content = ui.content {
+                    self.filter.element,
                     {
-                        name = 'padding',
-                        template = T.padding(5),
+                        type = ui.TYPE.Flex,
+                        props = {
+                            horizontal = true,
+                            anchor = v2(0, 1),
+                            relativePosition = v2(0, 1),
+                            arrange = ui.ALIGNMENT.Center,
+                        },
                         content = ui.content {
-                            self.itemTable.element,
-                            --self.effectTable, --TODO: implement
-                        }
+                            self.btnCreate.element,
+                            T.intervalH(10),
+                            --counting, --TODO: implement
+                        },
                     },
-                }
+                    self.btnCancel.element,
+                },
             },
-            self.filter.element,
         },
     }
     return ui.content {
@@ -305,7 +333,7 @@ function Window:makeContent()
             name = 'main',
             type = ui.TYPE.Container,
             props = {
-                position = v2(10, 10)
+                position = v2(INNER_PAD, INNER_PAD)
             },
             content = ui.content {
                 ui.create {
@@ -327,45 +355,6 @@ function Window:makeContent()
                 T.intervalH(COLUMN_GAP),
                 right,
             }
-        },
-        {
-            --right-pane lane only: spanning the full width would sit over the
-            --result box bottom rows and swallow their hover events
-            type = ui.TYPE.Widget,
-            props = {
-                anchor = v2(0, 1),
-                relativePosition = v2(0, 1),
-                relativeSize = v2(1, 0),
-                position = v2(10 + BLOCK_WIDTH + COLUMN_GAP, -10),
-                size = v2(-(20 + BLOCK_WIDTH + COLUMN_GAP), 50),
-            },
-            content = ui.content {
-                {
-                    type = ui.TYPE.Flex,
-                    props = {
-                        horizontal = true,
-                        anchor = v2(0, 1),
-                        relativePosition = v2(0, 1),
-                        arrange = ui.ALIGNMENT.Center,
-                    },
-                    content = ui.content {
-                        --self.btnCreate, --TODO: implement
-                        T.intervalH(10),
-                        --counting, --TODO: implement
-                    },
-                },
-                {
-                    type = ui.TYPE.Container,
-                    props = {
-                        anchor = v2(1, 1),
-                        relativePosition = v2(1, 1),
-                        --position = v2(-10, 0),
-                    },
-                    content = ui.content {
-                        --btnCancel, --TODO: implement
-                    },
-                },
-            },
         },
     }, right
 end
@@ -995,13 +984,12 @@ function Window:makeSelected()
                     I.UIToolkit.Interactive.makeInteractive({
                         name = 'btn-clear-selected',
                         onClick = function() self:clearAllSelectedIngredients() end,
-                        tooltip = { recipe = { items = { { text = l10n('TipClearSelected') } } } },
+                        tooltip = l10n('TipClearSelected'),
                     }, {
                         type = ui.TYPE.Image,
                         props = {
                             resource = I.UIToolkit.texture(REVERT_PATH),
                             size = v2(TITLE_TEXT, TITLE_TEXT),
-                            color = C.Colors.DEFAULT,
                         },
                         userData = { colorable = true, },
                     }),
@@ -1242,13 +1230,13 @@ end
 function Window:makeIngredientList()
     local list = I.UIToolkit.Components.itemList {
         itemHeight = self.ingredientProvider.rowHeight,
-        size = v2(10, 10),
+        size = v2(BLOCK_WIDTH, BLOCK_WIDTH),
         provider = self.ingredientProvider,
         onItemClicked = function(item, _)
             self:selectIngredient(item)
         end
     }
-
+    list:updateProps { position = v2(0, TITLE_TEXT + 3) }
     return list
 end
 
@@ -1649,18 +1637,11 @@ end
 
 ---@param text string
 ---@param width number?
----@return UTKTooltips.Tooltip
+---@return UTKTooltips.AnyTooltip
 function M.paragraphTooltip(text, width)
     return {
-        recipe = {
-            items = {
-                {
-                    type = 'paragraph',
-                    text = l10n(text, C.TextColorParams),
-                    width = width or 200
-                }
-            }
-        }
+        body = l10n(text, C.TextColorParams),
+        width = width or 200
     }
 end
 

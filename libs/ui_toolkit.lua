@@ -59,7 +59,7 @@ function Interactive.updateState(layoutOrElement, state) end
 ---@field disabled boolean? element is disabled
 
 ---@class UIToolkit.InteractiveOpts
----@field tooltip? UTKTooltips.Tooltip|UIToolkit.TooltipProvider|nil optional tooltip or tooltip provider function
+---@field tooltip? UTKTooltips.AnyTooltip|UIToolkit.TooltipProvider|nil optional tooltip or tooltip provider function
 ---@field onClick? fun() optional function to be called when element is clicked. Note: element won't change colors if there's no click callback set
 ---@field canClick? fun():boolean
 ---@field onMouseMove? fun(e, tgt, element)
@@ -91,6 +91,7 @@ function Components.itemList(opts) end
 ---@field visible fun(self:UIToolkit.Component, value: boolean?):boolean|nil  If value is set - will update visibility of the control. Returns visible flag. If element is destroyed - returns nil.
 ---@field active fun(self:UIToolkit.Component, value: boolean?):boolean|nil  If value is set - will update active state of the control. Returns active flag. If element is destroyed - returns nil.
 ---@field disabled fun(self:UIToolkit.Component, value: boolean?):boolean|nil  If value is set - will update disabled state of the control. Returns disabled flag. If element is destroyed - returns nil.
+---@field updateProps fun(self:UIToolkit.Component, props: table):UIToolkit.Component update props, return self
 
 ---@class UIToolkit.ButtonOpts : UIToolkit.InteractiveOpts
 ---@field name string? name to give to button layout
@@ -114,7 +115,7 @@ function Components.itemList(opts) end
 ---@field textColorPlaceholder openmw.util.Color? defaults to DISABLED
 ---@field placeholder? string|fun():string will be shown when edit is not in focus and text is empty
 ---@field validate? fun(text:string|T|nil):boolean,T
----@field onValueChanged? fun() will be called when entered value is changed
+---@field onValueChanged? fun(value:T) will be called when entered value is changed
 ---@field width number? defaults to 200
 ---@field showClearButton boolean?
 
@@ -125,7 +126,7 @@ function Components.itemList(opts) end
 ---@field getValue fun(self:UIToolkit.TextEdit):T
 ---@field setValue fun(self:UIToolkit.TextEdit, value:T)
 ---@field setPlaceholder fun(self:UIToolkit.TextEdit, value:string?)
----@field setSize fun(self:UIToolkit.TextEdit, width:number)
+---@field setWidth fun(self:UIToolkit.TextEdit, width:number):UIToolkit.TextEdit
 
 ---@class UIToolkit.ScrollBarOpts
 ---@field horizontal boolean?
@@ -155,13 +156,12 @@ function Components.itemList(opts) end
 ---@field getComponent fun(self:UIToolkit.ListItem.Base<T>, data:T, size:openmw.util.Vector2):UIToolkit.Component
 ---@field getCachedComponent fun(self:UIToolkit.ListItem.Base<T>, id:string):UIToolkit.Component?
 ---@field makeComponent fun(self:UIToolkit.ListItem.Base<T>, data:T, size:openmw.util.Vector2,old:UIToolkit.Component):UIToolkit.Component
----@field getTooltip fun(self:UIToolkit.ListItem.Base<T>, data:T):UTKTooltips.Tooltip
+---@field getTooltip fun(self:UIToolkit.ListItem.Base<T>, data:T):UTKTooltips.AnyTooltip
 
 ---@generic T : UIToolkit.ListItem.Base
 ---@class UIToolkit.ItemListOpts<T>
 ---@field size openmw.util.Vector2
 ---@field itemHeight number
----@field hasBorder boolean?
 ---@field provider T
 ---@field onItemClicked fun(data:T, idx:integer)
 
@@ -250,6 +250,20 @@ function Templates.intervalV(size) end
 ---@return openmw.ui.TextureResource
 function Templates.effectIconTexture(effectId) end
 
+---Rectangular borders.
+---Can have padding and background.
+---Has size of its own, dictates size to children.
+---@param opts UIToolkit.Templates.BoxOpts?
+---@return openmw.ui.Template
+function Templates.border(opts) end
+
+---Container wrapping the content with borders.
+---Can have padding and background.
+---Has no size of its own - wraps around children.
+---@param opts UIToolkit.Templates.BoxOpts?
+---@return openmw.ui.Template
+function Templates.box(opts) end
+
 ---@param effectId string
 ---@param sz number
 ---@return openmw.ui.Layout
@@ -258,6 +272,11 @@ function Templates.effectIcon(effectId, sz) end
 ---@param bgrAlpha number
 ---@return openmw.ui.Template
 function Templates.buttonBoxBgr(bgrAlpha) end
+
+---@class UIToolkit.Templates.BoxOpts
+---@field thickness? 'thin' | 'thick' defaults to 'thin'
+---@field padding? number defaults to 0
+---@field background? 'solid' | 'transparent' | number no background if omitted.
 
 ---@class UIToolkit.Theme.Colors
 ---@field DEFAULT openmw.util.Color
@@ -292,7 +311,7 @@ function Templates.buttonBoxBgr(bgrAlpha) end
 ---@class openmw.interfaces.UTKTooltips
 ---@field version number
 ---@field currentTooltip fun():UTKTooltips.Tooltip?
----@field setTooltip fun(tooltip:UTKTooltips.Tooltip?, isAlive:UTKTooltips.CurrentTipIsAlive?)
+---@field setTooltip fun(tooltip:UTKTooltips.AnyTooltip?, isAlive:UTKTooltips.CurrentTipIsAlive?)
 ---@field createTooltipLayout fun(tooltip:UTKTooltips.Tooltip):openmw.ui.Layout?
 ---@field addPreCreateTooltipHandler fun(handler:UTKTooltips.PreCreateHandler)
 ---@field addPostCreateTooltipHandler fun(handler:UTKTooltips.PostCreateHandler)
@@ -457,4 +476,7 @@ function Templates.buttonBoxBgr(bgrAlpha) end
 ---@alias UTKTooltips.PreCreateHandler fun(recipe:UTKTooltips.Recipe, tooltip:UTKTooltips.Tooltip)
 ---@alias UTKTooltips.PostCreateHandler fun(layout:openmw.ui.Layout, tooltip:UTKTooltips.Tooltip)
 ---@alias UTKTooltips.CurrentTipIsAlive fun():boolean
----@alias UIToolkit.TooltipProvider fun():UTKTooltips.Tooltip?
+---@alias UIToolkit.TooltipProvider fun():UTKTooltips.AnyTooltip?
+---@alias UTKTooltips.SimpleTextTooltip string
+---@alias UTKTooltips.SimpleTooltip {title:string?, body:string?, width:number?}
+---@alias UTKTooltips.AnyTooltip UTKTooltips.Tooltip|UTKTooltips.SimpleTooltip|UTKTooltips.SimpleTextTooltip
