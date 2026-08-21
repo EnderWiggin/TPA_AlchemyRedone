@@ -62,6 +62,8 @@ local COLORS = {
 }
 
 local INNER_PAD = 10
+local CONTENT_PAD = 5
+local BORDER = 2
 local BLOCK_WIDTH = 300
 local INNER_TEXT = 16
 local TITLE_TEXT = 16
@@ -76,7 +78,7 @@ local COLUMN_GAP
 --every tweakable dimension, one row per layout profile; font-dependent values scale in updateSizes
 local PROFILE = {
     default = {
-        blockWidth = 330,
+        blockWidth = 350,
         minWidthPad = 135,
         minHeight = 695,
         minHeightFontMult = 23,
@@ -134,6 +136,7 @@ local function updateSizes()
     end
     VERT_GAP = P.vertGap
     COLUMN_GAP = P.columnGap
+    BORDER = I.UIToolkit.getTheme().Sizes.border
 
     ICON_SZ = util.round(INNER_TEXT * P.iconRatio)
     GAP_ICON = P.gapIcon
@@ -446,6 +449,8 @@ function Window:makeTypeSelector()
             horizontal = true,
             align = ui.ALIGNMENT.Center,
             arrange = ui.ALIGNMENT.Center,
+            anchor = v2(1, 0),
+            relativePosition = v2(1, 0),
         },
         content = ui.content {
             potion,
@@ -643,7 +648,6 @@ function Window:makeTools()
     local noticePath = { 'tools-box', 'notice' }
 
     local TIP_W = util.round(INNER_TEXT * 15)
-    local PAD = 5
 
     ---@return UTKTooltips.Tooltip
     local function toolTip(record, label, key, suffix)
@@ -758,9 +762,9 @@ function Window:makeTools()
     end
     local box = {
         name = 'tools-box',
-        template = T.border { padding = PAD },
+        template = T.border { padding = CONTENT_PAD },
         props = {
-            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3 + 2 * PAD),
+            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3 + 2 * (CONTENT_PAD + BORDER)),
         },
         content = ui.content {
             {
@@ -822,7 +826,9 @@ function Window:makeTools()
         content = ui.content {
             {
                 type = ui.TYPE.Widget,
-                props = { size = v2(BLOCK_WIDTH, TITLE_TEXT + 2) },
+                props = {
+                    size = v2(BLOCK_WIDTH - CONTENT_PAD, TITLE_TEXT + 2),
+                },
                 content = ui.content {
                     {
                         template = T.text(),
@@ -831,14 +837,7 @@ function Window:makeTools()
                             textSize = TITLE_TEXT,
                         },
                     },
-                    {
-                        type = ui.TYPE.Container,
-                        props = {
-                            anchor = v2(1, 0),
-                            relativePosition = v2(1, 0),
-                        },
-                        content = ui.content { self.potionTypeSelector.element },
-                    },
+                    self.potionTypeSelector.element,
                 },
             },
             T.intervalV(3),
@@ -864,7 +863,7 @@ function Window:makeSelected()
     end
 
     local element
-    local path = { 'selected-box', 'padding', 'selected' }
+    local path = { 'selected-box', 'selected' }
     local wdg = {
         update = function()
             local selected = H.findLayoutByPath(element, path)
@@ -921,7 +920,8 @@ function Window:makeSelected()
                 horizontal = true,
                 autoSize = false,
                 arrange = ui.ALIGNMENT.Center,
-                size = v2(BLOCK_WIDTH - 10, ICON_SZ),
+                size = v2(0, ICON_SZ),
+                relativeSize = v2(1, 0)
             },
             content = ui.content {
                 M.namedIcon('icon', ICON_SZ),
@@ -933,35 +933,30 @@ function Window:makeSelected()
     end
     local box = {
         name = 'selected-box',
-        template = T.boxSolid,
-        content = ui.content {
-            {
-                name = 'padding',
-                template = T.padding(5),
-                content = ui.content {
-                    {
-                        name = 'selected',
-                        type = ui.TYPE.Flex,
-                        props = {
-                            horizontal = false,
-                            arrange = ui.ALIGNMENT.Start,
-                            align = ui.ALIGNMENT.Start,
-                            autoSize = false,
-                            size = v2(BLOCK_WIDTH - 10, ICON_SZ * 4 + GAP_ICON * 3),
-                        },
-                        content = ui.content {
-                            makeRow(1),
-                            T.intervalV(GAP_ICON),
-                            makeRow(2),
-                            T.intervalV(GAP_ICON),
-                            makeRow(3),
-                            T.intervalV(GAP_ICON),
-                            makeRow(4),
-                        },
-                    },
-                },
-            }
-        }
+        template = T.border { padding = CONTENT_PAD },
+        props = {
+            size = v2(BLOCK_WIDTH, ICON_SZ * 4 + GAP_ICON * 3 + 2 * (CONTENT_PAD + BORDER)),
+        },
+        content = ui.content { {
+            name = 'selected',
+            type = ui.TYPE.Flex,
+            props = {
+                horizontal = false,
+                arrange = ui.ALIGNMENT.Start,
+                align = ui.ALIGNMENT.Start,
+                autoSize = false,
+                relativeSize = v2(1, 1)
+            },
+            content = ui.content {
+                makeRow(1),
+                T.intervalV(GAP_ICON),
+                makeRow(2),
+                T.intervalV(GAP_ICON),
+                makeRow(3),
+                T.intervalV(GAP_ICON),
+                makeRow(4),
+            },
+        } },
     }
     element = ui.create {
         name = 'selected-block',
@@ -1007,12 +1002,15 @@ end
 
 function Window:makeResultingEffects()
     local element
-    local path = { 'result-box', 'padding', 'effect-list' }
+    local path = { 'result-box', 'effect-list' }
     local info = ui.create {
         type = ui.TYPE.Flex,
         props = {
             horizontal = true,
             arrange = ui.ALIGNMENT.Center,
+            position = v2(-CONTENT_PAD, 0),
+            anchor = v2(1, 0),
+            relativePosition = v2(1, 0),
         },
         content = ui.content {
         },
@@ -1160,7 +1158,6 @@ function Window:makeResultingEffects()
                     }
                 })
             end
-            effects.props.size = v2(BLOCK_WIDTH - 10, INNER_TEXT * effectCount + GAP_EFFECT * (effectCount - 1))
 
             auxUi.deepUpdate(element)
         end,
@@ -1169,28 +1166,21 @@ function Window:makeResultingEffects()
 
     local box = {
         name = 'result-box',
-        template = T.boxSolid,
-        props = {},
-        content = ui.content {
-            {
-                name = 'padding',
-                template = T.padding(5),
-                content = ui.content {
-                    {
-                        name = 'effect-list',
-                        type = ui.TYPE.Flex,
-                        props = {
-                            autoSize = false,
-                            arrange = ui.ALIGNMENT.Start,
-                            align = ui.ALIGNMENT.Start,
-                            size = v2(BLOCK_WIDTH - 10, INNER_TEXT * P.effectRows + GAP_EFFECT * (P.effectRows - 1)),
-                        },
-                        content = ui.content {},
-                    }
-                }
+        template = T.border { padding = CONTENT_PAD },
+        props = {
+            size = v2(BLOCK_WIDTH, INNER_TEXT * P.effectRows + GAP_EFFECT * (P.effectRows - 1) + 2 * (CONTENT_PAD + BORDER))
+        },
+        content = ui.content { {
+            name = 'effect-list',
+            type = ui.TYPE.Flex,
+            props = {
+                autoSize = false,
+                arrange = ui.ALIGNMENT.Start,
+                align = ui.ALIGNMENT.Start,
+                relativeSize = v2(1, 1),
             },
-
-        }
+            content = ui.content {},
+        } }
     }
     element = ui.create {
         name = 'result-block',
@@ -1209,14 +1199,7 @@ function Window:makeResultingEffects()
                             textSize = TITLE_TEXT,
                         },
                     },
-                    {
-                        type = ui.TYPE.Container,
-                        props = {
-                            anchor = v2(1, 0),
-                            relativePosition = v2(1, 0),
-                        },
-                        content = ui.content { info },
-                    },
+                    info,
                 },
             },
             T.intervalV(3),
