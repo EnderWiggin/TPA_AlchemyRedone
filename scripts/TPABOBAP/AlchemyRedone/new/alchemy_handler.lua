@@ -53,7 +53,7 @@ local ICON_DEFAULTS = {
     [STRINGS.CALCINATOR] = 'icons/TPABOBAP/AlchemyRedone/calcinator.png',
     [STRINGS.RETORT] = 'icons/TPABOBAP/AlchemyRedone/retort.png',
 }
-local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'
+local REVERT_PATH = 'icons/UIToolkit/revert.dds'
 local UNKNOWN_PATH = 'icons/TPABOBAP/AlchemyRedone/unknown-effect.png'
 
 local COLORS = {
@@ -974,8 +974,9 @@ function Window:makeSelected()
                         props = {
                             resource = I.UIToolkit.texture(REVERT_PATH),
                             size = v2(TITLE_TEXT, TITLE_TEXT),
+                            alpha = 0.5,
                         },
-                        userData = { colorable = true, },
+                        userData = { colorable = true, disabled = true },
                     }),
                 },
             },
