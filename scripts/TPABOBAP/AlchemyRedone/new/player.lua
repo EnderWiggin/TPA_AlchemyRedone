@@ -474,6 +474,39 @@ m.modifySharedTooltip = function(tip)
     tip.printEffects(group, effects, isAlchemy)
 end
 
+local function findByName(items, name)
+    for index, item in ipairs(items or {}) do
+        if item.name == name then
+            return item, index
+        end
+    end
+end
+
+---@param recipe UTKTooltips.Recipe
+---@param tooltip UTKTooltips.Tooltip
+m.modifyUTKTooltip = function(recipe, tooltip)
+    local type = recipe.type or tooltip.type
+
+    local isPotion = type == I.UTKTooltips.TYPE.Potion
+    if not isPotion and type ~= I.UTKTooltips.TYPE.Ingredient then
+        return
+    end
+    local observer = tooltip.observer -- or player
+    local recordId = tooltip.key or tooltip.object.recordId
+    ---@type boolean[]
+    local knowledge = isPotion
+        and A.getKnownEffectFlagsForPotion(recordId, observer)
+        or A.getKnownEffectFlagsForIngredient(recordId, observer)
+
+    for i = 1, #knowledge do
+        knowledge[i] = not knowledge[i]
+    end
+
+    local item = findByName(recipe.items, I.UTKTooltips.CONTENT.MagicEffects)
+    if not item then return end
+    item.unknown = knowledge
+end
+
 m.getKnownEffectFlagsForItem = function(item)
     if item.type == types.Potion then
         return A.getKnownEffectFlagsForPotion(A.toPotionRecord(item.recordId), player)
@@ -638,7 +671,10 @@ local function onUpdate()
             end,
             resizing = true,
         })
-        --TODO: register UTKTooltip modifier
+
+        if I.UTKTooltips then
+            I.UTKTooltips.addPreCreateTooltipHandler(m.modifyUTKTooltip)
+        end
 
         updatePermissions()
     end
