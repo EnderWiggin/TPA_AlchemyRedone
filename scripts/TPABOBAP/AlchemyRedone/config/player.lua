@@ -2,6 +2,7 @@
 
 local async = require('openmw.async')
 local storage = require('openmw.storage')
+local omwConstants = require('scripts.omw.mwui.constants')
 
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local C = require('scripts.TPABOBAP.UIToolkit.constants')
@@ -60,6 +61,11 @@ local config = {
         s_intReMode = C.InterfaceReimaginedMode.Auto,
     },
     controls = {},
+    text = {
+        normal = omwConstants.textNormalSize,
+        title = omwConstants.textNormalSize,
+        content = omwConstants.textNormalSize,
+    },
 }
 
 ---@param section openmw.storage.StorageSection
@@ -77,6 +83,35 @@ subscribe(nearby, 'nearby')
 local ui = storage.playerSection(CFG.SECTION.MENU.Interface)
 subscribe(ui, 'ui')
 
+local COMPACT_TEXT_CAP = 16
+local function updateTextConfig()
+    --three size tiers: TEXT_SIZE (menu base), TITLE_TEXT (headings), CONTENT_TEXT (contents, tables, tooltips)
+    --compact caps the base and lowers the tiers; all render code reads tiers, never the mode
+    local compact = config.ui.b_CompactMode
+    local sz = config.ui.n_TextSize or 0
+
+    if sz <= 0 then sz = omwConstants.textNormalSize + sz end
+    if compact then sz = math.min(sz, COMPACT_TEXT_CAP) end
+
+    local szt = config.ui.n_TextSizeTitle or 0
+    if not compact then
+        szt = sz
+    elseif szt <= 0 then
+        szt = math.max(13, sz + szt)
+    end
+
+    local szc = config.ui.n_TextSizeContent or 0
+    if not compact then
+        szc = sz
+    elseif szc <= 0 then
+        szc = math.max(13, sz + szc)
+    end
+
+    config.text.normal = sz
+    config.text.title = szt
+    config.text.content = szc
+end
+storage.playerSection(CFG.SECTION.MENU.Interface):subscribe(async:callback(updateTextConfig))
 
 local controls = storage.playerSection(CFG.SECTION.MENU.Controller)
 subscribe(controls, 'controls')

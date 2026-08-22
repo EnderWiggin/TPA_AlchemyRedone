@@ -45,7 +45,7 @@ local function renderBookmark(data, cfg, height)
     return ui.create(layout)
 end
 
----@class AlchemyRedone.ListItemEffect: UIToolkit.ListItem.Column<AlchemyRedone.ListData.Effect>
+---@class AlchemyRedone.ListItemEffect: UIToolkit.ListItem.Column
 ---@field new fun(self:AlchemyRedone.ListItemEffect):AlchemyRedone.ListItemEffect
 local ListItemEffect = Class(ListItemColumn)
 

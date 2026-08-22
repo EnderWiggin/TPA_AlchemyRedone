@@ -15,14 +15,13 @@ local v2 = util.vector2
 local ApparatusTypes = types.Apparatus.TYPE
 
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
+local cfg = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 ---@class UIToolkit.Templates
 local T = require('scripts.UIToolkit.templates.base')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
---TODO: salvage what's used from these into new files
-local Base = require("scripts.TPABOBAP.UIToolkit.templates.base")
-local H = require("scripts.TPABOBAP.UIToolkit.helpers")
-local C = require("scripts.TPABOBAP.UIToolkit.constants")
+local AH = require("scripts.TPABOBAP.AlchemyRedone.new.helpers")
+local H = require('scripts.UIToolkit.helpers')
 
 local Class = require('scripts.UIToolkit.class')
 ---@type AlchemyRedone.ListItemIngredient
@@ -37,7 +36,6 @@ local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 
 local Slots = { 'First', 'Second', 'Third', 'Fourth' }
 local MIN_SIZE = v2(800, 695)
-local isCompact = cfgPlayer.ui.b_CompactMode
 
 local STRINGS = {
     NAME = core.getGMST('sNameTitle'),
@@ -47,6 +45,10 @@ local STRINGS = {
     CALCINATOR = core.getGMST('sCalcinator'),
     ALEMBIC = core.getGMST('sAlembic'),
     RETORT = core.getGMST('sRetort'),
+    CREATE = core.getGMST('sCreate'),
+    CANCEL = core.getGMST('sCancel'),
+    INGREDIENTS = core.getGMST('sIngredients'),
+    EFFECTS = core.getGMST('sEffects'),
 }
 
 local ICON_DEFAULTS = {
@@ -118,8 +120,8 @@ end
 local function updateSizes()
     P = cfgPlayer.ui.b_CompactMode and PROFILE.compact or PROFILE.default
     --size tiers from the shared templates: contents/tables/tooltips at INNER_TEXT, headings at TITLE_TEXT
-    INNER_TEXT = Base.TEXT_SIZE_CONTENT
-    TITLE_TEXT = Base.TEXT_SIZE_TITLE
+    INNER_TEXT = cfg.text.content
+    TITLE_TEXT = cfg.text.title
     BLOCK_WIDTH = util.round(P.blockWidth * INNER_TEXT / 16)
     COLUMN_GAP = P.columnGap
     local minWidth = 2 * BLOCK_WIDTH + 2 * INNER_PAD + COLUMN_GAP + P.additionalWidth
@@ -212,14 +214,14 @@ function Window:onOpened(wnd, ctx)
     self.selected.update()
 
     self.btnCreate = I.UIToolkit.Components.textButton {
-        text = C.Strings.CREATE,
+        text = STRINGS.CREATE,
         name = 'btnCreate',
         onClick = function() self:createPotion() end,
         canClick = function() return not self.btnCreate:isDisabled() end,
     }
 
     self.btnCancel = I.UIToolkit.Components.textButton {
-        text = C.Strings.CANCEL,
+        text = STRINGS.CANCEL,
         name = 'btnCancel',
         onClick = function() I.UI.removeMode(I.UI.MODE.Alchemy) end,
     }
@@ -389,12 +391,10 @@ function Window:makeTypeSelector()
     local element, potion, poison
 
     local function update()
-        potion.layout.userData.active = not self.isPoison
-        H.setInteractiveColor(potion)
+        I.UIToolkit.Interactive.updateState(potion, { active = not self.isPoison })
         potion:update()
 
-        poison.layout.userData.active = self.isPoison
-        H.setInteractiveColor(poison)
+        I.UIToolkit.Interactive.updateState(poison, { active = self.isPoison })
         poison:update()
 
         self:onPotionTypeUpdated()
@@ -477,11 +477,10 @@ function Window:makeFilterMatchingToggle()
 
     local function update(noListUpdates)
         if self.showEffects then
-            toggle.layout.userData.active = self.filterMatchingEffects
+            I.UIToolkit.Interactive.updateState(toggle, { active = self.filterMatchingEffects })
         else
-            toggle.layout.userData.active = self.filterMatchingIngredients
+            I.UIToolkit.Interactive.updateState(toggle, { active = self.filterMatchingIngredients })
         end
-        H.setInteractiveColor(toggle)
         toggle:update()
         if not noListUpdates then
             self:updateIngredientList()
@@ -588,7 +587,7 @@ function Window:makeTableSelector()
     }, {
         template = T.text(),
         props = {
-            text = C.Strings.INGREDIENTS,
+            text = STRINGS.INGREDIENTS,
             textSize = TITLE_TEXT,
         },
         userData = {
@@ -603,7 +602,7 @@ function Window:makeTableSelector()
     }, {
         template = T.text(),
         props = {
-            text = C.Strings.EFFECTS,
+            text = STRINGS.EFFECTS,
             textSize = TITLE_TEXT,
         },
         userData = {
@@ -653,7 +652,7 @@ function Window:makeTools()
         ---@type UTKTooltips.RecipeItem[]
         local items = {
             { type = 'header',    title = record and record.name or label },
-            { type = 'paragraph', text = l10n('Apparatus_Tooltip_' .. key .. suffix, C.TextColorParams), width = TIP_W },
+            { type = 'paragraph', text = l10n('Apparatus_Tooltip_' .. key .. suffix, H.TextColorParams), width = TIP_W },
         }
 
         if record then
@@ -892,7 +891,7 @@ function Window:makeSelected()
                         end
                     end
                 else
-                    name.props.text = C.Strings.NONE
+                    name.props.text = STRINGS.NONE
                     icon.props.resource = nil
 
                     for i = 1, 4 do
@@ -972,7 +971,7 @@ function Window:makeSelected()
                     {
                         template = T.text(),
                         props = {
-                            text = C.Strings.INGREDIENTS,
+                            text = STRINGS.INGREDIENTS,
                             textSize = TITLE_TEXT,
                         },
                     },
@@ -1117,7 +1116,8 @@ function Window:makeResultingEffects()
                     if isVisible then
                         content:add(T.effectIcon(effect.id, INNER_TEXT))
                         content:add(T.intervalH(4))
-                        local effectText = full and H.createSpellEffectString(effect) or H.getMagicEffectString(effect)
+                        local effectText = full and AH.createSpellEffectString(effect, false, true) or
+                            AH.getMagicEffectString(effect)
                         content:add({ name = 'effect_text', template = T.text(), props = { text = effectText or '?', textSize = INNER_TEXT } })
                     else
                         content:add({ name = 'effect_text', template = T.text(), props = { text = '?', textSize = INNER_TEXT } })
@@ -1196,7 +1196,7 @@ function Window:makeResultingEffects()
                         name = 'title',
                         template = T.text(),
                         props = {
-                            text = C.Strings.CREATED_EFFECTS,
+                            text = STRINGS.CREATED_EFFECTS,
                             textSize = TITLE_TEXT,
                         },
                     },
@@ -1338,7 +1338,7 @@ function Window:getDefaultPotionName()
         for i = 1, #matching do
             if knowledge and knowledge[i] then
                 local record = A.getEffectRecord(matching[i].id)
-                local name = H.getMagicEffectString(matching[i])
+                local name = AH.getMagicEffectString(matching[i])
                 if record and record.harmful then
                     if not harmful then harmful = name end
                 elseif not positive then
@@ -1526,7 +1526,7 @@ function Window:filterIngredientByEffects(row)
     return false
 end
 
----@param row EffectItemData
+---@param row AlchemyRedone.ListData.Effect
 ---@return boolean
 function Window:filterEffectByPotionType(row)
     if not self.filterMatchingEffects then return true end
@@ -1606,7 +1606,7 @@ function Window:getAllEffects()
     ---@type AlchemyRedone.ListData.Effect[]
     local result = {}
     for _, d in pairs(effects) do
-        local name = H.getMagicEffectString(M.effectDataToEffect(d))
+        local name = AH.getMagicEffectString(M.effectDataToEffect(d))
         local record = H.getMagicEffectRecord(d.effectId)
         result[#result + 1] = {
             id = d.id,
@@ -1765,7 +1765,7 @@ function M.getIngredientSearchText(recordOrId, actor)
 
     local searchParts = { record.name }
 
-    for _, effectData in ipairs(H.getTooltipIngredientEffectEntries(record, actor)) do
+    for _, effectData in ipairs(AH.getTooltipIngredientEffectEntries(record, actor)) do
         if effectData.visible and effectData.text and effectData.text ~= '' then
             table.insert(searchParts, '"' .. effectData.text .. '"')
         end
@@ -1813,8 +1813,8 @@ function M.effectComparator(a, b)
         return nA < nB
     end
 
-    nA = H.getMagicEffectString(M.effectDataToEffect(a))
-    nB = H.getMagicEffectString(M.effectDataToEffect(b))
+    nA = AH.getMagicEffectString(M.effectDataToEffect(a))
+    nB = AH.getMagicEffectString(M.effectDataToEffect(b))
 
     if nA == nB then return a.id < b.id end
     return nA < nB
@@ -1913,7 +1913,7 @@ end
 ---@return UTKTooltips.AnyTooltip
 function M.paragraphTooltip(text, width)
     return {
-        body = l10n(text, C.TextColorParams),
+        body = l10n(text, H.TextColorParams),
         width = width or 200
     }
 end
