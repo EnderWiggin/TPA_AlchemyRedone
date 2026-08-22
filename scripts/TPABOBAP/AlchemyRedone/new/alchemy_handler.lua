@@ -1684,7 +1684,11 @@ function Window:updateMatchingEffects()
     self.data.nonMatching, self.data.nonMatchingKnowledge = A.getNonMatchingEffects(ingredients, player)
     self:updateDefaultName()
     self:updateIngredientList()
-    --TODO: update effect block on ingredients
+    local items = self.itemTable:getItems()
+    for i = 1, #items do
+        local item = items[i] --[[@as UIToolkit.ListData.Column]]
+        self.ingredientProvider:refreshColumn(item, 'effects')
+    end
 end
 
 function Window:onIngredientSelectionChanged()
@@ -1731,7 +1735,7 @@ end
 -------- MISC HELPERS
 
 ---@param data AlchemyData
----@return IngredientItemData[]
+---@return AlchemyRedone.ListData.Ingredient[]
 function M.getAllIngredients(data)
     if not data.sources then return {} end
 
@@ -1743,6 +1747,7 @@ function M.getAllIngredients(data)
         table.insert(result, {
             id = id,
             count = count,
+            icon = record and record.icon,
             name = name,
             searchText = M.getIngredientSearchText(record, player),
             isActive = function()
@@ -1754,6 +1759,7 @@ function M.getAllIngredients(data)
                 end
                 return false
             end,
+            tooltip = { type = I.UTKTooltips.TYPE.Ingredient, key = id, observer = player },
         })
     end
     return result
