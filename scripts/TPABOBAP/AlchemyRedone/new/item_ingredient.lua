@@ -23,6 +23,7 @@ local UNKNOWN_EFFECT = Base.createTexture('icons/TPABOBAP/AlchemyRedone/unknown-
 ---@field isActive fun():boolean
 
 ---@class AlchemyRedone.ListItemIngredient: UIToolkit.ListItem.Base<AlchemyRedone.ListData.Ingredient>
+---@field new fun(self:AlchemyRedone.ListItemIngredient):AlchemyRedone.ListItemIngredient
 local ListItemIngredient = Class(ListItemBase)
 
 ---@param data AlchemyData

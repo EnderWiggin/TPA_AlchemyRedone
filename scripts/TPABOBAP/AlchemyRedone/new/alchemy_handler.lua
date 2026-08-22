@@ -7,6 +7,7 @@ local util = require('openmw.util')
 local storage = require('openmw.storage')
 local player = require('openmw.self')
 local types = require('openmw.types')
+local input = require('openmw.input')
 local I = require('openmw.interfaces')
 
 local l10n = core.l10n('TPA_AlchemyRedone')
@@ -26,6 +27,7 @@ local C = require("scripts.TPABOBAP.UIToolkit.constants")
 local Class = require('scripts.UIToolkit.class')
 ---@type AlchemyRedone.ListItemIngredient
 local ListItemIngredient = require('scripts.TPABOBAP.AlchemyRedone.new.item_ingredient')
+local ListItemEffect = require('scripts.TPABOBAP.AlchemyRedone.new.item_effect')
 
 local M = {}
 
@@ -152,11 +154,6 @@ function Window:onOpened(wnd, ctx)
     updateSizes()
     wnd:setMinSize(MIN_SIZE)
 
-    ---@type AlchemyRedone.ListItemIngredient
-    local provider = ListItemIngredient:new()
-    provider:init(self.data, INNER_TEXT)
-    self.ingredientProvider = provider
-
     --Show effects or ingredients?
     self.showEffects = false
     --TODO: move these to custom window save data?
@@ -171,8 +168,9 @@ function Window:onOpened(wnd, ctx)
     ---@type {id:string, text: string}[]
     self.selectedEffects = {}
 
+    self.tableSize = v2(BLOCK_WIDTH, BLOCK_WIDTH)
     self.allIngredients = M.getAllIngredients(self.data)
-    --self.allEffects = M.getAllIngredients(self.data)
+    self.allEffects = self:getAllEffects()
 
     self.naming = I.UIToolkit.Components.textEdit({
         default = '',
@@ -190,6 +188,7 @@ function Window:onOpened(wnd, ctx)
         placeholder = l10n('FilterPlaceholder'),
         onValueChanged = function() self:updateIngredientList() end,
         showClearButton = true,
+        onClearClicked = function() self:onFilterCleared() end,
     }
     self.filter
         :setWidth(0)
@@ -215,7 +214,7 @@ function Window:onOpened(wnd, ctx)
     self.btnCreate = I.UIToolkit.Components.textButton {
         text = C.Strings.CREATE,
         name = 'btnCreate',
-        onClick = function() self:createPotion() end, --TODO: implement
+        onClick = function() self:createPotion() end,
         canClick = function() return not self.btnCreate:isDisabled() end,
     }
 
@@ -229,8 +228,21 @@ function Window:onOpened(wnd, ctx)
         relativePosition = v2(1, 1),
     }
 
+    local ingredientProvider = ListItemIngredient:new()
+    ingredientProvider:init(self.data, INNER_TEXT)
+    self.ingredientProvider = ingredientProvider
+
     self.itemTable = self:makeIngredientList()
+    self.itemTable:setVisible(not self.showEffects)
     self:updateIngredientList()
+
+    local effectProvider = ListItemEffect:new()
+    effectProvider:init(INNER_TEXT)
+    self.effectProvider = effectProvider
+
+    self.effectTable = self:makeEffectTable()
+    self.effectTable:setVisible(self.showEffects)
+    self:updateEffectList()
 
     self.content, self.rightPanel = self:makeContent()
     wnd:setContent(self.content)
@@ -260,11 +272,11 @@ function Window:onResized(inner)
     local rsz = v2(inner.x - BLOCK_WIDTH - 2 * INNER_PAD - COLUMN_GAP, inner.y - 2 * INNER_PAD)
     right.layout.props.size = rsz
 
-    local tableSz = rsz - P.tableMargin
+    self.tableSize = rsz - P.tableMargin
     if self.showEffects then
-        --self.effectTable.layout.userData.resize(tableSz)  --TODO: implement
+        self.effectTable:setSize(self.tableSize)
     else
-        self.itemTable:setSize(tableSz)
+        self.itemTable:setSize(self.tableSize)
     end
 
     I.UIToolkit.queueUpdate(right)
@@ -292,6 +304,7 @@ function Window:makeContent()
                 },
             },
             self.itemTable.element,
+            self.effectTable.element,
             {
                 name = 'bottom-block',
                 props = {
@@ -472,7 +485,7 @@ function Window:makeFilterMatchingToggle()
         toggle:update()
         if not noListUpdates then
             self:updateIngredientList()
-            self:updateEffectList()
+            self:updateEffectList(true)
         end
     end
 
@@ -533,24 +546,23 @@ function Window:makeTableSelector()
     local element, ingredients, effects
 
     local function update()
-        ingredients.layout.userData.active = not self.showEffects
-        H.setInteractiveColor(ingredients)
+        I.UIToolkit.Interactive.updateState(ingredients, { active = not self.showEffects })
         ingredients:update()
 
-        effects.layout.userData.active = self.showEffects
-        H.setInteractiveColor(effects)
+        I.UIToolkit.Interactive.updateState(effects, { active = self.showEffects })
         effects:update()
 
         if self.itemTable then
             self.itemTable:setVisible(not self.showEffects)
+            self.itemTable:setSize(self.tableSize)
         end
         if self.effectTable then
-            --self.effectTable:setVisible(self.showEffects)
+            self.effectTable:setVisible(self.showEffects)
+            self.effectTable:setSize(self.tableSize)
         end
 
         self:updateIngredientList()
-        self:updateMatchingEffects()
-        --TODO: update sizes?
+        self:updateEffectList()
 
         if self.toggleFilterMatching then
             self.toggleFilterMatching.update(true)
@@ -1250,11 +1262,23 @@ end
 ---@return UIToolkit.ItemList
 function Window:makeIngredientList()
     local list = I.UIToolkit.Components.itemList {
-        itemHeight = self.ingredientProvider.rowHeight,
-        size = v2(BLOCK_WIDTH, BLOCK_WIDTH),
+        size = self.tableSize,
         provider = self.ingredientProvider,
         onItemClicked = function(item, _)
             self:selectIngredient(item)
+        end
+    }
+    list:updateProps { position = v2(0, TITLE_TEXT + 3) }
+    return list
+end
+
+---@return UIToolkit.ItemList
+function Window:makeEffectTable()
+    local list = I.UIToolkit.Components.itemList {
+        size = self.tableSize,
+        provider = self.effectProvider,
+        onItemClicked = function(item, _)
+            self:selectEffect(item)
         end
     }
     list:updateProps { position = v2(0, TITLE_TEXT + 3) }
@@ -1390,6 +1414,70 @@ function Window:selectIngredient(info)
     end
 end
 
+function Window:selectEffect(effect)
+    local add = input.isShiftPressed() or input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.6
+    local favorite = input.isCtrlPressed() or input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.6
+
+    if favorite then
+        self:toggleFavoriteEffect(effect.id)
+        return
+    end
+    local idx
+
+    for i = 1, #self.selectedEffects do
+        if self.selectedEffects[i].id == effect.id then
+            idx = i
+            break
+        end
+    end
+    local switch = false
+    if idx then
+        table.remove(self.selectedEffects, idx)
+    else
+        if add then
+            table.insert(self.selectedEffects, { id = effect.id, text = effect.searchText })
+        else
+            self.selectedEffects = { { id = effect.id, text = effect.searchText } }
+            switch = true
+        end
+    end
+
+    local terms = {}
+    for i = 1, #self.selectedEffects do
+        local p = self.selectedEffects[i]
+        if p.text and #p.text > 0 then
+            table.insert(terms, p.text)
+        end
+    end
+    local cached = self.effectProvider:getCachedComponent(effect.id)
+    if cached then
+        cached:setActive(effect.isActive())
+    end
+    self.filter:setValue(table.concat(terms, " | "))
+    if switch then
+        self.showEffects = false
+        self.tableSelector.update()
+    end
+end
+
+---@param effectKey string
+function Window:toggleFavoriteEffect(effectKey)
+    if self.data.favoriteEffects[effectKey] then
+        self.data.favoriteEffects[effectKey] = nil
+    else
+        self.data.favoriteEffects[effectKey] = true
+    end
+
+    for i = 1, #self.allEffects do
+        local data = self.allEffects[i]
+        if data.id == effectKey then
+            self.effectProvider:refreshColumn(data, 'favorite')
+            break
+        end
+    end
+    self:updateEffectList()
+end
+
 function Window:clearSelectedIngredient(n)
     local data = self.data
     if data and data.selected and data.selected[n] then
@@ -1403,7 +1491,7 @@ function Window:clearFilter()
     self:updateEffectList()
 
     self.selectedEffects = {}
-    self:updateEffectList()
+    self:updateEffectList(true)
 end
 
 ---@param row IngredientItemData
@@ -1438,6 +1526,16 @@ function Window:filterIngredientByEffects(row)
     return false
 end
 
+---@param row EffectItemData
+---@return boolean
+function Window:filterEffectByPotionType(row)
+    if not self.filterMatchingEffects then return true end
+    local record = H.getMagicEffectRecord(row.effectId)
+    if not record then return true end
+
+    return not self.isPoison == not record.harmful
+end
+
 function Window:updateIngredientList()
     if self.showEffects or not self.itemTable then return end
     local items = {}
@@ -1452,9 +1550,96 @@ function Window:updateIngredientList()
     self.itemTable:setItems(items)
 end
 
-function Window:updateEffectList()
+---@param reset boolean?
+function Window:updateEffectList(reset)
     if not self.showEffects then return end
-    --TODO: implement list filtering/updating
+
+    local items = {}
+    for i = 1, #self.allEffects do
+        local item = self.allEffects[i]
+        if self:filterEffectByPotionType(item) then
+            items[#items + 1] = item
+        end
+    end
+
+    table.sort(items, M.effectComparator)
+
+    self.effectTable:setItems(items)
+    if reset then self.effectTable:setPosition(0) end
+end
+
+---@return AlchemyRedone.ListData.Effect[]
+function Window:getAllEffects()
+    local data = self.data
+    if not data.sources then return {} end
+
+    ---@type table<string, EffectItemData>
+    local effects = {}
+
+    for id, _ in pairs(data.ingredients) do
+        local record = types.Ingredient.record(id)
+        local known = A.getKnownEffectFlagsForIngredient(record, player)
+        if record then
+            local added = {}
+            for i = 1, #record.effects do
+                local effect = record.effects[i]
+                if effect and known[i] then
+                    local key = A.effectKey(effect)
+                    if not effects[key] then
+                        added[key] = true
+                        effects[key] = {
+                            id = key,
+                            effectId = effect.id,
+                            affectedAttribute = effect.affectedAttribute,
+                            affectedSkill = effect.affectedSkill,
+                            isFavorite = function() return data.favoriteEffects[key] == true end,
+                            count = 1,
+                        }
+                    elseif not added[key] then
+                        added[key] = true
+                        effects[key].count = effects[key].count + 1
+                    end
+                end
+            end
+        end
+    end
+    ---@type AlchemyRedone.ListData.Effect[]
+    local result = {}
+    for _, d in pairs(effects) do
+        local name = H.getMagicEffectString(M.effectDataToEffect(d))
+        local record = H.getMagicEffectRecord(d.effectId)
+        result[#result + 1] = {
+            id = d.id,
+            effectId = d.effectId,
+            affectedSkill = d.affectedSkill,
+            affectedAttribute = d.affectedAttribute,
+            displayName = name .. ' (' .. H.addSeparators(d.count) .. ')',
+            icon = record and record.icon,
+            tooltip = { key = d.effectId, type = I.UTKTooltips.TYPE.MagicEffect },
+            searchText = '"' .. name .. '"',
+            isActive = function()
+                local selectedEffects = self.selectedEffects
+                if not selectedEffects then return false end
+                for i = 1, #selectedEffects do
+                    if selectedEffects[i].id == d.id then return true end
+                end
+                return false
+            end,
+            isFavorite = d.isFavorite,
+        }
+    end
+    return result
+end
+
+function Window:onFilterCleared()
+    self.selectedEffects = {}
+    local items = self.effectTable:getItems()
+    for i = 1, #items do
+        local cached = self.effectProvider:getCachedComponent(items[i].id)
+        if cached and cached:isActive() then
+            cached:setActive(false)
+        end
+    end
 end
 
 function Window:updateDefaultName()
@@ -1473,13 +1658,14 @@ function Window:onPotionTypeUpdated()
     self.resultingEffects.update()
     self:updateDefaultName()
     if self.filterMatchingEffects then
-        self:updateEffectList()
+        self:updateEffectList(true)
     end
 end
 
 function Window:updateData()
     self.btnCreate:setDisabled(false)
     self.allIngredients = M.getAllIngredients(self.data)
+    self.allEffects = self:getAllEffects()
     if self.showEffects then
         self:updateEffectList()
     else
@@ -1498,6 +1684,7 @@ function Window:updateMatchingEffects()
     self.data.nonMatching, self.data.nonMatchingKnowledge = A.getNonMatchingEffects(ingredients, player)
     self:updateDefaultName()
     self:updateIngredientList()
+    --TODO: update effect block on ingredients
 end
 
 function Window:onIngredientSelectionChanged()
@@ -1600,6 +1787,45 @@ function M.comparator(a, b)
     end
 
     return a.id < b.id
+end
+
+function M.effectComparator(a, b)
+    local fA = a.isFavorite()
+    local fB = b.isFavorite()
+
+    if fA ~= fB then
+        if fA then
+            return true
+        else
+            return false
+        end
+    end
+
+    local rA = A.getEffectRecord(a.effectId)
+    local rB = A.getEffectRecord(b.effectId)
+
+    local nA = rA and rA.name
+    local nB = rB and rB.name
+
+    if nA ~= nB then
+        if not nA then return false end
+        if not nB then return true end
+        return nA < nB
+    end
+
+    nA = H.getMagicEffectString(M.effectDataToEffect(a))
+    nB = H.getMagicEffectString(M.effectDataToEffect(b))
+
+    if nA == nB then return a.id < b.id end
+    return nA < nB
+end
+
+function M.effectDataToEffect(data)
+    return {
+        id = data.effectId,
+        affectedAttribute = data.affectedAttribute,
+        affectedSkill = data.affectedSkill,
+    }
 end
 
 function M.ingredientMatches(row, filter)
