@@ -178,7 +178,6 @@ function Window:onOpened(wnd, ctx)
         default = '',
         showClearButton = true,
         textColorNormal = I.UIToolkit.getTheme().Colors.HEADER,
-        --placeholder = function() return self:getDefaultPotionName() end,
         textSize = INNER_TEXT,
         width = BLOCK_WIDTH,
     })
@@ -234,6 +233,7 @@ function Window:onOpened(wnd, ctx)
     ingredientProvider:init(self.data, INNER_TEXT)
     self.ingredientProvider = ingredientProvider
 
+    self.ingredientWasSelectedThisFrame = false
     self.itemTable = self:makeIngredientList()
     self.itemTable:setVisible(not self.showEffects)
     self:updateIngredientList()
@@ -242,6 +242,7 @@ function Window:onOpened(wnd, ctx)
     effectProvider:init(INNER_TEXT)
     self.effectProvider = effectProvider
 
+    self.effectWasSelectedThisFrame = false
     self.effectTable = self:makeEffectTable()
     self.effectTable:setVisible(self.showEffects)
     self:updateEffectList()
@@ -260,13 +261,6 @@ function Window:onClosed()
 end
 
 function Window:onResized(inner)
-    local c = self.wnd:getPosition()
-    local sz = self.wnd:getSize()
-    local tipPos = c + v2(sz.x + 10, sz.y / 2)
-
-    self.controllerTooltipPos = tipPos
-    --self.effectTable.layout.userData.controllerTooltipPos = tipPos
-
     if self.lastSz and self.lastSz == inner then return end
     self.lastSz = inner
 
@@ -282,6 +276,113 @@ function Window:onResized(inner)
     end
 
     I.UIToolkit.queueUpdate(right)
+end
+
+function Window:onFrame()
+    self.ingredientWasSelectedThisFrame = false
+    self.effectWasSelectedThisFrame = false
+end
+
+function Window:getFocusedScrollable()
+    return self.showEffects and self.effectTable or self.itemTable
+end
+
+---@return openmw.util.Vector2 position, openmw.util.Vector2 anchor
+function Window:getTooltipPositionForController()
+    local c = self.wnd:getPosition()
+    local sz = self.wnd:getSize()
+
+    local layerWidth = ui.layers[ui.layers.indexOf('Windows')].size.x
+    if c.x + sz.x > 0.85 * layerWidth then
+        return c + v2(-10, sz.y / 2), v2(1, 0.5)
+    else
+        return c + v2(sz.x + 10, sz.y / 2), v2(0, 0.5)
+    end
+end
+
+---@param button number
+function Window:onControllerButtonPress(button)
+    local bind = cfgPlayer.controls
+    local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.55
+    local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.55
+
+    if button == bind.n_SelectPrev or button == bind.n_SelectNext then
+        local delta = LT and 5 or not RT and 1 or activeTable:getVisibleItemCount()
+        if button == bind.n_SelectPrev then delta = -delta end
+        local position, anchor = self:getTooltipPositionForController()
+
+        ---@type UIToolkit.ItemList
+        local activeTable = self.showEffects and self.effectTable or self.itemTable
+        activeTable:shiftHoveredItem(delta, position, anchor)
+    elseif button == bind.n_CountMore then
+        local count = self.counting.getCount()
+        if LT then
+            count = count + 5
+        elseif RT then
+            count = 100
+        else
+            count = count + 1
+        end
+        self.counting.setValue(count)
+    elseif button == bind.n_CountLess then
+        local count = self.counting.getCount()
+        if LT then
+            count = count - 5
+        elseif RT then
+            count = 1
+        else
+            count = count - 1
+        end
+        self.counting.setValue(count)
+    elseif button == bind.n_Brew then
+        self:createPotion()
+    elseif button == bind.n_ClearText then
+        if LT then
+            self:clearAllSelectedIngredients()
+        elseif RT then
+        else
+            self:clearFilter()
+        end
+    elseif button == bind.n_Activate then
+        ---@type UIToolkit.ListData.Base?
+        local hovered
+        if self.showEffects then
+            if not self.effectWasSelectedThisFrame then
+                hovered = self.effectTable:getHovered() --[[@as AlchemyRedone.ListData.Effect]]
+                if hovered then
+                    self.effectWasSelectedThisFrame = true
+                    self:selectEffect(hovered)
+                end
+            end
+        elseif not self.ingredientWasSelectedThisFrame then
+            hovered = self.itemTable:getHovered() --[[@as AlchemyRedone.ListData.Ingredient]]
+            if hovered then
+                self.ingredientWasSelectedThisFrame = true
+                self:selectIngredient(hovered)
+            end
+        end
+    elseif button == bind.n_ToggleType then
+        self.isPoison = not self.isPoison
+        self.potionTypeSelector.update()
+    elseif button == bind.n_ToggleTable then
+        if LT then
+            self.toggleFilterMatching.onToggleClick()
+        elseif RT then
+        else
+            self.showEffects = not self.showEffects
+            self.tableSelector.update()
+        end
+    end
+end
+
+---@param button number
+function Window:onControllerButtonRepeat(button)
+    local bind = cfgPlayer.controls
+    if button == bind.n_SelectNext or button == bind.n_SelectPrev
+        or button == bind.n_CountMore or button == bind.n_CountLess
+    then
+        self:onControllerButtonPress(button)
+    end
 end
 
 ---@return openmw.ui.Content, openmw.ui.Element
@@ -1265,6 +1366,8 @@ function Window:makeIngredientList()
         size = self.tableSize,
         provider = self.ingredientProvider,
         onItemClicked = function(item, _)
+            if self.ingredientWasSelectedThisFrame then return end
+            self.ingredientWasSelectedThisFrame = true
             self:selectIngredient(item)
         end
     }
@@ -1278,6 +1381,8 @@ function Window:makeEffectTable()
         size = self.tableSize,
         provider = self.effectProvider,
         onItemClicked = function(item, _)
+            if self.effectWasSelectedThisFrame then return end
+            self.effectWasSelectedThisFrame = true
             self:selectEffect(item)
         end
     }
@@ -1383,7 +1488,7 @@ function Window:getToolRecord(type)
     return nil
 end
 
----@param info IngredientItemData
+---@param info AlchemyRedone.ListData.Ingredient
 function Window:selectIngredient(info)
     local data = self.data
     if not data.selected then data.selected = {} end
@@ -1488,13 +1593,13 @@ end
 
 function Window:clearFilter()
     self.filter:setValue('')
-    self:updateEffectList()
+    self:updateIngredientList()
 
     self.selectedEffects = {}
     self:updateEffectList(true)
 end
 
----@param row IngredientItemData
+---@param row AlchemyRedone.ListData.Ingredient
 function Window:filterIngredientByEffects(row)
     if not self.filterMatchingIngredients then return true end
 

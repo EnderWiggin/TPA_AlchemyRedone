@@ -727,8 +727,6 @@ return {
         onConsume = onConsume,
         onLoad = onLoad,
         onSave = onSave,
-        --onControllerButtonPress = onControllerButtonPress,
-        --onControllerButtonRelease = onControllerButtonRelease,
     },
     eventHandlers = {
         TPA_AlchemyRedone_Open = m.onOpenAlchemy,
