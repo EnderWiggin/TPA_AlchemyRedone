@@ -5,18 +5,15 @@ local ambient = require('openmw.ambient')
 local async = require('openmw.async')
 local storage = require('openmw.storage')
 local types = require("openmw.types")
-local input = require('openmw.input')
 local ui = require('openmw.ui')
 local util = require('openmw.util')
 local player = require('openmw.self')
 local camera = require('openmw.camera')
 local nearby = require('openmw.nearby')
-local auxUi = require('openmw_aux.ui')
 
 local I = require('openmw.interfaces')
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
-local H = require('scripts.TPABOBAP.UIToolkit.helpers')
-local C = require('scripts.TPABOBAP.UIToolkit.constants')
+local H = require('scripts.UIToolkit.helpers')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyHandler = require('scripts.TPABOBAP.AlchemyRedone.new.alchemy_handler')
 
@@ -59,10 +56,10 @@ end
 -- carry saved values over from the old Main-section keys
 do
     local oldMain = storage.playerSection(CFG.SECTION.MENU.Main)
-    local nearby = storage.playerSection(CFG.SECTION.MENU.Nearby)
+    local nearbyCfg = storage.playerSection(CFG.SECTION.MENU.Nearby)
     for _, key in ipairs({ 'b_AllowOwnedContainerIngredients', 'b_AllowCorpseIngredients' }) do
-        if nearby:get(key) == nil and oldMain:get(key) ~= nil then
-            nearby:set(key, oldMain:get(key))
+        if nearbyCfg:get(key) == nil and oldMain:get(key) ~= nil then
+            nearbyCfg:set(key, oldMain:get(key))
         end
     end
 end
@@ -86,7 +83,6 @@ local function defaultData(prev)
     return data
 end
 
-local buttonPressDuration = {}
 local hasData = false
 
 local m = {
@@ -107,15 +103,10 @@ local m = {
 ---@field nonMatchingKnowledge? table<integer, boolean>
 ---@field favoriteEffects table<string, boolean>
 
----@type AlchemyContext
+---@class AlchemyRedone.Context
 local ctx = {
     potionModifiers = {},
-    updateQueue = {},
-    focusedScrollable = nil,
     data = defaultData(),
-    selectIngredient = function(info) m.selectIngredient(info) end,
-    clearSelectedIngredient = function(n) m.clearSelectedIngredient(n) end,
-    clearAllSelectedIngredients = function() m.clearAllSelectedIngredients() end,
     getAllIngredients = function() return m.getAllIngredients() end,
     getAllEffects = function() return m.getAllEffects() end,
     setTooltip = function(id, tipFn, props) return m.setTooltip(id, tipFn, props) end,
@@ -123,60 +114,6 @@ local ctx = {
     applyMods = function(draft, ingredients, opts) return m.applyMods(draft, ingredients, opts) end,
     brewPotions = function(name, count, ingredients, isPoison) return m.brewPotions(name, count, ingredients, isPoison) end,
 }
-
----@param id string
----@param tooltipFn TipFn
----@param props {position:openmw.util.Vector2?, anchor: openmw.util.Vector2?, relativePosition:openmw.util.Vector2?}
-m.setTooltip = function(id, tooltipFn, props)
-    if ctx.activeTooltip and ctx.activeTooltip.layout then
-        if ctx.activeTooltip.layout.name ~= id then
-            auxUi.deepDestroy(ctx.activeTooltip)
-            ctx.activeTooltip = nil
-        else
-            return ctx.activeTooltip
-        end
-    end
-    local tip = tooltipFn and tooltipFn()
-    if not tip then return end
-    ctx.activeTooltip = ui.create(tip)
-    ctx.activeTooltip.layout.name = id
-
-    if props then
-        local p = ctx.activeTooltip.layout.props or {}
-        if props.position then p.position = props.position end
-        if props.anchor then p.anchor = props.anchor end
-        if props.relativePosition then p.relativePosition = props.relativePosition end
-    end
-
-    ctx.activeTooltip:update()
-    return ctx.activeTooltip
-end
-
----@param element openmw.ui.Element?
-m.setHovered = function(element)
-    if ctx.focusedInteractive and ctx.focusedInteractive.layout then
-        ctx.focusedInteractive.layout.userData.hovering = false
-        H.setInteractiveColor(ctx.focusedInteractive.layout)
-        ctx.updateQueue[ctx.focusedInteractive] = true
-    end
-
-    if element and element.layout then
-        element.layout.userData.hovering = true
-        H.setInteractiveColor(element.layout)
-        ctx.updateQueue[element] = true
-    end
-
-    m.setFocused(element)
-end
-
----@param element openmw.ui.Element?
-m.setFocused = function(element)
-    if element and element.layout then
-        ctx.focusedInteractiveDelayed = element
-    else
-        ctx.focusedInteractiveDelayed = false
-    end
-end
 
 m.updateIngredients = function()
     local map = {}
@@ -202,35 +139,6 @@ m.updateIngredients = function()
             end
         end
     end
-end
-
----@return IngredientItemData[]
-m.getAllIngredients = function()
-    if not ctx.data.sources then
-        return {}
-    end
-
-    local result = {}
-    for id, count in pairs(ctx.data.ingredients) do
-        local record = types.Ingredient.record(id)
-        local name = record and record.name .. ' (' .. H.addSeparators(count) .. ')' or C.Strings.NONE
-        table.insert(result, {
-            id = id,
-            count = count,
-            name = name,
-            searchText = T.Alchemy.getIngredientSearchText(record, player),
-            activeFn = function()
-                if ctx.data and ctx.data.selected then
-                    for i = 1, 4 do
-                        local recordId = ctx.data.selected[i]
-                        if recordId == id then return true end
-                    end
-                end
-                return false
-            end,
-        })
-    end
-    return result
 end
 
 ---@param draft openmw.types.PotionRecord
@@ -341,8 +249,8 @@ m.brewPotions = function(name, count, ingredients, isPoison)
             end
         until processed >= brewed
 
-        if m.wndAlchemy then
-            m.wndAlchemy.tools.showNotice(getName(), brewed, count - brewed)
+        if handler then
+            handler.tools.showNotice(getName(), brewed, count - brewed)
             noticeExpireAt = core.getRealTime() + NOTICE_DURATION
         else
             local msg = core.getGMST(A.PotionErrors.OK)
@@ -362,8 +270,8 @@ m.brewPotions = function(name, count, ingredients, isPoison)
         }
         core.sendGlobalEvent('TPA_AlchemyRedone_FinalizePotions', data)
     elseif errorCode == A.PotionErrors.FAIL then -- Brewing was attempted, but failed
-        if m.wndAlchemy then
-            m.wndAlchemy.tools.showNotice(getName(), 0, count)
+        if handler then
+            handler.tools.showNotice(getName(), 0, count)
             noticeExpireAt = core.getRealTime() + NOTICE_DURATION
         else
             ui.showMessage(core.getGMST(A.PotionErrors.FAIL))
@@ -384,10 +292,6 @@ m.brewPotions = function(name, count, ingredients, isPoison)
         return true
     end
     return false
-end
-
-m.updateWnd = function(wnd, deep)
-    if wnd then wnd:update(deep) end
 end
 
 ---@param modId string
@@ -562,20 +466,6 @@ m.finalizePotions = function(data)
     end
 end
 
-local function onMouseWheel(v)
-    if not cfgPlayer.main.b_Enabled then return end
-
-    if ctx.focusedScrollable and ctx.focusedScrollable.layout then
-        local layout = ctx.focusedScrollable.layout
-        local pos = layout.content[1].props.position
-        layout.content[1].props.position = v2(
-            pos.x,
-            util.clamp(pos.y + v * layout.userData.scrollStep, -layout.userData.scrollLimit, 0)
-        )
-        layout.userData.onScroll()
-    end
-end
-
 -- crosshair hint over world apparatus (activate = brew, sneak = take)
 local hint = { widget = nil, text = nil }
 
@@ -631,7 +521,6 @@ local function updateApparatusHint()
     )
 end
 
-local wasLT = false
 local function onFrame()
     if not cfgPlayer.main.b_Enabled then return end
     -- global scripts cannot read input; relay sneak via permissions
@@ -644,40 +533,39 @@ local function onFrame()
 
     if noticeExpireAt and core.getRealTime() >= noticeExpireAt then
         noticeExpireAt = nil
-        if m.wndAlchemy then m.wndAlchemy.tools.hideNotice() end
+        if handler then handler.tools.hideNotice() end
     end
 end
 
 local function onUpdate()
     if not cfgPlayer.main.b_Enabled then return end
-    if needsInitialization then
-        needsInitialization = false
+    if not needsInitialization then return end
+    needsInitialization = false
 
-        if I.InventoryExtender then
-            I.InventoryExtender.registerTooltipModifier('alchemy-redone', m.modifyIETooltip)
-        end
-
-        if I.SharedTooltip then
-            I.SharedTooltip.registerModifier { id = 'TPA_AlchemyRedone', priority = 0, func = m.modifySharedTooltip }
-        end
-
-        I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
-        I.UIToolkit.WindowManager.register(WND_NAME, {
-            title = core.getGMST('sSkillAlchemy'),
-            handler = function()
-                handler = AlchemyHandler:new()
-                handler:setOnCLoseCallback(function() handler = nil end)
-                return handler
-            end,
-            resizing = true,
-        })
-
-        if I.UTKTooltips then
-            I.UTKTooltips.addPreCreateTooltipHandler(m.modifyUTKTooltip)
-        end
-
-        updatePermissions()
+    if I.InventoryExtender then
+        I.InventoryExtender.registerTooltipModifier('alchemy-redone', m.modifyIETooltip)
     end
+
+    if I.SharedTooltip then
+        I.SharedTooltip.registerModifier { id = 'TPA_AlchemyRedone', priority = 0, func = m.modifySharedTooltip }
+    end
+
+    I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
+    I.UIToolkit.WindowManager.register(WND_NAME, {
+        title = core.getGMST('sSkillAlchemy'),
+        handler = function()
+            handler = AlchemyHandler:new()
+            handler:setOnCLoseCallback(function() handler = nil end)
+            return handler
+        end,
+        resizing = true,
+    })
+
+    if I.UTKTooltips then
+        I.UTKTooltips.addPreCreateTooltipHandler(m.modifyUTKTooltip)
+    end
+
+    updatePermissions()
 end
 
 local function onConsume(item)
@@ -721,7 +609,6 @@ return {
     interfaceName = 'TPA_AlchemyRedone',
     interface = Interface,
     engineHandlers = {
-        onMouseWheel = onMouseWheel,
         onFrame = onFrame,
         onUpdate = onUpdate,
         onConsume = onConsume,

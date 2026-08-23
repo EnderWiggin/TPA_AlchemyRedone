@@ -147,7 +147,7 @@ end
 local Window = Class()
 
 ---@param wnd UIToolkit.Window
----@param ctx AlchemyContext
+---@param ctx AlchemyRedone.Context
 function Window:onOpened(wnd, ctx)
     self.wnd = wnd
     self.data = ctx.data
