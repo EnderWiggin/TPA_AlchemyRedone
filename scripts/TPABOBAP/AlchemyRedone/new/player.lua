@@ -17,13 +17,7 @@ local H = require('scripts.UIToolkit.helpers')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local AlchemyHandler = require('scripts.TPABOBAP.AlchemyRedone.new.alchemy_handler')
 
-local T = {
-    Base = require("scripts.TPABOBAP.UIToolkit.templates.base"),
-    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
-    Alchemy = require("scripts.TPABOBAP.AlchemyRedone.ui.alchemy")
-}
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
-local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 local l10n = core.l10n('TPA_AlchemyRedone')
 local v2 = util.vector2
 
@@ -330,87 +324,6 @@ m.unregisterPotionModifier = function(modId)
     end
 end
 
----@param item GameObject
----@param layout openmw.ui.Layout
----@return openmw.ui.Layout?
-m.modifyIETooltip = function(item, layout)
-    if not cfgGlobal.rework.b_Enabled or not cfgPlayer.main.b_Enabled then return end
-    if item.type == types.Potion or item.type == types.Ingredient then
-        local effects = H.findLayoutByPathSafe(layout, { 'padding', 'tooltip', 'effects' })
-        if not effects then return end
-        effects.content = T.Alchemy.getIEMagicEffectsContent(item, player)
-    end
-end
-
----@param tip SharedTooltip.TipContext
-m.modifySharedTooltip = function(tip)
-    ---@type boolean[]
-    local knowledge
-    ---@type openmw.ui.Layout
-    local group
-    ---@type table[]
-    local effects
-    ---@type boolean|'potion'
-    local isAlchemy = true
-
-    if tip.info.ingredientEffects then
-        effects = tip.info.ingredientEffects
-        group = tip.flex.content['ingredientEffects']
-        knowledge = m.getKnownEffectFlagsForIngredient(tip.record.id)
-    end
-
-    if tip.info.potionEffects then
-        effects = tip.info.potionEffects
-        group = tip.flex.content['potionEffects']
-        knowledge = m.getKnownEffectFlagsForPotion(tip.record.id)
-        isAlchemy = 'potion'
-    end
-
-    if not group then return end
-    for i = 1, #effects do
-        local effect = effects[i]
-        if effect then
-            effect.known = knowledge[i]
-        end
-    end
-
-    group.content = ui.content({})
-    tip.printEffects(group, effects, isAlchemy)
-end
-
-local function findByName(items, name)
-    for index, item in ipairs(items or {}) do
-        if item.name == name then
-            return item, index
-        end
-    end
-end
-
----@param recipe UTKTooltips.Recipe
----@param tooltip UTKTooltips.Tooltip
-m.modifyUTKTooltip = function(recipe, tooltip)
-    local type = recipe.type or tooltip.type
-
-    local isPotion = type == I.UTKTooltips.TYPE.Potion
-    if not isPotion and type ~= I.UTKTooltips.TYPE.Ingredient then
-        return
-    end
-    local observer = tooltip.observer -- or player
-    local recordId = tooltip.key or tooltip.object.recordId
-    ---@type boolean[]
-    local knowledge = isPotion
-        and A.getKnownEffectFlagsForPotion(recordId, observer)
-        or A.getKnownEffectFlagsForIngredient(recordId, observer)
-
-    for i = 1, #knowledge do
-        knowledge[i] = not knowledge[i]
-    end
-
-    local item = findByName(recipe.items, I.UTKTooltips.CONTENT.MagicEffects)
-    if not item then return end
-    item.unknown = knowledge
-end
-
 m.getKnownEffectFlagsForItem = function(item)
     if item.type == types.Potion then
         return A.getKnownEffectFlagsForPotion(A.toPotionRecord(item.recordId), player)
@@ -479,8 +392,8 @@ local function showApparatusHint(text)
     if hint.widget and hint.text == text then return end
     hideApparatusHint()
     hint.text = text
-    local layout = T.Special.lineTooltip(l10n(text), 'alchemy-usage-hint',
-        { textAlignH = ui.ALIGNMENT.Center, textSize = T.Base.TEXT_SIZE, })
+    local tip = I.UTKTooltips.convertAnyTooltip(l10n(text)) --[[@as UTKTooltips.Tooltip]]
+    local layout = I.UTKTooltips.createTooltipLayout(tip) --[[@as openmw.ui.Layout]]
     layout.layer = 'HUD'
     layout.props.relativePosition = v2(0.5, 0.55)
     layout.props.anchor = v2(0.5, 0.5)
@@ -537,18 +450,20 @@ local function onFrame()
     end
 end
 
+local integration = {
+    InventoryExtender = require 'scripts.TPABOBAP.AlchemyRedone.integrations.inventory_extender',
+    SharedTooltip = require 'scripts.TPABOBAP.AlchemyRedone.integrations.shared_tooltip',
+    UIToolkit = require 'scripts.TPABOBAP.AlchemyRedone.integrations.ui_toolkit',
+}
+
 local function onUpdate()
     if not cfgPlayer.main.b_Enabled then return end
     if not needsInitialization then return end
     needsInitialization = false
 
-    if I.InventoryExtender then
-        I.InventoryExtender.registerTooltipModifier('alchemy-redone', m.modifyIETooltip)
-    end
-
-    if I.SharedTooltip then
-        I.SharedTooltip.registerModifier { id = 'TPA_AlchemyRedone', priority = 0, func = m.modifySharedTooltip }
-    end
+    integration.InventoryExtender.register()
+    integration.SharedTooltip.register()
+    integration.UIToolkit.register()
 
     I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
     I.UIToolkit.WindowManager.register(WND_NAME, {
@@ -560,10 +475,6 @@ local function onUpdate()
         end,
         resizing = true,
     })
-
-    if I.UTKTooltips then
-        I.UTKTooltips.addPreCreateTooltipHandler(m.modifyUTKTooltip)
-    end
 
     updatePermissions()
 end
