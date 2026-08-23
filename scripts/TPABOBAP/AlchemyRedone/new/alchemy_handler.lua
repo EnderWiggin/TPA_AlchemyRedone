@@ -1777,6 +1777,8 @@ function Window:updateData()
         self:updateIngredientList()
     end
     self.tools.update()
+    self.selected.update()
+    self.resultingEffects.update()
 end
 
 function Window:setOnCLoseCallback(_callback)
