@@ -19,16 +19,16 @@ local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 local l10n = core.l10n('TPA_AlchemyRedone')
 local I = require("openmw.interfaces")
 local T = {
-    Base    = require("scripts.TPABOBAP.UIToolkit.templates.base"),
-    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
-    Alchemy = require("scripts.TPABOBAP.AlchemyRedone.ui.alchemy"),
+    Base    = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.base"),
+    Special = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.special"),
+    Alchemy = require("scripts.TPABOBAP.AlchemyRedone.old.ui.alchemy"),
 }
-local S = require("scripts.TPABOBAP.UIToolkit.templates.special")
-local C = require("scripts.TPABOBAP.UIToolkit.constants")
-local H = require("scripts.TPABOBAP.UIToolkit.helpers")
+local S = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.special")
+local C = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants")
+local H = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.helpers")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
-local Window = require("scripts.TPABOBAP.UIToolkit.window")
+local Window = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.window")
 
 local v2 = util.vector2
 local REVERT_PATH = 'icons/TPABOBAP/AlchemyRedone/revert.png'

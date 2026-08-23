@@ -5,7 +5,7 @@ local storage = require('openmw.storage')
 local omwConstants = require('scripts.omw.mwui.constants')
 
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
-local C = require('scripts.TPABOBAP.UIToolkit.constants')
+local C = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants')
 
 ---@class ConfigDataPlayer
 ---@field main MainSettings

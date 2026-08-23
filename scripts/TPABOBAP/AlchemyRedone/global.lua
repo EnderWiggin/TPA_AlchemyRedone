@@ -1,12 +1,15 @@
 ---@omw-context global
 local world = require("openmw.world")
 local core = require("openmw.core")
+local types = require("openmw.types")
 local T = require("openmw.types")
 local I = require("openmw.interfaces")
-local H = require("scripts.TPABOBAP.UIToolkit.helpers")
-local C = require("scripts.TPABOBAP.UIToolkit.constants")
+local auxUtil = require("openmw_aux.util")
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 local l10n = core.l10n('TPA_AlchemyRedone')
+
+local Apparatus = types.Apparatus
+local TYPES = Apparatus.TYPE
 
 ---@alias AlchemyPermissionCfg {enabled: boolean?, allowNearby: boolean?, allowCorpses: boolean?, allowOwnedContainerIngredients: boolean?, allowFaction: boolean?, allowOwnedApparatus: boolean?, sneaking: boolean?}
 ---@alias AlchemyPermissionUpdateEvent {actor: openmw.Object, permissions: AlchemyPermissionCfg}
@@ -14,6 +17,13 @@ local l10n = core.l10n('TPA_AlchemyRedone')
 ---@type table<string, AlchemyPermissionCfg>
 local config = {}
 
+local STRINGS = {
+    APPARATUS = core.getGMST('sApparatus'),
+    MORTAR = core.getGMST('sMortar'),
+    CALCINATOR = core.getGMST('sCalcinator'),
+    ALEMBIC = core.getGMST('sAlembic'),
+    RETORT = core.getGMST('sRetort'),
+}
 
 local m = {}
 
@@ -21,6 +31,18 @@ local m = {}
 ---@return AlchemyPermissionCfg
 m.getConfig = function(actor)
     return config[actor.id] or {}
+end
+
+---@param object GameObject
+local function getApparatusLabel(object)
+    local record = types.Apparatus.record(object.recordId)
+    if not record then return STRINGS.APPARATUS end
+
+    if record.type == TYPES.Alembic then return STRINGS.ALEMBIC end
+    if record.type == TYPES.MortarPestle then return STRINGS.MORTAR end
+    if record.type == TYPES.Retort then return STRINGS.RETORT end
+    if record.type == TYPES.Calcinator then return STRINGS.CALCINATOR end
+    return STRINGS.APPARATUS
 end
 
 ---@param actor openmw.GObject
@@ -34,7 +56,7 @@ m.activateApparatus = function(object, actor)
         if m.isAllowedApparatus(object, actor, cfg) then
             actor:sendEvent('TPA_AlchemyRedone_Open', m.collectAlchemyInfo(actor))
         else
-            local type = H.getApparatusTypeLabel(object) or C.Strings.APPARATUS
+            local type = getApparatusLabel(object)
             actor:sendEvent('ShowMessage', { message = l10n('Cant_Use_Owned_Apparatus', { apparatus = type }) })
         end
         return false
@@ -247,7 +269,8 @@ m.deductIngredients = function(data)
     end
     for _, need in pairs(consume) do
         if need > 0 then
-            core.sendGlobalEvent('TPA_AlchemyRedone_PrintError', { 'WARNING: not consumed:', H.deepPrint(consume) })
+            core.sendGlobalEvent('TPA_AlchemyRedone_PrintError',
+                { 'WARNING: not consumed:', auxUtil.deepToString(consume) })
             break
         end
     end
@@ -330,11 +353,11 @@ local function printError(data)
     if #data > 0 then
         local parts = {}
         for i = 1, #data do
-            table.insert(parts, H.deepPrint(data[i]))
+            table.insert(parts, auxUtil.deepToString(data[i]))
         end
         error(table.concat(parts, '\n\t'))
     else
-        error(H.deepPrint(data))
+        error(auxUtil.deepToString(data))
     end
 end
 

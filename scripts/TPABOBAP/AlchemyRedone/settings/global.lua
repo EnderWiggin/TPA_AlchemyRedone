@@ -2,8 +2,7 @@
 
 local I = require('openmw.interfaces')
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
-local H = require('scripts.TPABOBAP.UIToolkit.helpers')
-local C = require('scripts.TPABOBAP.UIToolkit.constants')
+local H = require('scripts.UIToolkit.helpers')
 
 local l10n = require('openmw.core').l10n(CFG.MOD)
 
@@ -30,7 +29,7 @@ I.Settings.registerGroup {
     page = CFG.MOD,
     l10n = CFG.MOD,
     name = 'ReworkSettingsName',
-    description = l10n('ReworkSettingsDesc', C.TextColorParams),
+    description = l10n('ReworkSettingsDesc', H.TextColorParams),
     order = 2,
     permanentStorage = true,
     settings = {
@@ -52,7 +51,7 @@ I.Settings.registerGroup {
             key = 'n_PotionKnowledgeThreshold',
             renderer = 'number',
             name = 'SettingPotionKnowledgeThreshold',
-            description = l10n('SettingPotionKnowledgeThresholdDesc', H.mergeTables(C.TextColorParams, KnowledgeThreshold)),
+            description = l10n('SettingPotionKnowledgeThresholdDesc', H.mergeTables(H.TextColorParams, KnowledgeThreshold)),
             default = KnowledgeThreshold.default,
             argument = {
                 min = KnowledgeThreshold.min,
@@ -64,7 +63,7 @@ I.Settings.registerGroup {
             key = 'n_IngredientKnowledgeThreshold',
             renderer = 'number',
             name = 'SettingIngredientKnowledgeThreshold',
-            description = l10n('SettingIngredientKnowledgeThresholdDesc', H.mergeTables(C.TextColorParams, IngredientThreshold)),
+            description = l10n('SettingIngredientKnowledgeThresholdDesc', H.mergeTables(H.TextColorParams, IngredientThreshold)),
             default = IngredientThreshold.default,
             argument = {
                 min = IngredientThreshold.min,
@@ -76,7 +75,7 @@ I.Settings.registerGroup {
             key = 'n_IngredientMaxTaste',
             renderer = 'number',
             name = 'SettingIngredientMaxTaste',
-            description = l10n('SettingIngredientMaxTasteDesc', H.mergeTables(C.TextColorParams, IngredientMaxTaste)),
+            description = l10n('SettingIngredientMaxTasteDesc', H.mergeTables(H.TextColorParams, IngredientMaxTaste)),
             default = IngredientMaxTaste.default,
             argument = {
                 min = IngredientMaxTaste.min,

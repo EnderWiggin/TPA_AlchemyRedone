@@ -9,7 +9,7 @@ local isPlayer, self = pcall(require, 'openmw.self')
 local _, debug = pcall(require, 'openmw.debug')
 local _, ui = pcall(require, 'openmw.ui')
 
-local C = require('scripts.TPABOBAP.UIToolkit.constants')
+local C = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants')
 local l10n = core.l10n('UIToolkit')
 
 local cfgPlayer

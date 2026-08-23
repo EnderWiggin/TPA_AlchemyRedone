@@ -9,8 +9,8 @@ local vfs = require('openmw.vfs')
 
 local omwConstants = require('scripts.omw.mwui.constants')
 
-local helpers = require('scripts.TPABOBAP.UIToolkit.helpers')
-local constants = require('scripts.TPABOBAP.UIToolkit.constants')
+local helpers = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.helpers')
+local constants = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants')
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local storage = require('openmw.storage')
 

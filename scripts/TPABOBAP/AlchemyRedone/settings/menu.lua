@@ -3,8 +3,8 @@
 local input = require('openmw.input')
 local I = require('openmw.interfaces')
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
-local C = require('scripts.TPABOBAP.UIToolkit.constants')
-local H = require('scripts.TPABOBAP.UIToolkit.helpers')
+local C = require('scripts.UIToolkit.constants')
+local H = require('scripts.UIToolkit.helpers')
 
 local l10n = require('openmw.core').l10n(CFG.MOD)
 
@@ -74,7 +74,7 @@ I.Settings.registerGroup {
             key = 'b_PotionArtUsesSkill',
             renderer = 'checkbox',
             name = 'SettingPotionArtUsesSkill',
-            description = l10n('SettingPotionArtUsesSkillDesc', C.TextColorParams),
+            description = l10n('SettingPotionArtUsesSkillDesc', H.TextColorParams),
             default = false,
         },
         {
@@ -140,7 +140,7 @@ I.Settings.registerGroup {
         {
             key = 'b_AllowOwnedContainerIngredients',
             renderer = 'checkbox',
-            name = l10n('SettingAllowOwnedContainerIngredients', C.TextColorParams),
+            name = l10n('SettingAllowOwnedContainerIngredients', H.TextColorParams),
             description = 'SettingAllowOwnedContainerIngredientsDesc',
             default = false,
         },
@@ -181,14 +181,14 @@ I.Settings.registerGroup {
             key = 'b_CompactMode',
             renderer = 'checkbox',
             name = 'SettingCompactMode',
-            description = l10n('SettingCompactModeDesc', C.TextColorParams),
+            description = l10n('SettingCompactModeDesc', H.TextColorParams),
             default = false,
         },
         {
             key = 'n_TextSize',
             renderer = 'number',
             name = 'SettingTextSize',
-            description = l10n('SettingTextSizeDesc', H.mergeTables(C.TextColorParams, FontSize)),
+            description = l10n('SettingTextSizeDesc', H.mergeTables(H.TextColorParams, FontSize)),
             default = FontSize.default,
             argument = {
                 integer = true,
@@ -200,7 +200,7 @@ I.Settings.registerGroup {
             key = 'n_TextSizeTitle',
             renderer = 'number',
             name = 'SettingTextSizeTitle',
-            description = l10n('SettingTextSizeTitleDesc', H.mergeTables(C.TextColorParams, FontSizeTitle)),
+            description = l10n('SettingTextSizeTitleDesc', H.mergeTables(H.TextColorParams, FontSizeTitle)),
             default = FontSizeTitle.default,
             argument = {
                 integer = true,
@@ -212,7 +212,7 @@ I.Settings.registerGroup {
             key = 'n_TextSizeContent',
             renderer = 'number',
             name = 'SettingTextSizeContent',
-            description = l10n('SettingTextSizeContentDesc', H.mergeTables(C.TextColorParams, FontSizeContent)),
+            description = l10n('SettingTextSizeContentDesc', H.mergeTables(H.TextColorParams, FontSizeContent)),
             default = FontSizeContent.default,
             argument = {
                 integer = true,
@@ -253,7 +253,7 @@ I.Settings.registerGroup {
             key = 'n_Activate',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_Activate',
-            description = l10n('SettingController_ActivateDesc', C.TextColorParams),
+            description = l10n('SettingController_ActivateDesc', H.TextColorParams),
             default = input.CONTROLLER_BUTTON.A,
         },
         {
@@ -267,7 +267,7 @@ I.Settings.registerGroup {
             key = 'n_ClearText',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_ClearText',
-            description = l10n('SettingController_ClearTextDesc', C.TextColorParams),
+            description = l10n('SettingController_ClearTextDesc', H.TextColorParams),
             default = input.CONTROLLER_BUTTON.Y,
         },
         {
@@ -281,42 +281,42 @@ I.Settings.registerGroup {
             key = 'n_ToggleTable',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_ToggleTable',
-            description = l10n('SettingController_ToggleTableDesc', C.TextColorParams),
+            description = l10n('SettingController_ToggleTableDesc', H.TextColorParams),
             default = input.CONTROLLER_BUTTON.RightShoulder,
         },
         {
             key = 'n_CountMore',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_CountMore',
-            description = l10n('SettingController_CountMoreDesc', C.TextColorParams),
+            description = l10n('SettingController_CountMoreDesc', H.TextColorParams),
             default = input.CONTROLLER_BUTTON.DPadRight,
         },
         {
             key = 'n_CountLess',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_CountLess',
-            description = l10n('SettingController_CountLessDesc', C.TextColorParams),
+            description = l10n('SettingController_CountLessDesc', H.TextColorParams),
             default = input.CONTROLLER_BUTTON.DPadLeft,
         },
         {
             key = 'n_SelectNext',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_SelectNext',
-            description = l10n('SettingController_SelectNextDesc', C.TextColorParams),
+            description = l10n('SettingController_SelectNextDesc', H.TextColorParams),
             default = input.CONTROLLER_BUTTON.DPadDown,
         },
         {
             key = 'n_SelectPrev',
             renderer = 'TPA_controllerInput',
             name = 'SettingController_SelectPrev',
-            description = l10n('SettingController_SelectPrevDesc', C.TextColorParams),
+            description = l10n('SettingController_SelectPrevDesc', H.TextColorParams),
             default = input.CONTROLLER_BUTTON.DPadUp,
         },
         {
             key = 'b_AllowPrecisionMode',
             renderer = 'checkbox',
             name = 'SettingAllowPrecisionMode',
-            description = l10n('SettingAllowPrecisionModeDesc', C.TextColorParams),
+            description = l10n('SettingAllowPrecisionModeDesc', H.TextColorParams),
             default = false,
         },
         {
@@ -330,7 +330,7 @@ I.Settings.registerGroup {
             key = 'n_RepeatingButtonsThreshold',
             renderer = 'number',
             name = 'SettingRepeatingButtonsThreshold',
-            description = l10n('SettingRepeatingButtonsThresholdDesc', H.mergeTables(C.TextColorParams, RepeatThreshold)),
+            description = l10n('SettingRepeatingButtonsThresholdDesc', H.mergeTables(H.TextColorParams, RepeatThreshold)),
             default = RepeatThreshold.default,
             argument = {
                 min = RepeatThreshold.min,
@@ -341,7 +341,7 @@ I.Settings.registerGroup {
             key = 'n_RepeatingButtonsStep',
             renderer = 'number',
             name = 'SettingRepeatingButtonsStep',
-            description = l10n('SettingRepeatingButtonsStepDesc', H.mergeTables(C.TextColorParams, RepeatStep)),
+            description = l10n('SettingRepeatingButtonsStepDesc', H.mergeTables(H.TextColorParams, RepeatStep)),
             default = RepeatStep.default,
             argument = {
                 min = RepeatStep.min,

@@ -4,7 +4,7 @@ local ui = require("openmw.ui")
 local util = require("openmw.util")
 local auxUi = require('openmw_aux.ui')
 
-local H = require("scripts.TPABOBAP.UIToolkit.helpers")
+local H = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.helpers")
 
 local v2 = util.vector2
 

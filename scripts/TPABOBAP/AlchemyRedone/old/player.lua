@@ -15,14 +15,14 @@ local auxUi = require('openmw_aux.ui')
 
 local I = require('openmw.interfaces')
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
-local H = require('scripts.TPABOBAP.UIToolkit.helpers')
-local C = require('scripts.TPABOBAP.UIToolkit.constants')
+local H = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.helpers')
+local C = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
-local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_window')
+local AlchemyWindow = require('scripts.TPABOBAP.AlchemyRedone.old.ui.alchemy_window')
 local T = {
-    Base = require("scripts.TPABOBAP.UIToolkit.templates.base"),
-    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
-    Alchemy = require("scripts.TPABOBAP.AlchemyRedone.ui.alchemy")
+    Base = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.base"),
+    Special = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.special"),
+    Alchemy = require("scripts.TPABOBAP.AlchemyRedone.old.ui.alchemy")
 }
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')

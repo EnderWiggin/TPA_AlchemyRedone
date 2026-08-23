@@ -7,12 +7,12 @@ local input = require('openmw.input')
 local async = require('openmw.async')
 
 local v2 = util.vector2
-local H = require("scripts.TPABOBAP.UIToolkit.helpers")
+local H = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.helpers")
 local T = {
-    Base = require("scripts.TPABOBAP.UIToolkit.templates.base"),
-    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
+    Base = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.base"),
+    Special = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.special"),
 }
-local C = require("scripts.TPABOBAP.UIToolkit.constants")
+local C = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants")
 
 ---@generic TItemData : BaseItemData
 ---@alias ColumnRenderer fun(item: TItemData, w: number, h:number):openmw.ui.Layout

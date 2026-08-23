@@ -7,14 +7,14 @@ local player = require('openmw.self')
 
 local v2 = util.vector2
 local T = {
-    Base    = require("scripts.TPABOBAP.UIToolkit.templates.base"),
-    Special = require("scripts.TPABOBAP.UIToolkit.templates.special"),
+    Base    = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.base"),
+    Special = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.templates.special"),
 }
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
-local H = require("scripts.TPABOBAP.UIToolkit.helpers")
-local C = require("scripts.TPABOBAP.UIToolkit.constants")
+local H = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.helpers")
+local C = require("scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants")
 
-local Table = require("scripts.TPABOBAP.AlchemyRedone.ui.item_table")
+local Table = require("scripts.TPABOBAP.AlchemyRedone.old.ui.item_table")
 
 ---@class IngredientItemData : BaseItemData
 ---@field count integer
