@@ -163,6 +163,7 @@ I.Settings.registerGroup {
     order = 3,
     permanentStorage = true,
     settings = {
+        --[[
         {
             key = 's_intReMode',
             renderer = 'select',
@@ -177,6 +178,7 @@ I.Settings.registerGroup {
                 },
             }
         },
+        ]]
         {
             key = 'b_CompactMode',
             renderer = 'checkbox',
@@ -220,6 +222,7 @@ I.Settings.registerGroup {
                 max = FontSizeContent.max,
             }
         },
+        --[[
         {
             key = 's_NumberSeparators',
             renderer = 'select',
@@ -230,6 +233,7 @@ I.Settings.registerGroup {
                 items = { C.SEPARATOR_OPTS.None, C.SEPARATOR_OPTS.Space, C.SEPARATOR_OPTS.Comma },
             }
         },
+        ]]
         {
             key = 'b_ShowUseHint',
             renderer = 'checkbox',
