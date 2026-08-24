@@ -307,12 +307,12 @@ function Window:onControllerButtonPress(button)
     local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.55
 
     if button == bind.n_SelectPrev or button == bind.n_SelectNext then
+        local activeTable = self.showEffects and self.effectTable or self.itemTable
         local delta = LT and 5 or not RT and 1 or activeTable:getVisibleItemCount()
         if button == bind.n_SelectPrev then delta = -delta end
         local position, anchor = self:getTooltipPositionForController()
 
         ---@type UIToolkit.ItemList
-        local activeTable = self.showEffects and self.effectTable or self.itemTable
         activeTable:shiftHoveredItem(delta, position, anchor)
     elseif button == bind.n_CountMore then
         local count = self.counting.getCount()
@@ -1371,6 +1371,7 @@ function Window:makeIngredientList()
             self:selectIngredient(item)
         end
     }
+    list.element.layout.name = 'ingredient-list'
     list:updateProps { position = v2(0, TITLE_TEXT + 3) }
     return list
 end
@@ -1386,6 +1387,7 @@ function Window:makeEffectTable()
             self:selectEffect(item)
         end
     }
+    list.element.layout.name = 'effect-list'
     list:updateProps { position = v2(0, TITLE_TEXT + 3) }
     return list
 end
@@ -1605,6 +1607,7 @@ function Window:filterIngredientByEffects(row)
 
     -- always allow selected ingredient
     local selected = self:getSelectedIngredientList()
+    if #selected == 0 then return true end
     for i = 1, #selected do
         if selected[i] == row.id then return true end
     end
