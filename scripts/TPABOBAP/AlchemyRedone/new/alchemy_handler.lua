@@ -1578,7 +1578,7 @@ function Window:toggleFavoriteEffect(effectKey)
     for i = 1, #self.allEffects do
         local data = self.allEffects[i]
         if data.id == effectKey then
-            self.effectProvider:refreshColumn(data, 'favorite')
+            self.effectProvider:refreshColumns(data, 'favorite')
             break
         end
     end
@@ -1774,11 +1774,16 @@ function Window:updateData()
     self.btnCreate:setDisabled(false)
     self.allIngredients = M.getAllIngredients(self.data)
     self.allEffects = self:getAllEffects()
+    for i = 1, #self.allIngredients do
+        local ingredient = self.allIngredients[i] --[[@as UIToolkit.ListData.Column]]
+        self.ingredientProvider:refreshColumns(ingredient, 'name', 'effects')
+    end
     if self.showEffects then
         self:updateEffectList()
     else
         self:updateIngredientList()
     end
+    self:updateMatchingEffects(true)
     self.tools.update()
     self.selected.update()
     self.resultingEffects.update()
@@ -1788,16 +1793,17 @@ function Window:setOnCLoseCallback(_callback)
     self._onClose = _callback
 end
 
-function Window:updateMatchingEffects()
+function Window:updateMatchingEffects(skipIngredientUpdate)
     local ingredients = self:getSelectedIngredientList()
     self.data.matching, self.data.matchingKnowledge = A.getMatchingEffects(ingredients, player)
     self.data.nonMatching, self.data.nonMatchingKnowledge = A.getNonMatchingEffects(ingredients, player)
     self:updateDefaultName()
     self:updateIngredientList()
+    if skipIngredientUpdate then return end
     local items = self.itemTable:getItems()
     for i = 1, #items do
         local item = items[i] --[[@as UIToolkit.ListData.Column]]
-        self.ingredientProvider:refreshColumn(item, 'effects')
+        self.ingredientProvider:refreshColumns(item, 'effects')
     end
 end
 
