@@ -670,7 +670,7 @@ Alchemy.getKnownEffectFlagsForIngredient = function(ingredient, actor)
     for i = 1, #ingredient.effects do
         result[i] = i <= known
         if cfgGlobal.rework.b_Enabled and knowledge then
-            result[i] = result[i] or knowledge[i]
+            result[i] = not not (result[i] or knowledge[i])
         end
     end
     return result
@@ -704,14 +704,14 @@ Alchemy.getKnownEffectFlagsForPotion = function(potion, actor)
                 result[i] = wasDrank
             elseif isGeneratedId(potion.id) then
                 if Alchemy.knowledge.potionRecipe[potion.id] then
-                    result[i] = type(knowledge) == "table" and knowledge[i]
+                    result[i] = not not (type(knowledge) == "table" and knowledge[i])
                 else
                     -- this is potion brewed without mod enabled, show effects in vanilla way
                     result[i] = i <= known
                 end
             else
                 local effectRecord = effect.effect or Alchemy.getEffectRecord(effect.id)
-                result[i] = effectRecord and (not effectRecord.harmful or not hasGood)
+                result[i] = not not (effectRecord and (not effectRecord.harmful or not hasGood))
             end
         end
     end
