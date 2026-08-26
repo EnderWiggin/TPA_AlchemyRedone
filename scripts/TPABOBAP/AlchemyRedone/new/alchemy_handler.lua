@@ -1780,8 +1780,6 @@ function Window:updateData()
     end
     if self.showEffects then
         self:updateEffectList()
-    else
-        self:updateIngredientList()
     end
     self:updateMatchingEffects(true)
     self.tools.update()
