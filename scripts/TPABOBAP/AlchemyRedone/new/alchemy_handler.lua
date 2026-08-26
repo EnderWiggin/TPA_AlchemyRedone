@@ -1558,7 +1558,7 @@ function Window:selectEffect(effect)
     end
     local cached = self.effectProvider:getCachedComponent(effect.id)
     if cached then
-        cached:setActive(effect.isActive())
+        cached:setActive(effect.isActive(), true)
     end
     self.filter:setValue(table.concat(terms, " | "))
     if switch then
@@ -1745,7 +1745,7 @@ function Window:onFilterCleared()
     for i = 1, #items do
         local cached = self.effectProvider:getCachedComponent(items[i].id)
         if cached and cached:isActive() then
-            cached:setActive(false)
+            cached:setActive(false, true)
         end
     end
 end
@@ -1814,7 +1814,7 @@ function Window:onIngredientSelectionChanged()
         local id = items[i].id
         local view = self.ingredientProvider:getCachedComponent(id)
         if view then
-            view:setActive(M.ingredientSelected(id, selected))
+            view:setActive(M.ingredientSelected(id, selected), true)
         end
     end
     self.resultingEffects.update()
