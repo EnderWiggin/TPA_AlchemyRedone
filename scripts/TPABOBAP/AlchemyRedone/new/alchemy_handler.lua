@@ -958,7 +958,7 @@ function Window:makeSelected()
     local function tooltipFn(n)
         local r = self:getSelectedIngredientRecord(n)
         if not r then return nil end
-        return { key = r.id, type = I.UTKTooltips.TYPE.Ingredient }
+        return { key = r.id, type = I.UTKTooltips.TYPE.Ingredient, observer = player }
     end
 
     local element
