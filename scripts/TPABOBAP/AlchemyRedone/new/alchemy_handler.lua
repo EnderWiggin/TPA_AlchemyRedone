@@ -1774,14 +1774,14 @@ function Window:updateData()
     self.btnCreate:setDisabled(false)
     self.allIngredients = M.getAllIngredients(self.data)
     self.allEffects = self:getAllEffects()
-    for i = 1, #self.allIngredients do
-        local ingredient = self.allIngredients[i] --[[@as UIToolkit.ListData.Column]]
-        self.ingredientProvider:refreshColumns(ingredient, 'name', 'effects')
-    end
     if self.showEffects then
         self:updateEffectList()
     end
     self:updateMatchingEffects(true)
+    for i = 1, #self.allIngredients do
+        local ingredient = self.allIngredients[i] --[[@as UIToolkit.ListData.Column]]
+        self.ingredientProvider:refreshColumns(ingredient, 'name', 'effects')
+    end
     self.tools.update()
     self.selected.update()
     self.resultingEffects.update()
