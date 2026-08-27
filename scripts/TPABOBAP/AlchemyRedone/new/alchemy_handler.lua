@@ -840,7 +840,7 @@ function Window:makeTools()
             element:update()
         end,
     }
-    local function makeRow(name, type, key)
+    local function makeRow(name, type, key, hasModes)
         return {
             name = name,
             type = ui.TYPE.Flex,
@@ -854,7 +854,7 @@ function Window:makeTools()
             content = ui.content {
                 M.namedIcon('icon', ICON_SZ),
                 T.intervalH(10),
-                header('name', type, key),
+                header('name', type, key, hasModes),
                 M.namedText('quality'),
             },
         }
@@ -879,11 +879,11 @@ function Window:makeTools()
                 content = ui.content {
                     makeRow(STRINGS.MORTAR, ApparatusTypes.MortarPestle, 'Mortar'),
                     T.intervalV(GAP_ICON),
-                    makeRow(STRINGS.ALEMBIC, ApparatusTypes.Alembic, 'Alembic'),
+                    makeRow(STRINGS.ALEMBIC, ApparatusTypes.Alembic, 'Alembic', true),
                     T.intervalV(GAP_ICON),
                     makeRow(STRINGS.CALCINATOR, ApparatusTypes.Calcinator, 'Calcinator'),
                     T.intervalV(GAP_ICON),
-                    makeRow(STRINGS.RETORT, ApparatusTypes.Retort, 'Retort'),
+                    makeRow(STRINGS.RETORT, ApparatusTypes.Retort, 'Retort', true),
                 },
             },
             {
