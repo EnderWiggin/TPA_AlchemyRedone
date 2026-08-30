@@ -1340,9 +1340,9 @@ function Window:makeCountBlock()
 
     local textSize = I.UIToolkit.getTheme().Sizes.textNormal
     local textButton = I.UIToolkit.Components.textButton
-    local btnMinus = textButton { text = "-", name = 'btn-minus', thickness = 'thin', padding = v2(4, 2), width = textSize,
+    local btnMinus = textButton { text = "-", name = 'btn-minus', style = 'thin', padding = v2(4, 2), width = textSize,
         onClick = function() edit:setValue(edit:getValue() - 1) end }
-    local btnPlus = textButton { text = "+", name = 'btn-plus', thickness = 'thin', padding = v2(4, 2), width = textSize,
+    local btnPlus = textButton { text = "+", name = 'btn-plus', style = 'thin', padding = v2(4, 2), width = textSize,
         onClick = function() edit:setValue(edit:getValue() + 1) end }
 
     local element = ui.create {
