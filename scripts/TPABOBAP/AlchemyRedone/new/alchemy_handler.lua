@@ -1078,6 +1078,7 @@ function Window:makeSelected()
                     },
                     T.intervalH(6),
                     I.UIToolkit.Interactive.makeInteractive({
+                        interactiveDisabled = true,
                         name = 'btn-clear-selected',
                         onClick = function() self:clearAllSelectedIngredients() end,
                         tooltip = l10n('TipClearSelected'),
@@ -1337,9 +1338,12 @@ function Window:makeCountBlock()
         getCount = function() return edit:getValue() end,
     }
 
+    local textSize = I.UIToolkit.getTheme().Sizes.textNormal
     local textButton = I.UIToolkit.Components.textButton
-    local btnMinus = textButton { text = "-", name = 'btn-minus', onClick = function() edit:setValue(edit:getValue() - 1) end }
-    local btnPlus = textButton { text = "+", name = 'btn-plus', onClick = function() edit:setValue(edit:getValue() + 1) end }
+    local btnMinus = textButton { text = "-", name = 'btn-minus', thickness = 'thin', padding = v2(4, 2), width = textSize,
+        onClick = function() edit:setValue(edit:getValue() - 1) end }
+    local btnPlus = textButton { text = "+", name = 'btn-plus', thickness = 'thin', padding = v2(4, 2), width = textSize,
+        onClick = function() edit:setValue(edit:getValue() + 1) end }
 
     local element = ui.create {
         name = 'potion-count',
