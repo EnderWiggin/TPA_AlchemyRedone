@@ -4,7 +4,6 @@ local core = require('openmw.core')
 local ui = require('openmw.ui')
 local auxUi = require('openmw_aux.ui')
 local util = require('openmw.util')
-local storage = require('openmw.storage')
 local player = require('openmw.self')
 local types = require('openmw.types')
 local input = require('openmw.input')
@@ -14,7 +13,6 @@ local l10n = core.l10n('TPA_AlchemyRedone')
 local v2 = util.vector2
 local ApparatusTypes = types.Apparatus.TYPE
 
-local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local cfg = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 ---@class UIToolkit.Templates
 local T = require('scripts.UIToolkit.templates.base')
@@ -260,8 +258,6 @@ end
 ---@return AlchemyRedone.Window.SavedData
 function Window:onClosed()
     self.wnd = nil
-    --TODO: destroy ingredient list
-    --TODO: destroy effect list
     if self._onClose then self._onClose() end
 
     ---@type AlchemyRedone.Window.SavedData
@@ -1697,7 +1693,6 @@ function Window:getAllEffects()
     local data = self.data
     if not data.sources then return {} end
 
-    ---@type table<string, EffectItemData>
     local effects = {}
 
     for id, _ in pairs(data.ingredients) do

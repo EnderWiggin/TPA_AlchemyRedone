@@ -5,7 +5,6 @@ local storage = require('openmw.storage')
 local omwConstants = require('scripts.omw.mwui.constants')
 
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
-local C = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants')
 
 ---@class ConfigDataPlayer
 ---@field main MainSettings
@@ -30,7 +29,6 @@ local C = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants')
 ---@field b_AllowCorpseIngredients boolean?
 
 ---@class InterfaceSettings
----@field s_intReMode InterfaceReimaginedMode
 ---@field b_CompactMode boolean?
 ---@field n_TextSize integer?
 ---@field n_TextSizeTitle integer?
@@ -57,9 +55,7 @@ local C = require('scripts.TPABOBAP.AlchemyRedone.old.UIToolkit.constants')
 local config = {
     main = {},
     nearby = {},
-    ui = {
-        s_intReMode = C.InterfaceReimaginedMode.Auto,
-    },
+    ui = {},
     controls = {},
     text = {
         normal = omwConstants.textNormalSize,
