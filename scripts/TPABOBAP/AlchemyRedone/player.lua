@@ -15,7 +15,7 @@ local I = require('openmw.interfaces')
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 local H = require('scripts.UIToolkit.helpers')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
-local AlchemyHandler = require('scripts.TPABOBAP.AlchemyRedone.new.alchemy_handler')
+local AlchemyHandler = require('scripts.TPABOBAP.AlchemyRedone.ui.alchemy_handler')
 
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local l10n = core.l10n('TPA_AlchemyRedone')

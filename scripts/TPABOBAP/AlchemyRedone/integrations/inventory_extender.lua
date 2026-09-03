@@ -10,7 +10,7 @@ local cfgGlobal = require 'scripts.TPABOBAP.AlchemyRedone.config.global'
 
 local I = require 'openmw.interfaces'
 local A = require 'scripts.TPABOBAP.AlchemyRedone.alchemy'
-local AH = require 'scripts.TPABOBAP.AlchemyRedone.new.helpers'
+local AH = require 'scripts.TPABOBAP.AlchemyRedone.helpers'
 local TH = require 'scripts.UIToolkit.helpers'
 
 ---@class AlchemyRedone.Integration.InventoryExtender

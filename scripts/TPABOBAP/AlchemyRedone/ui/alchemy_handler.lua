@@ -18,13 +18,13 @@ local cfg = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local T = require('scripts.UIToolkit.templates.base')
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
-local AH = require("scripts.TPABOBAP.AlchemyRedone.new.helpers")
+local AH = require("scripts.TPABOBAP.AlchemyRedone.helpers")
 local H = require('scripts.UIToolkit.helpers')
 
 local Class = require('scripts.UIToolkit.class')
 ---@type AlchemyRedone.ListItemIngredient
-local ListItemIngredient = require('scripts.TPABOBAP.AlchemyRedone.new.item_ingredient')
-local ListItemEffect = require('scripts.TPABOBAP.AlchemyRedone.new.item_effect')
+local ListItemIngredient = require('scripts.TPABOBAP.AlchemyRedone.ui.item_ingredient')
+local ListItemEffect = require('scripts.TPABOBAP.AlchemyRedone.ui.item_effect')
 
 local M = {}
 
