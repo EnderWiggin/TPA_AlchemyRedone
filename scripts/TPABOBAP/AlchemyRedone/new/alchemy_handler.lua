@@ -30,7 +30,6 @@ local ListItemEffect = require('scripts.TPABOBAP.AlchemyRedone.new.item_effect')
 
 local M = {}
 
-local settings = storage.playerSection(CFG.SECTION.PLAYER.WINDOW)
 local cfgPlayer = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 local cfgGlobal = require('scripts.TPABOBAP.AlchemyRedone.config.global')
 
@@ -140,6 +139,11 @@ local function updateSizes()
     MIN_SIZE = v2(minWidth, minInnerHeight())
 end
 
+---@class AlchemyRedone.Window.SavedData
+---@field isPoison boolean?
+---@field filterMatchingIngredients boolean?
+---@field filterMatchingEffects boolean?
+
 ---@class AlchemyRedone.Window: UIToolkit.WindowHandler
 ---@field new fun():AlchemyRedone.Window
 ---@field list UIToolkit.ItemList
@@ -148,7 +152,8 @@ local Window = Class()
 
 ---@param wnd UIToolkit.Window
 ---@param ctx AlchemyRedone.Context
-function Window:onOpened(wnd, ctx)
+---@param saved AlchemyRedone.Window.SavedData?
+function Window:onOpened(wnd, ctx, saved)
     self.wnd = wnd
     self.data = ctx.data
     self.ctx = ctx
@@ -158,13 +163,12 @@ function Window:onOpened(wnd, ctx)
 
     --Show effects or ingredients?
     self.showEffects = false
-    --TODO: move these to custom window save data?
     --Are we making potion or poison?, default: false
-    self.isPoison = settings:get('isPoison') == true
+    self.isPoison = (saved and saved.isPoison) == true
     --Show only ingredients that have effects present in selected ingredients but not matched yet, default: false
-    self.filterMatchingIngredients = settings:get('filterMatchingIngredients') == true
+    self.filterMatchingIngredients = (saved and saved.filterMatchingIngredients) == true
     --Show only effects that match potion type (harmful/positive), default: true
-    self.filterMatchingEffects = settings:get('filterMatchingEffects') ~= false
+    self.filterMatchingEffects = (saved and saved.filterMatchingEffects) ~= false
 
     self.showFullEffects = cfgPlayer.main.b_ShowFullEffectInfo
     ---@type {id:string, text: string}[]
@@ -253,11 +257,19 @@ function Window:onOpened(wnd, ctx)
     self:onResized(wnd:getInnerSize())
 end
 
+---@return AlchemyRedone.Window.SavedData
 function Window:onClosed()
     self.wnd = nil
     --TODO: destroy ingredient list
     --TODO: destroy effect list
     if self._onClose then self._onClose() end
+
+    ---@type AlchemyRedone.Window.SavedData
+    return {
+        isPoison = self.isPoison,
+        filterMatchingIngredients = self.filterMatchingIngredients,
+        filterMatchingEffects = self.filterMatchingEffects,
+    }
 end
 
 function Window:onResized(inner)
