@@ -15,7 +15,7 @@ local ApparatusTypes = types.Apparatus.TYPE
 
 local cfg = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 ---@class UIToolkit.Templates
-local T = require('scripts.UIToolkit.templates.base')
+local T = I.UIToolkit.Templates
 local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local AH = require("scripts.TPABOBAP.AlchemyRedone.helpers")
