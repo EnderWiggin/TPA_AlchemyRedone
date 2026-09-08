@@ -828,7 +828,7 @@ function Window:makeTools()
             updateTool(STRINGS.CALCINATOR, ApparatusTypes.Calcinator)
             updateTool(STRINGS.RETORT, ApparatusTypes.Retort)
 
-            element:update()
+            I.UIToolkit.queueUpdate(element, true)
         end,
         -- brew result shown in place of the selected ingredients until hideNotice
         showNotice = function(potionName, brewed, failed)
@@ -1442,7 +1442,7 @@ function Window:getTempPotionStats()
 end
 
 function Window:getDefaultPotionName()
-    ---@type MagicEffectWithParams[]
+    ---@type openmw.core.MagicEffectWithParams[]
     local matching = self.data.matching
     local knowledge = self.data.matchingKnowledge
     local harmful, positive
