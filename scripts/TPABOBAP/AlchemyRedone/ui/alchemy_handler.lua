@@ -253,6 +253,22 @@ function Window:onOpened(wnd, ctx, saved)
     wnd:setContent(self.content)
 
     self:onResized(wnd:getInnerSize())
+    local controls = cfgPlayer.controls
+    local AXIS = input.CONTROLLER_AXIS
+    wnd:setControllerHints {
+        { text = STRINGS.CREATE,         input = { id = controls.n_Brew } },
+        { text = l10n 'Input_Selection', input = { { id = controls.n_Activate }, { id = controls.n_SelectPrev }, { id = controls.n_SelectNext } } },
+        { text = l10n 'Input_Scroll',    input = { id = AXIS.RightY, axis = true } },
+        { text = l10n 'Input_Count',     input = { { id = controls.n_CountLess }, { id = controls.n_CountMore } } },
+        'separator',
+        { text = l10n 'Input_Type',      input = { id = controls.n_ToggleType } },
+        { text = l10n 'Input_Table',     input = { id = controls.n_ToggleTable } },
+        { text = l10n 'Label_Matching',  input = { { id = AXIS.TriggerLeft, axis = true }, { id = controls.n_ToggleTable } }, combo = true },
+        { text = l10n 'Input_CFilter',   input = { id = controls.n_ClearText } },
+        { text = l10n 'Input_CSelected', input = { { id = AXIS.TriggerLeft, axis = true }, { id = controls.n_ClearText } },   combo = true },
+        'separator',
+        { text = STRINGS.CANCEL, input = { id = input.CONTROLLER_BUTTON.B } },
+    }
 end
 
 ---@return AlchemyRedone.Window.SavedData

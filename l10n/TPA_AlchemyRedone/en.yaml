@@ -16,6 +16,14 @@ Label_Potion: Potion
 Label_Poison: Poison
 Label_Matching: Matching
 
+Input_Selection: Selection
+Input_Scroll: Scroll
+Input_Type: Potion Type
+Input_Table: Switch List
+Input_Count: Count
+Input_CFilter: Clear Filter
+Input_CSelected: Clear Selected
+
 AlchemyWindow_Type_Ingredient_Tooltip: |-
   List of available ingredients.
   Click on an ingredient to add to (or remove from) the potion.
