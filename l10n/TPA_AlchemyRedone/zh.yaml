@@ -1,0 +1,349 @@
+# ==========================================================================
+# Alchemy Redone —— 简体中文翻译
+#
+# 原文件：  l10n/TPA_AlchemyRedone/en.yaml  （共 118 个键）
+# 对应模组： (OpenMW) Alchemy Redone v1.4.2
+#
+# 【翻译须知 —— 改动前务必阅读】
+# 1. 形如 {color_header} {color_normal} {color_positive} {color_negative}
+#    {count} {min} {max} {default} {apparatus} 的占位符必须【原样保留】，
+#    不能翻译、不能改名、不能删除。它们是运行时填充的变量和颜色标记。
+# 2. 冒号左边的键名【不要改动】，改了会导致对应的文本变成空白。
+# 3. 以 |- 开头的多行文本，内容必须保持 2 个空格缩进，空行也要保持缩进或完全空着。
+# 4. 值里如果出现【半角冒号+空格】（": "），必须用引号包起来，否则 YAML 解析失败。
+#    本文档中的中文冒号「：」是全角字符，不会触发这个问题。
+# ==========================================================================
+
+
+# --------------------------------------------------------------------------
+# 炼金窗口 —— 顶部「药水 / 毒药」切换按钮的悬浮提示
+# --------------------------------------------------------------------------
+
+AlchemyWindow_Type_Potion_Tooltip: |-
+  正面效果：
+  {color_header}蒸馏瓶{color_normal} {color_positive}增强{color_normal}强度与持续时间。
+
+  有害效果：
+  {color_header}蒸馏器{color_normal} {color_negative}削弱{color_normal}强度与持续时间。
+
+AlchemyWindow_Type_Poison_Tooltip: |-
+  有害效果：
+  {color_header}蒸馏瓶{color_normal} {color_positive}增强{color_normal}强度与持续时间。
+
+  正面效果：
+  {color_header}蒸馏器{color_normal} {color_negative}削弱{color_normal}强度与持续时间。
+
+Label_Potion: 药水
+Label_Poison: 毒药
+Label_Matching: 匹配
+
+
+# --------------------------------------------------------------------------
+# 炼金窗口 —— 右侧列表类型切换按钮的悬浮提示
+# --------------------------------------------------------------------------
+
+AlchemyWindow_Type_Ingredient_Tooltip: |-
+  可用素材列表。
+  点击素材可将其加入（或移出）配方。
+
+AlchemyWindow_Type_Effect_Tooltip: |-
+  可用效果列表。
+  点击效果可将其设为筛选条件。
+  按住 {color_header}SHIFT{color_normal} 或 {color_header}LT{color_normal} 可多选效果。
+  按住 {color_header}CTRL{color_normal} 或 {color_header}RT{color_normal} 可把效果标记为收藏。
+
+AlchemyWindow_Toggle_Matching_Ingredient_Tooltip: |-
+  启用后，只显示「含有已选素材中尚未匹配的效果」的素材。
+
+AlchemyWindow_Toggle_Matching_Effect_Tooltip: |-
+  启用后，酿造药水时只显示正面效果。
+  酿造毒药时只显示有害效果。
+
+
+# --------------------------------------------------------------------------
+# 仪器说明（悬浮在仪器名称上的提示）
+# --------------------------------------------------------------------------
+
+Apparatus_Tooltip_Not_Present: 未装备
+
+Apparatus_Tooltip_Mortar: |-
+  品质会提升所有效果的
+  强度、持续时间与价值。
+
+Apparatus_Tooltip_Alembic: |-
+  药水：缓和（削弱）
+  {color_header}有害{color_normal}效果。
+
+Apparatus_Tooltip_Alembic_Poison: |-
+  毒药：缓和（削弱）
+  {color_header}有益{color_normal}效果。
+
+Apparatus_Tooltip_Calcinator: |-
+  强化所有效果，
+  无论{color_header}有益{color_normal}还是{color_header}有害{color_normal}。
+
+Apparatus_Tooltip_Retort: |-
+  药水：增强{color_header}有益{color_normal}效果。
+
+Apparatus_Tooltip_Retort_Poison: |-
+  毒药：增强{color_header}有害{color_normal}效果。
+
+
+# --------------------------------------------------------------------------
+# 界面按钮提示与小标签
+# --------------------------------------------------------------------------
+
+TipNameReset: 把名称重置为默认
+TipFilterReset: 清空筛选文字
+TipClearSelected: 清空已选素材
+FilterPlaceholder: 筛选素材……
+
+All_Effects_Neutralized: 所有匹配效果都被蒸馏器中和了
+Neutralized_Try_Potions: ' —— 试试药水'
+Neutralized_Try_Poisons: ' —— 试试毒药'
+Brew_Notice_Brewed: '已酿造：{count}'
+Brew_Notice_Failed: '失败：{count}'
+Cant_Use_Owned_Apparatus: 你不能使用别人的{apparatus}！
+
+Potion_Name_Unknown: 未知效果
+Potion_Name_Prefix_Good: 药水·
+Potion_Name_Prefix_Bad: 毒药·
+
+
+# --------------------------------------------------------------------------
+# 设置页 —— 页面标题
+# --------------------------------------------------------------------------
+
+PageName: Alchemy Redone 炼金重制
+PageDesc: 版本 1.4.2
+
+
+# --------------------------------------------------------------------------
+# 设置页 —— 主设置（Main Settings）
+# --------------------------------------------------------------------------
+
+MainSettingsName: 主设置
+
+SettingModEnabled: 启用模组
+SettingModEnabledDesc: |-
+  启用或禁用本模组。
+  需要读取存档后改动才会生效。
+
+SettingShowFullEffectInfo: 显示完整效果信息
+SettingShowFullEffectInfoDesc: 「成品效果」区域会显示受你的技能和仪器影响后的效果量级与持续时间。
+
+SettingPotionArtUsesSkill: 药水外观取决于技能
+SettingPotionArtUsesSkillDesc: |-
+  启用后，药水外观会根据你的有效{color_header}炼金术{color_normal}技能（含{color_header}智力{color_normal}与{color_header}幸运{color_normal}属性加成）来选择。
+  否则药水外观与原版一样——随机选择。
+
+SettingPrefixPotionNames: 为药水名称添加前缀
+SettingPrefixPotionNamesDesc: 启用后，默认药水名称会在效果名前面加上前缀。
+
+SettingPotionNamePrefixGood: 药水的前缀
+SettingPotionNamePrefixGoodDesc: 酿造药水时，会加在效果名前面。
+
+SettingPotionNamePrefixBad: 毒药的前缀
+SettingPotionNamePrefixBadDesc: 酿造毒药时，会加在效果名前面。
+
+SettingIngredientEffectMatchingAll: 素材效果筛选始终匹配
+SettingIngredientEffectMatchingAllDesc: |-
+  启用后，当素材列表按「匹配」筛选时，所有能匹配的效果都会被考虑，包括尚未学会的。
+  这能省去一些繁琐操作——因为你本来就可以把任意两种有共同效果的材料放进锅里试出来。
+
+
+# --------------------------------------------------------------------------
+# 设置页 —— 外部库存搜索与使用（External Inventory Search & Use）
+# --------------------------------------------------------------------------
+
+NearbyGroupTitle: 外部库存搜索与使用
+NearbySettingsName: "允许使用附近的仪器与素材"
+NearbySettingsDesc: |-
+  启用后，可以使用放置在世界中的仪器，以及附近容器里的素材。
+  禁用后，只能使用背包里的仪器和素材，且无法使用放置在世界中的仪器——激活它们会改为拾取。
+
+SettingAllowOwnedApparatus: "有主物品 - 所有仪器，不算偷窃"
+SettingAllowOwnedApparatusDesc: 若设为是，则可以无视所有权使用他人的仪器。仪器是就地使用、从不拿走，所以这不算偷窃。
+
+SettingAllowFactionOwned: "有主物品 - 阵营成员，不算偷窃"
+SettingAllowFactionOwnedDesc: 若设为是，则当你级别足够时，你所在阵营的容器和仪器将为你所有。使用它们不算偷窃。
+
+SettingAllowOwnedContainerIngredients: "有主物品 - 容器内素材，{color_negative}偷窃、赃物{color_normal}"
+SettingAllowOwnedContainerIngredientsDesc: 若设为是，则允许取用那些「拿走就算偷窃」的容器里的素材。不会记录犯罪。
+
+SettingAllowCorpseIngredients: "尸体 - 死者身上"
+SettingAllowCorpseIngredientsDesc: 若设为是，则你可以使用尸体上的素材。
+
+Apparatus_Hint_Use: |-
+  激活以使用
+  潜行以拾取
+Apparatus_Hint_Take: |-
+  激活以拾取
+  站起以使用
+
+
+# --------------------------------------------------------------------------
+# 设置页 —— 重做的效果发现机制（Reworked Effect Discovery）
+# --------------------------------------------------------------------------
+
+ReworkSettingsName: 重做的效果发现机制
+ReworkSettingsDesc: |-
+  改动内容：
+  - 炼金术技能不再直接给予药剂效果知识
+  - 喝下任何药剂都会揭示其全部效果
+  - 商店购买、且含正面效果的药剂会显示全部正面效果
+  - 商店购买、且不含正面效果的药剂会显示全部效果
+  - 自酿药剂会显示「至少从 1 种素材中已知」的效果
+  - 每成功酿造 N 瓶相同配方的药剂，会揭示下一个未知效果
+  - 素材仍会随炼金术技能等级揭示效果，但速度更慢
+  - 素材被食用时，会揭示超出技能上限的下一个效果
+  - 素材也会继承已酿药剂中已知的效果
+
+  只有在你安装了{color_header}Inventory Extender{color_normal}时才有意义——否则悬浮提示仍会按原版方式显示效果。
+
+SettingReworkEnabled: 启用
+SettingReworkEnabledDesc: 启用重做的效果发现机制。
+
+SettingUseBaseAlchemyForKnowledge: 用基础炼金术等级计算知识
+SettingUseBaseAlchemyForKnowledgeDesc: 启用后，会使用炼金术的基准等级（不含加成与惩罚）来计算已知效果数量。
+
+SettingPotionKnowledgeThreshold: 新效果发现阈值
+SettingPotionKnowledgeThresholdDesc: |-
+  你需要酿造多少瓶药水才能学会一个新效果。
+  范围 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal}。
+
+SettingIngredientKnowledgeThreshold: 素材效果发现阈值
+SettingIngredientKnowledgeThresholdDesc: |-
+  你的{color_header}炼金术{color_normal}技能会除以这个数字并向下取整，决定你默认能看到多少个素材效果。
+  范围 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal}。原版数值为 {color_header}15{color_normal}。
+
+SettingIngredientMaxTaste: 素材可通过试吃发现的效果上限
+SettingIngredientMaxTasteDesc: |-
+  你可以通过食用素材来揭示下一个符合你{color_header}炼金术{color_normal}技能的效果。
+  本设置决定你最多能通过这种方式学会多少个效果。
+  范围 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal}。
+  设为 {color_header}0{color_normal} 可彻底禁用此机制。
+
+
+# --------------------------------------------------------------------------
+# 设置页 —— 界面（Interface）
+# --------------------------------------------------------------------------
+
+InterfaceSettingsName: 界面
+
+SettingIntReMode: Interface Reimagined 支持
+
+InterfaceReimaginedMode_Auto: "自动"
+InterfaceReimaginedMode_On: "开启"
+InterfaceReimaginedMode_Off: "关闭"
+
+SettingCompactMode: 紧凑模式
+SettingCompactModeDesc: |-
+  让窗口变小。
+  通用文本最大字号被限制为 {color_header}16{color_normal}，并启用其他字号覆盖选项。
+
+SettingNumberSeparators: 显示千位分隔符
+ConfigNumberSeparators_None: 无
+ConfigNumberSeparators_Comma: 逗号
+ConfigNumberSeparators_Space: 空格
+
+SettingTextSize: 文本大小
+SettingTextSizeDesc: |-
+  覆盖通用文本大小。
+  设为 {color_header}0{color_normal} 使用默认大小。设为负数表示相对于默认文本大小的偏移量。
+  范围为 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal}。
+
+SettingTextSizeTitle: 紧凑模式标题文本大小
+SettingTextSizeTitleDesc: |-
+  在{color_header}紧凑模式{color_normal}下覆盖标题的文本大小。
+  设为 {color_header}0{color_normal} 使用默认大小。设为负数表示相对于通用文本大小的偏移量。
+  范围为 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal}。
+
+SettingTextSizeContent: 紧凑模式内容文本大小
+SettingTextSizeContentDesc: |-
+  在{color_header}紧凑模式{color_normal}下覆盖效果列表和提示行的文本大小。
+  设为 {color_header}0{color_normal} 使用默认大小。设为负数表示相对于通用文本大小的偏移量。
+  范围为 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal}。
+
+SettingShowUseHint: 显示使用提示
+SettingShowUseHintDesc: 启用后，当你注视仪器时，会显示关于如何使用或拾取它的提示。
+
+
+# --------------------------------------------------------------------------
+# 设置页 —— 手柄设置（Controller Settings）
+# --------------------------------------------------------------------------
+
+ControllerSettingsName: 手柄设置
+ControllerSettingsDesc: |-
+  点击一个按键绑定即可修改它。
+  按退格键可清除绑定。
+
+SettingController_Activate: 激活 / 确定
+SettingController_ActivateDesc: |-
+  应绑定到与「模拟点击」相同的按键上。
+  在素材列表中：
+  - 把素材加入配方。
+  在效果列表中：
+  - 把效果设为筛选条件并切换到素材列表。
+  - 若按住 {color_header}LT{color_normal} - 把效果加入筛选。
+  - 若按住 {color_header}RT{color_normal} - 把效果标记为收藏。
+
+SettingController_Brew: 酿造药水
+SettingController_BrewDesc: 用当前选中的素材酿造药水。
+
+SettingController_ClearText: 清除
+SettingController_ClearTextDesc: |-
+  清空素材筛选文字和所有已选效果。
+  若按住 {color_header}LT{color_normal} - 改为清空已选素材。
+
+SettingController_ToggleType: 切换药水类型
+SettingController_ToggleTypeDesc: 在酿造药水和毒药之间切换。
+
+SettingController_ToggleTable: 在素材与效果之间切换
+SettingController_ToggleTableDesc: |-
+  在显示素材列表和效果列表之间切换。
+  若按住 {color_header}LT{color_normal} - 切换{color_header}匹配{color_normal}筛选。
+
+SettingController_CountMore: 增加药水数量
+SettingController_CountMoreDesc: |-
+  把药水数量增加 {color_header}1{color_normal}。
+  若按住 {color_header}LT{color_normal} - 增加 {color_header}5{color_normal}。
+  若按住 {color_header}RT{color_normal} - 把数量设为 {color_header}100{color_normal}。
+
+SettingController_CountLess: 减少药水数量
+SettingController_CountLessDesc: |-
+  把药水数量减少 {color_header}1{color_normal}。
+  若按住 {color_header}LT{color_normal} - 减少 {color_header}5{color_normal}。
+  若按住 {color_header}RT{color_normal} - 把数量设为 {color_header}1{color_normal}。
+
+SettingController_SelectNext: 选择下一个
+SettingController_SelectNextDesc: |-
+  选择列表中向下的下一项。
+  若已在底部 - 循环到开头。
+  若按住 {color_header}LT{color_normal} - 向前跳过 5 项。
+  若按住 {color_header}RT{color_normal} - 向前跳过整页。
+
+SettingController_SelectPrev: 选择上一个
+SettingController_SelectPrevDesc: |-
+  选择列表中向上的上一项。
+  若已在顶部 - 循环到末尾。
+  若按住 {color_header}LT{color_normal} - 向后跳过 5 项。
+  若按住 {color_header}RT{color_normal} - 向后跳过整页。
+
+SettingAllowPrecisionMode: 精准模式
+SettingAllowPrecisionModeDesc: 启用后，炼金窗口打开时按住 {color_header}LT{color_normal} 会减慢光标移动速度。
+
+SettingRepeatingButtons: 按键重复
+SettingRepeatingButtonsDesc: 允许在按住时重复触发药水数量和物品选择按钮。
+
+SettingRepeatingButtonsThreshold: 重复触发延迟
+SettingRepeatingButtonsThresholdDesc: |-
+  按住按钮多久（秒）后开始重复触发。
+  不应小于「重复间隔」。
+  范围为 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal} 秒。
+
+SettingRepeatingButtonsStep: 重复间隔
+SettingRepeatingButtonsStepDesc: |-
+  按钮动作每隔多久（秒）重复一次。
+  不应大于「重复触发延迟」。
+  范围为 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal} 秒。
