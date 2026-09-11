@@ -37,6 +37,14 @@ Label_Potion: 药水
 Label_Poison: 毒药
 Label_Matching: 匹配
 
+Input_Selection: 选择
+Input_Scroll: 滚动
+Input_Type: 药水类型
+Input_Table: 切换列表
+Input_Count: 数量
+Input_CFilter: 清除筛选
+Input_CSelected: 清除已选
+
 
 # --------------------------------------------------------------------------
 # 炼金窗口 —— 右侧列表类型切换按钮的悬浮提示
