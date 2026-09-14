@@ -20,6 +20,7 @@ local A = require("scripts.TPABOBAP.AlchemyRedone.alchemy")
 
 local AH = require("scripts.TPABOBAP.AlchemyRedone.helpers")
 local H = require('scripts.UIToolkit.helpers')
+local WindowHandler = require('scripts.UIToolkit.window_handler')
 
 local Class = require('scripts.UIToolkit.class')
 ---@type AlchemyRedone.ListItemIngredient
@@ -146,7 +147,7 @@ end
 ---@field new fun():AlchemyRedone.Window
 ---@field list UIToolkit.ItemList
 ---@field wnd UIToolkit.Window
-local Window = Class()
+local Window = Class(WindowHandler)
 
 ---@param wnd UIToolkit.Window
 ---@param ctx AlchemyRedone.Context
