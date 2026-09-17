@@ -173,8 +173,15 @@ function Window:onOpened(wnd, ctx, saved)
     ---@type {id:string, text: string}[]
     self.selectedEffects = {}
 
+    ---@return openmw.util.Vector2?, openmw.util.Vector2?
+    function self.getTipPosition()
+        if I.UIToolkit.Controller.isControllerActive() then
+            return self:getTooltipPositionForController()
+        end
+    end
+
     self.tableSize = v2(BLOCK_WIDTH, BLOCK_WIDTH)
-    self.allIngredients = M.getAllIngredients(self.data)
+    self.allIngredients = M.getAllIngredients(self.data, self.getTipPosition)
     self.allEffects = self:getAllEffects()
 
     self.naming = I.UIToolkit.Components.textEdit({
@@ -335,10 +342,8 @@ function Window:onControllerButtonPress(button)
         local activeTable = self.showEffects and self.effectTable or self.itemTable
         local delta = LT and 5 or not RT and 1 or activeTable:getVisibleItemCount()
         if button == bind.n_SelectPrev then delta = -delta end
-        local position, anchor = self:getTooltipPositionForController()
-
         ---@type UIToolkit.ItemList
-        activeTable:shiftHoveredItem(delta, position, anchor)
+        activeTable:shiftHoveredItem(delta)
     elseif button == bind.n_CountMore then
         local count = self.counting.getCount()
         if LT then
@@ -1751,7 +1756,7 @@ function Window:getAllEffects()
             affectedAttribute = d.affectedAttribute,
             displayName = name .. ' (' .. H.addSeparators(d.count) .. ')',
             icon = record and record.icon,
-            tooltip = { key = d.effectId, type = I.UTKTooltips.TYPE.MagicEffect },
+            tooltip = { key = d.effectId, type = I.UTKTooltips.TYPE.MagicEffect, position = self.getTipPosition },
             searchText = '"' .. name .. '"',
             isActive = function()
                 local selectedEffects = self.selectedEffects
@@ -1800,7 +1805,7 @@ end
 
 function Window:updateData()
     self.btnCreate:setDisabled(false)
-    self.allIngredients = M.getAllIngredients(self.data)
+    self.allIngredients = M.getAllIngredients(self.data, self.getTipPosition)
     self.allEffects = self:getAllEffects()
     if self.showEffects then
         self:updateEffectList()
@@ -1877,8 +1882,9 @@ end
 -------- MISC HELPERS
 
 ---@param data AlchemyData
+---@param position fun():openmw.util.Vector2?, openmw.util.Vector2?
 ---@return AlchemyRedone.ListData.Ingredient[]
-function M.getAllIngredients(data)
+function M.getAllIngredients(data, position)
     if not data.sources then return {} end
 
     ---@type AlchemyRedone.ListData.Ingredient[]
@@ -1901,7 +1907,7 @@ function M.getAllIngredients(data)
                 end
                 return false
             end,
-            tooltip = { type = I.UTKTooltips.TYPE.Ingredient, key = id, observer = player },
+            tooltip = { type = I.UTKTooltips.TYPE.Ingredient, key = id, observer = player, position = position },
         })
     end
     return result

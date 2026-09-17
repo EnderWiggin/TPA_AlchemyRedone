@@ -1,4 +1,4 @@
----@omw-context runtime
+---@omw-context player|global
 
 local core = require("openmw.core")
 local util = require("openmw.util")
