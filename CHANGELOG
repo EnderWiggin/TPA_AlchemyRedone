@@ -1,0 +1,55 @@
+Version 2.0.0 (2026-09-18)
+- Full rewrite of the UI using the UI Toolkit - moving and resizing window is now several times faster
+- In controller mode window now shows button hints
+- Controller bindings now use UI Toolkit to provide easier bindings and keyboard support
+- added simplified chinese translation provided by `sangela`
+
+Version 1.4.2 (2026-07-26)
+- raised cap for ingredient knowledge threshold to 100
+- new, more compact, window layout (PR by sbelmont85)
+- fixed second brew of a recipe falsely marking its potions fully known (PR by sbelmont85)
+
+Version 1.4.1 (2026-07-24)
+- fixed crash hovering an absent apparatus slot tooltip (PR by sbelmont85)
+- added support for Shared Tooltip from ownlyme (Quick Loot or standalone)
+
+Version 1.4 (2026-07-22)
+- Several UI improvements from sbelmont85:
+    - added tooltips describing each apparatus role
+    - hint at the opposite brew mode when all effects neutralize
+    - left-aligned effect list ingredient tooltip for easier readability
+    - show brew results in the apparatus box instead of engine message
+- API:
+    - added `callbackEvent` to data of the `TPA_AlchemyRedone_CollectInfo` event - this event (or `TPA_AlchemyRedone_Open` if absent) will be sent to actor with the collected info
+    - added `getKnownEffectFlagsForPotion` and `getKnownEffectFlagsForIngredient` that accept record ids
+
+Version 1.3 (2026-07-20)
+- fixed faction rank check off by one
+- added owned-apparatus setting and regrouped nearby options
+- added button to clear all selected ingredients
+- added `getActiveApparatus` to API - returns currently active apparatus
+- added new `TPA_AlchemyRedone_PotionBrewed` player event sent when new potion is brewed (but before added to inventory)
+
+Version 1.2 (2026-07-18)
+- position Alchemy Window in screen center by default
+- improved window sizing and positioning
+- added option to override text size
+- update min window size and effect icon sizes with text size
+- added option to allow using apparatus and containers owned by factions if you have high enough rank (enabled by default) - PR by sbelmont85
+- sneak to pickup apparatus and tooltip that shows hints about this when looking at apparatus (hint can be disabled in settings) - PR by sbelmont85
+- more fixes for errors caused by weird TR Data ingredients
+
+Version 1.1.1 (2026-07-17)
+- fixed errors caused by some TR Data ingredients having gaps in effects
+
+Version 1.1 (2026-07-10)
+- added option for reworked effect to use base alchemy for knowledge count (on by default)
+- show message when trying to activate owned apparatus
+- added option to make window more compact
+- small UI tweaks
+
+Version 1.0.1 (2026-07-09)
+- small tweaks to window layout and resizing
+
+Version 1.0 (2026-07-09)
+- Initial release
