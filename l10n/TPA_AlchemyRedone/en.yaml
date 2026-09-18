@@ -221,7 +221,7 @@ SettingShowUseHintDesc: If enabled, will show tooltip with info about how to use
 ControllerSettingsName: Controller Settings
 ControllerSettingsDesc: |-
   Click on a binding to change it.
-  Backspace to clear binding.
+  In all descriptions below holding {color_header}SHIFT{color_normal} is same as holding {color_header}LT{color_normal} and holding {color_header}CTRL{color_normal} is same as holding {color_header}RT{color_normal}.
 
 SettingController_Activate: Activate
 SettingController_ActivateDesc: |-

@@ -338,8 +338,8 @@ end
 
 ---@param bind string?
 function Window:processInput(bind)
-    local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.55
-    local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.55
+    local LT = input.isShiftPressed() or input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.55
+    local RT = input.isCtrlPressed() or input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.55
 
     if bind == BINDING.SelectPrev or bind == BINDING.SelectNext then
         local activeTable = self.showEffects and self.effectTable or self.itemTable
@@ -415,7 +415,21 @@ end
 
 ---@param button number
 function Window:onControllerButtonRepeat(button)
-    local bind = cfgUtil.findMatchingController(button, cfgPlayer.controls)
+    self:onInputRepeat(cfgUtil.findMatchingController(key, cfgPlayer.controls))
+end
+
+---@param key number
+function Window:onKeyboardButtonPress(key)
+    self:processInput(cfgUtil.findMatchingKeyboard(key, cfgPlayer.controls))
+end
+
+---@param key number
+function Window:onKeyboardButtonRepeat(key)
+    self:onInputRepeat(cfgUtil.findMatchingKeyboard(key, cfgPlayer.controls))
+end
+
+---@param bind string?
+function Window:onInputRepeat(bind)
     if bind == BINDING.SelectNext or bind == BINDING.SelectPrev
         or bind == BINDING.CountMore or bind == BINDING.CountLess
     then

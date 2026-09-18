@@ -220,7 +220,7 @@ I.Settings.registerGroup {
     page = CFG.MOD,
     l10n = CFG.MOD,
     name = 'ControllerSettingsName',
-    description = 'ControllerSettingsDesc',
+    description = l10n('ControllerSettingsDesc', H.TextColorParams),
     order = 4,
     permanentStorage = true,
     settings = {
@@ -231,6 +231,7 @@ I.Settings.registerGroup {
             description = l10n('SettingController_ActivateDesc', H.TextColorParams),
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.A },
+                { device = Device.Keyboard,   code = input.KEY.E },
             },
         },
         {
@@ -240,6 +241,7 @@ I.Settings.registerGroup {
             description = 'SettingController_BrewDesc',
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.X },
+                { device = Device.Keyboard,   code = input.KEY.R },
             },
         },
         {
@@ -249,6 +251,7 @@ I.Settings.registerGroup {
             description = l10n('SettingController_ClearTextDesc', H.TextColorParams),
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.Y },
+                { device = Device.Keyboard,   code = input.KEY.Q },
             },
         },
         {
@@ -258,6 +261,7 @@ I.Settings.registerGroup {
             description = 'SettingController_ToggleTypeDesc',
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.LeftShoulder },
+                { device = Device.Keyboard,   code = input.KEY.X },
             },
         },
         {
@@ -267,6 +271,7 @@ I.Settings.registerGroup {
             description = l10n('SettingController_ToggleTableDesc', H.TextColorParams),
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.RightShoulder },
+                { device = Device.Keyboard,   code = input.KEY.F },
             },
         },
         {
@@ -276,6 +281,7 @@ I.Settings.registerGroup {
             description = l10n('SettingController_CountMoreDesc', H.TextColorParams),
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadRight },
+                { device = Device.Keyboard,   code = input.KEY.D },
             },
         },
         {
@@ -285,6 +291,7 @@ I.Settings.registerGroup {
             description = l10n('SettingController_CountLessDesc', H.TextColorParams),
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadLeft },
+                { device = Device.Keyboard,   code = input.KEY.A },
             },
         },
         {
@@ -294,6 +301,7 @@ I.Settings.registerGroup {
             description = l10n('SettingController_SelectNextDesc', H.TextColorParams),
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadDown },
+                { device = Device.Keyboard,   code = input.KEY.S },
             },
         },
         {
@@ -303,6 +311,7 @@ I.Settings.registerGroup {
             description = l10n('SettingController_SelectPrevDesc', H.TextColorParams),
             default = {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadUp },
+                { device = Device.Keyboard,   code = input.KEY.W },
             },
         },
         {
