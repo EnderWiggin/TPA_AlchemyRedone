@@ -337,21 +337,3 @@ SettingController_SelectPrevDesc: |-
   若已在顶部 - 循环到末尾。
   若按住 {color_header}LT{color_normal} - 向后跳过 5 项。
   若按住 {color_header}RT{color_normal} - 向后跳过整页。
-
-SettingAllowPrecisionMode: 精准模式
-SettingAllowPrecisionModeDesc: 启用后，炼金窗口打开时按住 {color_header}LT{color_normal} 会减慢光标移动速度。
-
-SettingRepeatingButtons: 按键重复
-SettingRepeatingButtonsDesc: 允许在按住时重复触发药水数量和物品选择按钮。
-
-SettingRepeatingButtonsThreshold: 重复触发延迟
-SettingRepeatingButtonsThresholdDesc: |-
-  按住按钮多久（秒）后开始重复触发。
-  不应小于「重复间隔」。
-  范围为 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal} 秒。
-
-SettingRepeatingButtonsStep: 重复间隔
-SettingRepeatingButtonsStepDesc: |-
-  按钮动作每隔多久（秒）重复一次。
-  不应大于「重复触发延迟」。
-  范围为 [{color_header}{min}{color_normal} - {color_header}{max}{color_normal}]，默认为 {color_header}{default}{color_normal} 秒。

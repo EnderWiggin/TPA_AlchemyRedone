@@ -46,7 +46,6 @@ local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 ---@field c_CountLess UIToolkit.SettingRenderer.CustomBind[]?
 ---@field c_SelectNext UIToolkit.SettingRenderer.CustomBind[]?
 ---@field c_SelectPrev UIToolkit.SettingRenderer.CustomBind[]?
----@field b_AllowPrecisionMode boolean?
 ---@field b_RepeatingButtons boolean?
 ---@field n_RepeatingButtonsThreshold number?
 ---@field n_RepeatingButtonsStep number?

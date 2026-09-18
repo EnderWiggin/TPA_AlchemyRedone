@@ -3,24 +3,11 @@
 local input = require('openmw.input')
 local I = require('openmw.interfaces')
 local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
-local C = require('scripts.UIToolkit.constants')
 local H = require('scripts.UIToolkit.helpers')
 
 local l10n = require('openmw.core').l10n(CFG.MOD)
 local Device = require 'scripts.UIToolkit.config.defaults'.Device
 
-
-local RepeatThreshold = {
-    default = 0.5,
-    min = 0.2,
-    max = 1,
-}
-
-local RepeatStep = {
-    default = 0.125,
-    min = 0.05,
-    max = 0.5,
-}
 
 local FontSize = {
     default = 0,
@@ -313,42 +300,6 @@ I.Settings.registerGroup {
                 { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadUp },
                 { device = Device.Keyboard,   code = input.KEY.W },
             },
-        },
-        {
-            key = 'b_AllowPrecisionMode',
-            renderer = 'checkbox',
-            name = 'SettingAllowPrecisionMode',
-            description = l10n('SettingAllowPrecisionModeDesc', H.TextColorParams),
-            default = false,
-        },
-        {
-            key = 'b_RepeatingButtons',
-            renderer = 'checkbox',
-            name = 'SettingRepeatingButtons',
-            description = 'SettingRepeatingButtonsDesc',
-            default = true,
-        },
-        {
-            key = 'n_RepeatingButtonsThreshold',
-            renderer = 'number',
-            name = 'SettingRepeatingButtonsThreshold',
-            description = l10n('SettingRepeatingButtonsThresholdDesc', H.mergeTables(H.TextColorParams, RepeatThreshold)),
-            default = RepeatThreshold.default,
-            argument = {
-                min = RepeatThreshold.min,
-                max = RepeatThreshold.max,
-            }
-        },
-        {
-            key = 'n_RepeatingButtonsStep',
-            renderer = 'number',
-            name = 'SettingRepeatingButtonsStep',
-            description = l10n('SettingRepeatingButtonsStepDesc', H.mergeTables(H.TextColorParams, RepeatStep)),
-            default = RepeatStep.default,
-            argument = {
-                min = RepeatStep.min,
-                max = RepeatStep.max,
-            }
         },
     },
 }
