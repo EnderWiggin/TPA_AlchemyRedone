@@ -22,4 +22,15 @@ return {
             Rework = section('Rework'),
         },
     },
+    BINDING = {
+        Activate = 'c_Activate',
+        Brew = 'c_Brew',
+        ClearText = 'c_ClearText',
+        ToggleType = 'c_ToggleType',
+        ToggleTable = 'c_ToggleTable',
+        CountMore = 'c_CountMore',
+        CountLess = 'c_CountLess',
+        SelectNext = 'c_SelectNext',
+        SelectPrev = 'c_SelectPrev',
+    },
 }

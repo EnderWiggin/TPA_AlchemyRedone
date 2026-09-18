@@ -12,6 +12,8 @@ local I = require('openmw.interfaces')
 local l10n = core.l10n('TPA_AlchemyRedone')
 local v2 = util.vector2
 local ApparatusTypes = types.Apparatus.TYPE
+local BINDING = require 'scripts.TPABOBAP.AlchemyRedone.settings.constants'.BINDING
+local cfgUtil = require 'scripts.UIToolkit.config.utils'
 
 local cfg = require('scripts.TPABOBAP.AlchemyRedone.config.player')
 ---@class UIToolkit.Templates
@@ -137,6 +139,8 @@ local function updateSizes()
     GAP_EFFECT = P.gapEffect
     MIN_SIZE = v2(minWidth, minInnerHeight())
 end
+
+local getInput = cfgUtil.getFirstControllerInput
 
 ---@class AlchemyRedone.Window.SavedData
 ---@field isPoison boolean?
@@ -264,16 +268,16 @@ function Window:onOpened(wnd, ctx, saved)
     local controls = cfgPlayer.controls
     local AXIS = input.CONTROLLER_AXIS
     wnd:setControllerHints {
-        { text = STRINGS.CREATE,         input = { id = controls.n_Brew } },
-        { text = l10n 'Input_Selection', input = { { id = controls.n_Activate }, { id = controls.n_SelectPrev }, { id = controls.n_SelectNext } } },
+        { text = STRINGS.CREATE,         input = getInput(controls.c_Brew) },
+        { text = l10n 'Input_Selection', input = { getInput(controls.c_Activate), getInput(controls.c_SelectPrev), getInput(controls.c_SelectNext), } },
         { text = l10n 'Input_Scroll',    input = { id = AXIS.RightY, axis = true } },
-        { text = l10n 'Input_Count',     input = { { id = controls.n_CountLess }, { id = controls.n_CountMore } } },
+        { text = l10n 'Input_Count',     input = { getInput(controls.c_CountLess), getInput(controls.c_CountMore), } },
         'separator',
-        { text = l10n 'Input_Type',      input = { id = controls.n_ToggleType } },
-        { text = l10n 'Input_Table',     input = { id = controls.n_ToggleTable } },
-        { text = l10n 'Label_Matching',  input = { { id = AXIS.TriggerLeft, axis = true }, { id = controls.n_ToggleTable } }, combo = true },
-        { text = l10n 'Input_CFilter',   input = { id = controls.n_ClearText } },
-        { text = l10n 'Input_CSelected', input = { { id = AXIS.TriggerLeft, axis = true }, { id = controls.n_ClearText } },   combo = true },
+        { text = l10n 'Input_Type',      input = getInput(controls.c_ToggleType), },
+        { text = l10n 'Input_Table',     input = getInput(controls.c_ToggleTable), },
+        { text = l10n 'Label_Matching',  input = { { id = AXIS.TriggerLeft, axis = true }, getInput(controls.c_ToggleTable), }, combo = true },
+        { text = l10n 'Input_CFilter',   input = getInput(controls.c_ClearText), },
+        { text = l10n 'Input_CSelected', input = { { id = AXIS.TriggerLeft, axis = true }, getInput(controls.c_ClearText), },   combo = true },
         'separator',
         { text = STRINGS.CANCEL, input = { id = input.CONTROLLER_BUTTON.B } },
     }
@@ -332,19 +336,18 @@ function Window:getTooltipPositionForController()
     end
 end
 
----@param button number
-function Window:onControllerButtonPress(button)
-    local bind = cfgPlayer.controls
+---@param bind string?
+function Window:processInput(bind)
     local LT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerLeft) > 0.55
     local RT = input.getAxisValue(input.CONTROLLER_AXIS.TriggerRight) > 0.55
 
-    if button == bind.n_SelectPrev or button == bind.n_SelectNext then
+    if bind == BINDING.SelectPrev or bind == BINDING.SelectNext then
         local activeTable = self.showEffects and self.effectTable or self.itemTable
         local delta = LT and 5 or not RT and 1 or activeTable:getVisibleItemCount()
-        if button == bind.n_SelectPrev then delta = -delta end
+        if bind == BINDING.SelectPrev then delta = -delta end
         ---@type UIToolkit.ItemList
         activeTable:shiftHoveredItem(delta)
-    elseif button == bind.n_CountMore then
+    elseif bind == BINDING.CountMore then
         local count = self.counting.getCount()
         if LT then
             count = count + 5
@@ -354,7 +357,7 @@ function Window:onControllerButtonPress(button)
             count = count + 1
         end
         self.counting.setValue(count)
-    elseif button == bind.n_CountLess then
+    elseif bind == BINDING.CountLess then
         local count = self.counting.getCount()
         if LT then
             count = count - 5
@@ -364,16 +367,16 @@ function Window:onControllerButtonPress(button)
             count = count - 1
         end
         self.counting.setValue(count)
-    elseif button == bind.n_Brew then
+    elseif bind == BINDING.Brew then
         self:createPotion()
-    elseif button == bind.n_ClearText then
+    elseif bind == BINDING.ClearText then
         if LT then
             self:clearAllSelectedIngredients()
         elseif RT then
         else
             self:clearFilter()
         end
-    elseif button == bind.n_Activate then
+    elseif bind == BINDING.Activate then
         ---@type UIToolkit.ListData.Base?
         local hovered
         if self.showEffects then
@@ -391,10 +394,10 @@ function Window:onControllerButtonPress(button)
                 self:selectIngredient(hovered)
             end
         end
-    elseif button == bind.n_ToggleType then
+    elseif bind == BINDING.ToggleType then
         self.isPoison = not self.isPoison
         self.potionTypeSelector.update()
-    elseif button == bind.n_ToggleTable then
+    elseif bind == BINDING.ToggleTable then
         if LT then
             self.toggleFilterMatching.onToggleClick()
         elseif RT then
@@ -406,12 +409,17 @@ function Window:onControllerButtonPress(button)
 end
 
 ---@param button number
+function Window:onControllerButtonPress(button)
+    self:processInput(cfgUtil.findMatchingController(button, cfgPlayer.controls))
+end
+
+---@param button number
 function Window:onControllerButtonRepeat(button)
-    local bind = cfgPlayer.controls
-    if button == bind.n_SelectNext or button == bind.n_SelectPrev
-        or button == bind.n_CountMore or button == bind.n_CountLess
+    local bind = cfgUtil.findMatchingController(button, cfgPlayer.controls)
+    if bind == BINDING.SelectNext or bind == BINDING.SelectPrev
+        or bind == BINDING.CountMore or bind == BINDING.CountLess
     then
-        self:onControllerButtonPress(button)
+        self:processInput(bind)
     end
 end
 

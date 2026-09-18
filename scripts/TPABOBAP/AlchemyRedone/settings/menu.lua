@@ -7,9 +7,8 @@ local C = require('scripts.UIToolkit.constants')
 local H = require('scripts.UIToolkit.helpers')
 
 local l10n = require('openmw.core').l10n(CFG.MOD)
+local Device = require 'scripts.UIToolkit.config.defaults'.Device
 
-local controllerInput = require('scripts.TPABOBAP.AlchemyRedone.settings.controllerInputRenderer')
-I.Settings.registerRenderer('TPA_controllerInput', controllerInput.renderer)
 
 local RepeatThreshold = {
     default = 0.5,
@@ -163,22 +162,6 @@ I.Settings.registerGroup {
     order = 3,
     permanentStorage = true,
     settings = {
-        --[[
-        {
-            key = 's_intReMode',
-            renderer = 'select',
-            name = 'SettingIntReMode',
-            default = C.InterfaceReimaginedMode.Auto,
-            argument = {
-                l10n = CFG.MOD,
-                items = {
-                    C.InterfaceReimaginedMode.OFF,
-                    C.InterfaceReimaginedMode.Auto,
-                    C.InterfaceReimaginedMode.ON,
-                },
-            }
-        },
-        ]]
         {
             key = 'b_CompactMode',
             renderer = 'checkbox',
@@ -222,18 +205,6 @@ I.Settings.registerGroup {
                 max = FontSizeContent.max,
             }
         },
-        --[[
-        {
-            key = 's_NumberSeparators',
-            renderer = 'select',
-            name = 'SettingNumberSeparators',
-            default = C.SEPARATOR_OPTS.Space,
-            argument = {
-                l10n = CFG.MOD,
-                items = { C.SEPARATOR_OPTS.None, C.SEPARATOR_OPTS.Space, C.SEPARATOR_OPTS.Comma },
-            }
-        },
-        ]]
         {
             key = 'b_ShowUseHint',
             renderer = 'checkbox',
@@ -254,67 +225,85 @@ I.Settings.registerGroup {
     permanentStorage = true,
     settings = {
         {
-            key = 'n_Activate',
-            renderer = 'TPA_controllerInput',
+            key = 'c_Activate',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_Activate',
             description = l10n('SettingController_ActivateDesc', H.TextColorParams),
-            default = input.CONTROLLER_BUTTON.A,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.A },
+            },
         },
         {
-            key = 'n_Brew',
-            renderer = 'TPA_controllerInput',
+            key = 'c_Brew',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_Brew',
             description = 'SettingController_BrewDesc',
-            default = input.CONTROLLER_BUTTON.X,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.X },
+            },
         },
         {
-            key = 'n_ClearText',
-            renderer = 'TPA_controllerInput',
+            key = 'c_ClearText',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_ClearText',
             description = l10n('SettingController_ClearTextDesc', H.TextColorParams),
-            default = input.CONTROLLER_BUTTON.Y,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.Y },
+            },
         },
         {
-            key = 'n_ToggleType',
-            renderer = 'TPA_controllerInput',
+            key = 'c_ToggleType',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_ToggleType',
             description = 'SettingController_ToggleTypeDesc',
-            default = input.CONTROLLER_BUTTON.LeftShoulder,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.LeftShoulder },
+            },
         },
         {
-            key = 'n_ToggleTable',
-            renderer = 'TPA_controllerInput',
+            key = 'c_ToggleTable',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_ToggleTable',
             description = l10n('SettingController_ToggleTableDesc', H.TextColorParams),
-            default = input.CONTROLLER_BUTTON.RightShoulder,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.RightShoulder },
+            },
         },
         {
-            key = 'n_CountMore',
-            renderer = 'TPA_controllerInput',
+            key = 'c_CountMore',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_CountMore',
             description = l10n('SettingController_CountMoreDesc', H.TextColorParams),
-            default = input.CONTROLLER_BUTTON.DPadRight,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadRight },
+            },
         },
         {
-            key = 'n_CountLess',
-            renderer = 'TPA_controllerInput',
+            key = 'c_CountLess',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_CountLess',
             description = l10n('SettingController_CountLessDesc', H.TextColorParams),
-            default = input.CONTROLLER_BUTTON.DPadLeft,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadLeft },
+            },
         },
         {
-            key = 'n_SelectNext',
-            renderer = 'TPA_controllerInput',
+            key = 'c_SelectNext',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_SelectNext',
             description = l10n('SettingController_SelectNextDesc', H.TextColorParams),
-            default = input.CONTROLLER_BUTTON.DPadDown,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadDown },
+            },
         },
         {
-            key = 'n_SelectPrev',
-            renderer = 'TPA_controllerInput',
+            key = 'c_SelectPrev',
+            renderer = 'UIToolkit/BindCustom',
             name = 'SettingController_SelectPrev',
             description = l10n('SettingController_SelectPrevDesc', H.TextColorParams),
-            default = input.CONTROLLER_BUTTON.DPadUp,
+            default = {
+                { device = Device.Controller, code = input.CONTROLLER_BUTTON.DPadUp },
+            },
         },
         {
             key = 'b_AllowPrecisionMode',
@@ -353,11 +342,4 @@ I.Settings.registerGroup {
             }
         },
     },
-}
-
-return {
-    engineHandlers = {
-        onKeyPress = controllerInput.handlers.onKeyPress,
-        onControllerButtonPress = controllerInput.handlers.onControllerButtonPress,
-    }
 }

@@ -37,15 +37,15 @@ local CFG = require('scripts.TPABOBAP.AlchemyRedone.settings.constants')
 ---@field b_ShowUseHint boolean?
 
 ---@class ControllerSettings
----@field n_Activate number?
----@field n_Brew number?
----@field n_ClearText number?
----@field n_ToggleType number?
----@field n_ToggleTable number?
----@field n_CountMore number?
----@field n_CountLess number?
----@field n_SelectNext number?
----@field n_SelectPrev number?
+---@field c_Activate UIToolkit.SettingRenderer.CustomBind[]?
+---@field c_Brew UIToolkit.SettingRenderer.CustomBind[]?
+---@field c_ClearText UIToolkit.SettingRenderer.CustomBind[]?
+---@field c_ToggleType UIToolkit.SettingRenderer.CustomBind[]?
+---@field c_ToggleTable UIToolkit.SettingRenderer.CustomBind[]?
+---@field c_CountMore UIToolkit.SettingRenderer.CustomBind[]?
+---@field c_CountLess UIToolkit.SettingRenderer.CustomBind[]?
+---@field c_SelectNext UIToolkit.SettingRenderer.CustomBind[]?
+---@field c_SelectPrev UIToolkit.SettingRenderer.CustomBind[]?
 ---@field b_AllowPrecisionMode boolean?
 ---@field b_RepeatingButtons boolean?
 ---@field n_RepeatingButtonsThreshold number?
