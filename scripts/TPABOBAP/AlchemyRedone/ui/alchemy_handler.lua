@@ -153,6 +153,11 @@ local getInput = cfgUtil.getFirstControllerInput
 ---@field wnd UIToolkit.Window
 local Window = Class(WindowHandler)
 
+function Window.getMinSize()
+    updateSizes()
+    return MIN_SIZE
+end
+
 ---@param wnd UIToolkit.Window
 ---@param ctx AlchemyRedone.Context
 ---@param saved AlchemyRedone.Window.SavedData?

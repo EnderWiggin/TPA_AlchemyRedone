@@ -466,6 +466,7 @@ local function onUpdate()
     integration.UIToolkit.register()
 
     I.UI.registerWindow(I.UI.WINDOW.Alchemy, openWindow, closeWindow)
+    local minSz = AlchemyHandler.getMinSize()
     I.UIToolkit.WindowManager.register(WND_NAME, {
         title = core.getGMST('sSkillAlchemy'),
         handler = function()
@@ -474,6 +475,8 @@ local function onUpdate()
             return handler
         end,
         resizing = true,
+        minSize = minSz,
+        position = I.UIToolkit.WindowManager.getCenterPositionForSize(minSz),
     })
 
     updatePermissions()
