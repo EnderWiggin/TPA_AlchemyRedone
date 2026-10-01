@@ -415,6 +415,13 @@ end
 
 ---@param button number
 function Window:onControllerButtonPress(button)
+    if button == input.CONTROLLER_BUTTON.A then
+        local focused = I.UIToolkit.getCtx().focusedScrollable
+        if focused == self.itemTable or focused == self.effectTable then
+            --prevents double-clicks
+            return
+        end
+    end
     self:processInput(cfgUtil.findMatchingController(button, cfgPlayer.controls))
 end
 
