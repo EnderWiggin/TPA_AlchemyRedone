@@ -427,7 +427,7 @@ end
 
 ---@param button number
 function Window:onControllerButtonRepeat(button)
-    self:onInputRepeat(cfgUtil.findMatchingController(key, cfgPlayer.controls))
+    self:onInputRepeat(cfgUtil.findMatchingController(button, cfgPlayer.controls))
 end
 
 ---@param key number
