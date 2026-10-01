@@ -1,3 +1,7 @@
+Version 2.0.2 (2026-10-01)
+- fixed controller buton A double-clicking on items if hovered over list
+- fixed controller button repeat
+
 Version 2.0.1 (2026-09-20)
 - fixed default size and position
 
