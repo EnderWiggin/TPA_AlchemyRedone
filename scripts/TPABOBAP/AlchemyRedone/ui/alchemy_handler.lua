@@ -1646,7 +1646,7 @@ function Window:toggleFavoriteEffect(effectKey)
     for i = 1, #self.allEffects do
         local data = self.allEffects[i]
         if data.id == effectKey then
-            self.effectProvider:refreshColumns(data, 'favorite')
+            self.effectProvider:markColumnDirty(data, 'favorite')
             break
         end
     end
@@ -1848,7 +1848,8 @@ function Window:updateData()
     self:updateMatchingEffects(true)
     for i = 1, #self.allIngredients do
         local ingredient = self.allIngredients[i] --[[@as UIToolkit.ListData.Column]]
-        self.ingredientProvider:refreshColumns(ingredient, 'name', 'effects')
+        self.ingredientProvider:markColumnDirty(ingredient, 'name')
+        self.ingredientProvider:markColumnDirty(ingredient, 'effects')
     end
     self.tools.update()
     self.selected.update()
@@ -1869,7 +1870,7 @@ function Window:updateMatchingEffects(skipIngredientUpdate)
     local items = self.itemTable:getItems()
     for i = 1, #items do
         local item = items[i] --[[@as UIToolkit.ListData.Column]]
-        self.ingredientProvider:refreshColumns(item, 'effects')
+        self.ingredientProvider:markColumnDirty(item, 'effects')
     end
 end
 
