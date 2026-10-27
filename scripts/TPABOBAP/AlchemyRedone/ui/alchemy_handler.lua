@@ -1841,8 +1841,9 @@ function Window:updateData()
     self.btnCreate:setDisabled(false)
     self.allIngredients = M.getAllIngredients(self.data, self.getTipPosition)
     self.allEffects = self:getAllEffects()
-    if self.showEffects then
-        self:updateEffectList()
+    self:updateEffectList()
+    for i = 1, #self.allEffects do
+        self.effectProvider:markColumnDirty(self.allEffects[i], 'displayName')
     end
     self:updateMatchingEffects(true)
     for i = 1, #self.allIngredients do
