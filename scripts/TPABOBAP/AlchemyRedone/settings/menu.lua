@@ -7,6 +7,7 @@ local H = require('scripts.UIToolkit.helpers')
 
 local l10n = require('openmw.core').l10n(CFG.MOD)
 local Device = require 'scripts.UIToolkit.config.defaults'.Device
+local version = '2.0.4'
 
 
 local FontSize = {
@@ -31,7 +32,7 @@ I.Settings.registerPage {
     key = CFG.MOD,
     l10n = CFG.MOD,
     name = 'PageName',
-    description = 'PageDesc',
+    description = l10n('PageDesc', { version = version }),
 }
 
 I.Settings.registerGroup {
