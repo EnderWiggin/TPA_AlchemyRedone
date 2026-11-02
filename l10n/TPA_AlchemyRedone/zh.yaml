@@ -1,8 +1,8 @@
 # ==========================================================================
 # Alchemy Redone —— 简体中文翻译
 #
-# 原文件：  l10n/TPA_AlchemyRedone/en.yaml  （共 118 个键）
-# 对应模组： (OpenMW) Alchemy Redone v1.4.2
+# 原文件：  l10n/TPA_AlchemyRedone/en.yaml  （共 117 个键）
+# 对应模组： (OpenMW) Alchemy Redone v2.0.3
 #
 # 【翻译须知 —— 改动前务必阅读】
 # 1. 形如 {color_header} {color_normal} {color_positive} {color_negative}
@@ -37,6 +37,7 @@ Label_Potion: 药水
 Label_Poison: 毒药
 Label_Matching: 匹配
 
+# 手柄操作提示条（显示在窗口底部，文字要短）
 Input_Selection: 选择
 Input_Scroll: 滚动
 Input_Type: 药水类型
@@ -79,12 +80,10 @@ Apparatus_Tooltip_Mortar: |-
   强度、持续时间与价值。
 
 Apparatus_Tooltip_Alembic: |-
-  药水：缓和（削弱）
-  {color_header}有害{color_normal}效果。
+  药水：降低{color_header}有害{color_normal}效果的强度。
 
 Apparatus_Tooltip_Alembic_Poison: |-
-  毒药：缓和（削弱）
-  {color_header}有益{color_normal}效果。
+  毒药：降低{color_header}有益{color_normal}效果的强度。
 
 Apparatus_Tooltip_Calcinator: |-
   强化所有效果，
@@ -123,7 +122,7 @@ Potion_Name_Prefix_Bad: 毒药·
 # --------------------------------------------------------------------------
 
 PageName: Alchemy Redone 炼金重制
-PageDesc: 版本 1.4.2
+PageDesc: 版本 2.0.3
 
 
 # --------------------------------------------------------------------------
@@ -284,7 +283,7 @@ SettingShowUseHintDesc: 启用后，当你注视仪器时，会显示关于如�
 ControllerSettingsName: 手柄设置
 ControllerSettingsDesc: |-
   点击一个按键绑定即可修改它。
-  按退格键可清除绑定。
+  在下面所有说明中，按住 {color_header}SHIFT{color_normal} 等同于按住 {color_header}LT{color_normal}，按住 {color_header}CTRL{color_normal} 等同于按住 {color_header}RT{color_normal}。
 
 SettingController_Activate: 激活 / 确定
 SettingController_ActivateDesc: |-
