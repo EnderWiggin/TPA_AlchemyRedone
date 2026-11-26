@@ -847,11 +847,11 @@ function Window:makeTools()
     end
 
 
-    local function header(name, type, key, hasModes)
+    local function header(name, type, key, label, hasModes)
         local e = M.namedHeader(name, function()
             local suffix = hasModes and self.isPoison and '_Poison' or ''
             local record = self:getToolRecord(type)
-            return toolTip(record, name, key, suffix)
+            return toolTip(record, label, key, suffix)
         end)
         e.layout.external = { grow = 1 }
         return e
@@ -918,7 +918,7 @@ function Window:makeTools()
             content = ui.content {
                 M.namedIcon('icon', ICON_SZ),
                 T.intervalH(10),
-                header('name', type, key, hasModes),
+                header('name', type, key, name, hasModes),
                 M.namedText('quality'),
             },
         }
