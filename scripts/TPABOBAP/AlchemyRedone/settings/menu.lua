@@ -7,7 +7,7 @@ local H = require('scripts.UIToolkit.helpers')
 
 local l10n = require('openmw.core').l10n(CFG.MOD)
 local Device = require 'scripts.UIToolkit.config.defaults'.Device
-local version = '2.0.4'
+local version = '2.0.5'
 
 
 local FontSize = {
